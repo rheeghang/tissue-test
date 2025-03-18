@@ -59,9 +59,10 @@ const RotatedText = ({ text, title, blurAmount }) => {
   return (
     <div 
       ref={containerRef}
-      className="container w-full max-w-[350px] p-[40px_20px_20px] relative inline-block text-lg leading-8 text-left text-exhibition-text overflow-y-auto"
+      className="container w-full max-w-[350px] p-[40px_20px_20px] relative inline-block text-xl leading-8 text-left text-exhibition-text"
       style={{
         wordWrap: 'break-word',
+        overflow: 'hidden',
         filter: `blur(${blurAmount}px)`,
         transition: 'filter 0.3s ease',
       }}
@@ -70,7 +71,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
     >
       {/* 제목 부분 - 회전 추가 */}
       <h1 
-        className="text-3xl text-center mb-8 title-span"
+        className="text-4xl text-center mb-8 title-span"
         tabIndex="0"
         style={{
           transform: 'rotate(45deg)',
