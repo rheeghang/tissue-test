@@ -36,8 +36,8 @@ const RotatedText = ({ text, title, blurAmount }) => {
     const container = containerRef.current
     if (!container) return
 
-    // 기존 span 요소들 제거 (제목 제외)
-    const spans = container.querySelectorAll('span:not(.title-span)')
+    // 기존 span 요소 제거
+    const spans = container.querySelectorAll('span')
     spans.forEach(span => span.remove())
 
     const lines = getWrappedLines(text, container)
@@ -59,20 +59,24 @@ const RotatedText = ({ text, title, blurAmount }) => {
   return (
     <div 
       ref={containerRef}
-      className="container w-full max-w-[350px] p-[40px_20px_20px] relative inline-block text-lg leading-8 text-left text-exhibition-text"
+      className="container w-full max-w-[350px] p-[40px_20px_20px] relative inline-block text-lg leading-8 text-left text-exhibition-text overflow-y-auto"
       style={{
         wordWrap: 'break-word',
-        overflow: 'hidden',
         filter: `blur(${blurAmount}px)`,
-        transition: 'filter 0.3s ease'
+        transition: 'filter 0.3s ease',
       }}
       role="article"
       aria-label="전시회 설명 텍스트"
     >
-      {/* 제목 부분 */}
+      {/* 제목 부분 - 회전 추가 */}
       <h1 
         className="text-3xl text-center mb-8 title-span"
         tabIndex="0"
+        style={{
+          transform: 'rotate(45deg)',
+          transformOrigin: 'left bottom',
+          display: 'block',
+        }}
       >
         {title}
       </h1>
@@ -85,7 +89,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
       <style jsx>{`
         .container span {
           display: block;
-          transform: rotate(15deg);
+          transform: rotate(45deg);
           transform-origin: left bottom;
           white-space: nowrap;
           margin-bottom: 10px;
@@ -108,4 +112,4 @@ const RotatedText = ({ text, title, blurAmount }) => {
   )
 }
 
-export default RotatedText 
+export default RotatedText
