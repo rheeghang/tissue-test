@@ -59,7 +59,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
   return (
     <div 
       ref={containerRef}
-      className="container w-full max-w-[350px] p-[40px_20px_20px] relative inline-block text-xl leading-8 text-left text-exhibition-text"
+      className="container w-full max-w-[400px] p-[40px_20px_20px] relative inline-block text-xl leading-8 text-left text-exhibition-text"
       style={{
         wordWrap: 'break-word',
         overflow: 'hidden',
