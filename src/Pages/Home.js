@@ -150,8 +150,8 @@ const App = () => {
       <div className="fixed inset-0 flex items-center justify-center">
         <div
           style={{
-            transform: `rotate(${gamma}deg)`,
-            transition: 'transform 0.1s',
+            transform: `rotate(${alpha}deg)`,
+            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
             willChange: 'transform',
             backgroundColor: backgroundColor,
           }}
