@@ -8,87 +8,129 @@ const ExhibitionText = () => {
   const initialSoundPlayed = useRef(false)
   const textReadPlayed = useRef(false)
   const synth = window.speechSynthesis
+  const audioPlayed = useRef(false) // 오디오가 재생 중인지 여부
+  const fadeInInterval = useRef(null)
+  const fadeOutInterval = useRef(null)
   
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
-  const tolerance = 10
+  const tolerance = 15
   const maxBlur = 10
-  
-  // iOS 디바이스 체크
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 
   const title = "우리의 몸에는 타인이 깃든다"
-  const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 존재의 '다름'을 인정할 뿐만 아니라 나와 다른 존재에 취해야 할 태도에 대해 고민하는 전시입니다. 우리 안에는 다양한 경계가 있습니다.  '안과 밖', '우리와 타인', '안전한 것과 위험한 것', '나 그리고 나와 다른' 등의 언어처럼 말이죠. 그러나 경계가 지극히 상대적인 개념이며, 나 또한 누군가에게는 또 다른 타자가 될 수 있다면요? 내가 나인 채로 당신이 당신인 채로, 우리는 어떻게 비대칭적으로 소통하고 함께할 수 있을까요?`
+  const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
 
-  // 텍스트 읽기 함수
+
+  // 🔹 오디오 페이드 인 함수 (수정됨)
+const fadeInAudio = () => {
+  if (audioRef.current && !audioPlayed.current) {
+    clearInterval(fadeOutInterval.current) // 페이드 아웃 중이면 중단
+
+    // 📌 사용자 상호작용이 있어야만 재생 가능
+    const playPromise = audioRef.current.play()
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          audioRef.current.volume = 0
+          audioPlayed.current = true
+
+          let volume = 0
+          fadeInInterval.current = setInterval(() => {
+            if (volume < 1) {
+              volume = Math.min(1, volume + 0.1) // 최대 1.0까지만 증가
+              audioRef.current.volume = volume
+            } else {
+              clearInterval(fadeInInterval.current)
+            }
+          }, 100)
+        })
+        .catch((error) => {
+          console.error("오디오 자동 재생 실패:", error)
+        })
+    }
+  }
+}
+
+// 🔹 오디오 페이드 아웃 함수 (수정됨)
+const fadeOutAudio = () => {
+  if (audioRef.current && audioPlayed.current) {
+    clearInterval(fadeInInterval.current) // 페이드 인 중이면 중단
+
+    let volume = 1
+    fadeOutInterval.current = setInterval(() => {
+      if (volume > 0) {
+        volume = Math.max(0, volume - 0.1) // 최소 0.0까지만 감소
+        audioRef.current.volume = volume
+      } else {
+        clearInterval(fadeOutInterval.current)
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+        audioPlayed.current = false // 오디오 상태 업데이트
+      }
+    }, 100)
+  }
+}
+
+// 🔹 사용자 클릭 이벤트로 오디오 활성화
+const enableAudioOnUserInteraction = () => {
+  if (audioRef.current && !initialSoundPlayed.current) {
+    audioRef.current.play().then(() => {
+      initialSoundPlayed.current = true
+    }).catch(error => console.error("사용자 입력 없이 오디오 재생 불가:", error))
+  }
+}
+
+useEffect(() => {
+  // 사용자 클릭 이벤트 리스너 추가 (최초 1회만 실행)
+  window.addEventListener("click", enableAudioOnUserInteraction, { once: true })
+  window.addEventListener("touchstart", enableAudioOnUserInteraction, { once: true })
+
+  return () => {
+    window.removeEventListener("click", enableAudioOnUserInteraction)
+    window.removeEventListener("touchstart", enableAudioOnUserInteraction)
+  }
+}, [])
+
+  // 🔹 텍스트 읽기 함수
   const speakText = (text) => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'ko-KR'  // 한국어 설정
-    utterance.rate = 1.0      // 읽기 속도
-    utterance.pitch = 1.0     // 음높이
-    synth.speak(utterance)
+    if (!textReadPlayed.current) {
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'ko-KR'
+      utterance.rate = 1.0
+      utterance.pitch = 1.0
+      synth.speak(utterance)
+
+      textReadPlayed.current = true
+    }
   }
 
-  useEffect(() => {
-    // 컴포넌트 마운트 시 초기 사운드 재생
-    if (!initialSoundPlayed.current && audioRef.current) {
-      audioRef.current.play()
-        .then(() => {
-          initialSoundPlayed.current = true
-        })
-        .catch(err => console.log('오디오 재생 실패:', err))
-    }
-  }, [])
-
-  // 방향 감지 이벤트 핸들러
+  // 🔹 방향 감지 이벤트 핸들러
   const handleOrientation = (event) => {
     const { beta, gamma } = event
     const betaDiff = Math.abs(beta - targetBeta)
     const gammaDiff = Math.abs(gamma - targetGamma)
     
     if (betaDiff <= tolerance && gammaDiff <= tolerance) {
+      // 📌 ✅ 각도 범위 안: 블러 제거 + 오디오 페이드 아웃 + 보이스 오버 실행
       setBlurAmount(0)
-      // 블러가 0이 되고 아직 텍스트를 읽지 않았다면
-      if (!textReadPlayed.current) {
-        speakText(title + '. ' + originalText)
-        textReadPlayed.current = true
-      }
+      fadeOutAudio()
+      speakText(title + '. ' + originalText)
     } else {
+      // 📌 ❌ 각도 범위 밖: 블러 증가 + 오디오 페이드 인
       const blur = Math.min(maxBlur, Math.max(betaDiff, gammaDiff) / 5)
       setBlurAmount(blur)
-      // 블러가 다시 생기면 다음번을 위해 초기화
+      fadeInAudio()
+
+      // 블러가 다시 생기면 다음번 보이스 오버를 위해 초기화
       textReadPlayed.current = false
     }
   }
 
-  // iOS 권한 요청
-  const requestPermission = async () => {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const permission = await DeviceOrientationEvent.requestPermission()
-        if (permission === 'granted') {
-          setPermissionGranted(true)
-          window.addEventListener('deviceorientation', handleOrientation)
-        }
-      } catch (error) {
-        console.error('Error requesting permission:', error)
-      }
-    } else {
+  useEffect(() => {
+    if (window.DeviceOrientationEvent) {
       setPermissionGranted(true)
       window.addEventListener('deviceorientation', handleOrientation)
-    }
-  }
-
-  useEffect(() => {
-    // DeviceOrientation 초기화
-    if (window.DeviceOrientationEvent) {
-      if (isIOS) {
-        requestPermission()
-      } else {
-        setPermissionGranted(true)
-        window.addEventListener('deviceorientation', handleOrientation)
-      }
     }
 
     return () => {
@@ -96,66 +138,10 @@ const ExhibitionText = () => {
     }
   }, [])
 
-  // 키보드로 블러 효과 제어 (접근성 향상)
-  const handleKeyDown = (e) => {
-    if (e.key === 'f' || e.key === 'F') {
-      setBlurAmount(0) // 'F' 키를 누르면 블러 제거
-    }
-  }
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [])
-
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      synth.cancel() // 음성 합성 정지
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
-      }
-    }
-  }, [])
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-exhibition-bg overflow-hidden">
-      {!permissionGranted && isIOS ? (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl text-black">
-            <h2 className="text-xl font-bold mb-4">권한 요청</h2>
-            <p className="mb-4">기기 방향 감지 권한을 허용해 주세요.</p>
-            <button
-              onClick={requestPermission}
-              className="bg-exhibition-bg text-exhibition-text px-4 py-2 rounded hover:opacity-90 transition-opacity"
-            >
-              권한 허용하기
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
-          <audio 
-            ref={audioRef} 
-            src="/assets/sound.mp3"
-            preload="auto"  // 오디오 미리 로드
-          />
-          <div 
-            className="fixed bottom-4 left-0 w-full text-center text-sm text-exhibition-text opacity-50"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            현재 각도: β(x): {Math.round(blurAmount)}° γ(y): {Math.round(blurAmount)}°
-            <span className="sr-only">
-              {blurAmount === 0 ? '텍스트가 선명하게 보입니다.' : '원하는 각도를 찾아보세요.'}
-            </span>
-          </div>
-        </>
-      )}
+      <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
+      <audio ref={audioRef} src="/assets/sound.mp3" preload="auto" />
     </div>
   )
 }
