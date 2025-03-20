@@ -1,12 +1,16 @@
-import React from 'react'
-import ExhibitionText from './components/ExhibitionText'
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import Home from './Pages/Home';
 
 function App() {
   return (
-    <div className="App">
-      <ExhibitionText />
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
