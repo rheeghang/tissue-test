@@ -38,7 +38,7 @@ const fadeInAudio = () => {
           let volume = 0
           fadeInInterval.current = setInterval(() => {
             if (volume < 1) {
-              volume = Math.min(1, volume + 0.1) // 최대 1.0까지만 증가
+              volume = Math.min(1, volume + 0.05) // 최대 1.0까지만 증가
               audioRef.current.volume = volume
             } else {
               clearInterval(fadeInInterval.current)
@@ -60,7 +60,7 @@ const fadeOutAudio = () => {
     let volume = 1
     fadeOutInterval.current = setInterval(() => {
       if (volume > 0) {
-        volume = Math.max(0, volume - 0.1) // 최소 0.0까지만 감소
+        volume = Math.max(0, volume - 0.05) // 최소 0.0까지만 감소
         audioRef.current.volume = volume
       } else {
         clearInterval(fadeOutInterval.current)
