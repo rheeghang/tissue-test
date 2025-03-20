@@ -151,13 +151,13 @@ const App = () => {
         <div
           style={{
             transform: `rotate(${gamma}deg)`,
-            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform 0.1s',
             willChange: 'transform',
             backgroundColor: backgroundColor,
           }}
-          className="w-80 p-6 pt-10 pb-10 text-left font-sans"
+          className="w-72 p-6 pt-6 pb-6 text-left font-sans"
         >
-          <p className="leading-relaxed text-xl break-keep">국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.<br></br><br></br>
+          <p className="leading-relaxed text-lg break-keep">국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.<br></br><br></br>
 큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만, '각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.</p>
         </div>
       </div>
