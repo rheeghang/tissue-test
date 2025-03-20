@@ -44,6 +44,8 @@ const App = () => {
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
+  const smoothingFactor = 0.05; // 더 부드러운 움직임 (5% 반영)
+
   const roundTo15Degrees = (angle) => {
     return Math.round(angle / 15) * 15;
   };
@@ -138,10 +140,10 @@ const App = () => {
         </div>
       )}
 
-<div className="fixed top-10 left-0 right-0">
-          <p className="mb-2 text-3xl">Z(α): {roundTo15Degrees(alpha)}°</p>
-          <p className="mb-2 text-3xl">X(β): {roundTo15Degrees(beta)}°</p>
-          <p className="mb-2 text-3xl">Y(γ): {roundTo15Degrees(gamma)}°</p>
+<div className="text-lg fixed left-0 right-0 z-50">
+          <p className="mb-1">Z(α): {roundTo15Degrees(alpha)}°</p>
+          <p className="mb-1">X(β): {roundTo15Degrees(beta)}°</p>
+          <p className="mb-1">Y(γ): {roundTo15Degrees(gamma)}°</p>
 </div>
 
       {/* 회전하는 텍스트 박스 */}
@@ -149,8 +151,9 @@ const App = () => {
         <div
           style={{
             transform: `rotate(${gamma}deg)`,
+            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            willChange: 'transform',
             backgroundColor: backgroundColor,
-            transition: "all 0.3s",
           }}
           className="w-80 p-6 pt-10 pb-10 text-left font-sans"
         >
@@ -160,8 +163,8 @@ const App = () => {
       </div>
 
       {/* 시작하기 버튼 */}
-      <div className="fixed bottom-10 left-0 right-0">
-        <button className="w-48 bg-black text-white py-6 text-xl font-bold">
+      <div className="fixed bottom-2 left-0 right-0">
+        <button className="w-48 bg-black text-white py-2 text-xl font-bold">
           시작하기
         </button>
       </div>
