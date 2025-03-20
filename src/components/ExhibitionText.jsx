@@ -23,50 +23,66 @@ const ExhibitionText = () => {
 
 
   // 🔹 오디오 페이드 인 함수 (수정됨)
-const fadeInAudio = () => {
-  if (audioRef.current && !audioPlayed.current) {
-    clearInterval(fadeOutInterval.current) // 페이드 아웃 중이면 중단
-
-    // 📌 사용자 상호작용이 있어야만 재생 가능
-    const playPromise = audioRef.current.play()
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          audioRef.current.volume = 0
-          audioPlayed.current = true
-
-          let volume = 0
-          fadeInInterval.current = setInterval(() => {
-            if (volume < 1) {
-              volume = Math.min(1, volume + 0.05) // 최대 1.0까지만 증가
-              audioRef.current.volume = volume
-            } else {
-              clearInterval(fadeInInterval.current)
-            }
-          }, 100)
-        })
-        .catch((error) => {
-          console.error("오디오 자동 재생 실패:", error)
-        })
+  const fadeInAudio = () => {
+    if (audioRef.current && !audioPlayed.current) {
+      if (fadeOutInterval.current !== null) {
+        clearInterval(fadeOutInterval.current) // 기존 페이드 아웃 제거
+        fadeOutInterval.current = null
+      }
+  
+      // 기존 인터벌이 있으면 중복 실행 방지
+      if (fadeInInterval.current !== null) {
+        return
+      }
+  
+      const playPromise = audioRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audioRef.current.volume = 0
+            audioPlayed.current = true
+  
+            fadeInInterval.current = setInterval(() => {
+              let currentVolume = audioRef.current.volume
+              if (currentVolume < 1) {
+                currentVolume = Math.min(1, currentVolume + 0.05)
+                audioRef.current.volume = currentVolume
+              } else {
+                clearInterval(fadeInInterval.current) // 🔹 인터벌 제거
+                fadeInInterval.current = null
+              }
+            }, 100)
+          })
+          .catch((error) => {
+            console.error("오디오 자동 재생 실패:", error)
+          })
+      }
     }
   }
-}
 
 // 🔹 오디오 페이드 아웃 함수 (수정됨)
 const fadeOutAudio = () => {
   if (audioRef.current && audioPlayed.current) {
-    clearInterval(fadeInInterval.current) // 페이드 인 중이면 중단
+    if (fadeInInterval.current !== null) {
+      clearInterval(fadeInInterval.current) // 기존 페이드 인 제거
+      fadeInInterval.current = null
+    }
 
-    let volume = 1
+    // 기존 인터벌이 있으면 중복 실행 방지
+    if (fadeOutInterval.current !== null) {
+      return
+    }
+
+    let volume = audioRef.current.volume // 현재 볼륨 가져오기
     fadeOutInterval.current = setInterval(() => {
       if (volume > 0) {
-        volume = Math.max(0, volume - 0.05) // 최소 0.0까지만 감소
+        volume = Math.max(0, volume - 0.05) // 볼륨 감소 (최소 0)
         audioRef.current.volume = volume
       } else {
-        clearInterval(fadeOutInterval.current)
+        clearInterval(fadeOutInterval.current) // 🔹 인터벌 제거
+        fadeOutInterval.current = null
         audioRef.current.pause()
-        audioRef.current.currentTime = 0
-        audioPlayed.current = false // 오디오 상태 업데이트
+        audioPlayed.current = false
       }
     }, 100)
   }
