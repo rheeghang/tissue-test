@@ -57,61 +57,103 @@ const RotatedText = ({ text, title, blurAmount }) => {
   }, [text])
 
   return (
-    <div 
-      ref={containerRef}
-      className="container w-full max-w-[400px] p-[40px_20px_20px] relative inline-block text-xl leading-8 text-left text-exhibition-text"
-      style={{
-        wordWrap: 'break-word',
-        overflow: 'hidden',
-        filter: `blur(${blurAmount}px)`,
-        transition: 'filter 0.3s ease',
-      }}
-      role="article"
-      aria-label="전시회 설명 텍스트"
-    >
-      {/* 제목 부분 - 회전 추가 */}
-      <h1 
-        className="text-4xl text-center mb-8 title-span"
-        tabIndex="0"
+    <div className="outer-container w-full pt-[10vh] relative">
+        
+        <div className="text-block mb-[50px] text-white">
+          <h1 
+            className="text-lg text-center mb-8 title-span block text-white"
+            tabIndex="0"
+            style={{
+              transform: 'rotate(45deg)',
+              transformOrigin: 'center center',
+              position: 'relative',
+              marginBottom: '40px',
+              whiteSpace: 'nowrap',
+              filter: `blur(${blurAmount}px)`,
+              transition: 'filter 0.3s ease'
+            }}
+          >
+            {title}
+          </h1>
+
+          <div 
+            className="text-base text-center block text-white"
+            style={{
+              transform: 'rotate(45deg)',
+              transformOrigin: 'center center',
+              position: 'relative',
+              marginBottom: '30px',
+              whiteSpace: 'nowrap',
+              filter: `blur(${blurAmount}px)`,
+              transition: 'filter 0.3s ease'
+            }}
+          >
+            송예슬
+          </div>
+
+          <div 
+            className="text-sm text-center block text-white"
+            style={{
+              transform: 'rotate(45deg)',
+              transformOrigin: 'center center',
+              position: 'relative',
+              whiteSpace: 'nowrap',
+              lineHeight: '1.5',
+              filter: `blur(${blurAmount}px)`,
+              transition: 'filter 0.3s ease'
+            }}
+          >
+            2025, 설치, 초음파 파장, 커스텀 소프트웨어, 가변 크기.<br/>
+            국립아시아문화전당 재제작 지원, 작가 제공.
+          </div>
+        </div>
+
+        <div 
+        ref={containerRef}
+        className="container w-full relative inline-block text-base leading-[1.5rem] text-left text-white"
         style={{
-          transform: 'rotate(45deg)',
-          transformOrigin: 'left bottom',
-          display: 'block',
+          wordWrap: 'break-word',
+          overflow: 'visible',
+          filter: `blur(${blurAmount}px)`,
+          transition: 'filter 0.3s ease',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          display: 'block'
         }}
+        role="article"
+        aria-label="전시회 설명 텍스트"
       >
-        {title}
-      </h1>
-      
-      {/* 스크린 리더용 숨겨진 텍스트 */}
-      <div className="sr-only" tabIndex="0">
-        {text}
+        
+        {/* 스크린 리더용 숨겨진 텍스트 */}
+        <div className="sr-only" tabIndex="0">
+          {text}
+        </div>
+        
+        <style jsx>{`
+          .container span {
+            display: block;
+            transform: rotate(45deg);
+            transform-origin: center center;
+            white-space: nowrap;
+            margin-bottom: 20px;
+            position: relative;
+            top: 60px;
+          }
+          .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+          }
+        `}</style>
       </div>
-      
-      <style jsx>{`
-        .container span {
-          display: block;
-          transform: rotate(45deg);
-          transform-origin: left bottom;
-          white-space: nowrap;
-          margin-bottom: 10px;
-          position: relative;
-          top: 5px;
-        }
-        .sr-only {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          white-space: nowrap;
-          border-width: 0;
-        }
-      `}</style>
     </div>
   )
 }
-
 
 export default RotatedText

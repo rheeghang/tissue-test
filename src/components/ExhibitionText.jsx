@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import RotatedText from './RotatedText'
 
 const ExhibitionText = () => {
@@ -6,15 +6,12 @@ const ExhibitionText = () => {
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
-  const [ttsInitialized, setTtsInitialized] = useState(false)
-  const audioRef = useRef(null)
-  const initialSoundPlayed = useRef(false)
-  const textReadPlayed = useRef(false)
-  const synth = window.speechSynthesis
-  const audioPlayed = useRef(false)
-  const fadeInInterval = useRef(null)
-  const fadeOutInterval = useRef(null)
-  
+  const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
+  const [speechSynthesis, setSpeechSynthesis] = useState(null);
+  const speechRef = useRef(null);
+  const soundRef = useRef(new Audio('/path-to-sound1.mp3'));
+  const [isPlaying, setIsPlaying] = useState(false);
+
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
@@ -22,68 +19,52 @@ const ExhibitionText = () => {
   const maxBlur = 10
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
-  const title = "우리의 몸에는 타인이 깃든다"
-  const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
+  const title = "보이지 않는 조각들: 공기조각"
+  const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
 
-  // iOS 디바이스 체크 및 TTS 초기화
+  // iOS 디바이스 체크
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     setIsIOS(isIOSDevice)
-    
-    // TTS 초기화
-    const initTTS = () => {
-      if (synth) {
-        // iOS에서 TTS 초기화를 위한 더미 발화
-        const dummyUtterance = new SpeechSynthesisUtterance('')
-        dummyUtterance.volume = 0
-        synth.speak(dummyUtterance)
-        setTtsInitialized(true)
-      }
-    }
-
     if (isIOSDevice) {
       setShowPermissionModal(true)
-      // iOS에서는 사용자 상호작용 후 TTS 초기화
-      const initOnInteraction = () => {
-        initTTS()
-        document.removeEventListener('touchstart', initOnInteraction)
-        document.removeEventListener('click', initOnInteraction)
-      }
-      document.addEventListener('touchstart', initOnInteraction)
-      document.addEventListener('click', initOnInteraction)
-    } else {
-      initTTS()
     }
   }, [])
 
-  // 🔹 TTS 음성 페이드 인 & 클리어링 기능
-  const speakTextWithEffect = (text, clarity) => {
-    if (!ttsInitialized) return
+  // Initialize TTS and sound1.mp3
+  useEffect(() => {
+    speechRef.current = new SpeechSynthesisUtterance(originalText);
+    speechRef.current.rate = 1;
+    speechRef.current.pitch = 1;
+    speechRef.current.volume = 0;
+    setSpeechSynthesis(window.speechSynthesis);
 
-    if (synth.speaking) {
-      synth.cancel()
+    soundRef.current.loop = true;
+    soundRef.current.volume = 1; // 초기 상태에서 소리 명확히 출력
+
+    return () => {
+      if (speechSynthesis) {
+        speechSynthesis.cancel();
+      }
+      soundRef.current.pause();
+    };
+  }, [originalText]);
+
+  // 키보드 이벤트 핸들러
+  const handleKeyPress = useCallback((event) => {
+    if (event.key.toLowerCase() === 'f') {
+      console.log('F key pressed') // 디버깅용 로그
+      setIsOrientationEnabled(false)
+      setBlurAmount(0)
     }
+  }, [setBlurAmount, setIsOrientationEnabled])
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'ko-KR'
-
-    // 각도에 따른 음성 조절
-    utterance.rate = 0.5 + clarity * 1.0 // 속도 (0.5~1.5)
-    utterance.volume = 0.1 + clarity * 0.9 // 볼륨 (0.1~1.0)
-
-    // 음성 왜곡 효과 적용
-    if (clarity < 0.3) {
-      utterance.text = "........." + text // 처음엔 웅얼거리는 듯한 효과
-    } else if (clarity < 0.6) {
-      utterance.text = text.replace(/([가-힣])/g, "$1 ") // 단어가 띄엄띄엄 들리는 효과
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyPress)
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress)
     }
-
-    try {
-      synth.speak(utterance)
-    } catch (error) {
-      console.error('TTS 실행 실패:', error)
-    }
-  }
+  }, [handleKeyPress])
 
   // iOS 권한 요청 처리
   const handlePermissionRequest = async () => {
@@ -93,128 +74,94 @@ const ExhibitionText = () => {
         if (permission === 'granted') {
           setPermissionGranted(true)
           setShowPermissionModal(false)
-          window.addEventListener('deviceorientation', handleOrientation)
+          setIsOrientationEnabled(true)
+        } else {
+          setShowPermissionModal(false)
         }
       } catch (error) {
         console.error('권한 요청 실패:', error)
-      }
-    }
-  }
-
-  // 🔹 오디오 페이드 인 함수 (거리에 따른 볼륨 조절)
-  const fadeInAudio = (distance) => {
-    if (audioRef.current && !audioPlayed.current) {
-      if (fadeOutInterval.current !== null) {
-        clearInterval(fadeOutInterval.current)
-        fadeOutInterval.current = null
-      }
-  
-      if (fadeInInterval.current !== null) {
-        return
-      }
-  
-      const playPromise = audioRef.current.play()
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            audioRef.current.volume = 0
-            audioPlayed.current = true
-  
-            fadeInInterval.current = setInterval(() => {
-              let currentVolume = audioRef.current.volume
-              const targetVolume = Math.min(1, distance / maxDistance) // 거리에 따른 목표 볼륨
-              if (currentVolume < targetVolume) {
-                currentVolume = Math.min(targetVolume, currentVolume + 0.05)
-                audioRef.current.volume = currentVolume
-              } else {
-                clearInterval(fadeInInterval.current)
-                fadeInInterval.current = null
-              }
-            }, 100)
-          })
-          .catch((error) => {
-            console.error("오디오 자동 재생 실패:", error)
-          })
-      }
-    }
-  }
-
-  // 🔹 오디오 페이드 아웃 함수 (거리에 따른 볼륨 조절)
-  const fadeOutAudio = (distance) => {
-    if (audioRef.current && audioPlayed.current) {
-      if (fadeInInterval.current !== null) {
-        clearInterval(fadeInInterval.current)
-        fadeInInterval.current = null
-      }
-
-      if (fadeOutInterval.current !== null) {
-        return
-      }
-
-      let volume = audioRef.current.volume
-      const targetVolume = Math.min(1, distance / maxDistance) // 거리에 따른 목표 볼륨
-      fadeOutInterval.current = setInterval(() => {
-        if (volume > targetVolume) {
-          volume = Math.max(targetVolume, volume - 0.05)
-          audioRef.current.volume = volume
-        } else {
-          clearInterval(fadeOutInterval.current)
-          fadeOutInterval.current = null
-          if (targetVolume === 0) {
-            audioRef.current.pause()
-            audioPlayed.current = false
-          }
-        }
-      }, 100)
-    }
-  }
-
-  // 🔹 방향 감지 이벤트 핸들러
-  const handleOrientation = (event) => {
-    const { beta, gamma } = event
-    const betaDiff = Math.abs(beta - targetBeta)
-    const gammaDiff = Math.abs(gamma - targetGamma)
-    
-    // 전체 거리 계산 (0~maxDistance)
-    const distance = Math.min(maxDistance, Math.max(betaDiff, gammaDiff))
-    
-    // 명확도 계산 (0~1)
-    const clarity = 1 - Math.min(1, distance / maxDistance)
-    
-    if (betaDiff <= tolerance && gammaDiff <= tolerance) {
-      // 📌 ✅ 각도 범위 안: 블러 제거 + 오디오 페이드 아웃 + TTS 음성 실행
-      setBlurAmount(0)
-      fadeOutAudio(distance)
-      if (!textReadPlayed.current) {
-        speakTextWithEffect(title + '. ' + originalText, clarity)
-        textReadPlayed.current = true
+        setShowPermissionModal(false)
       }
     } else {
-      // 📌 ❌ 각도 범위 밖: 블러 증가 + 오디오 페이드 인
-      const blur = Math.min(maxBlur, distance / 5)
-      setBlurAmount(blur)
-      fadeInAudio(distance)
-
-      // 블러가 다시 생기면 다음번 TTS를 위해 초기화
-      textReadPlayed.current = false
+      setShowPermissionModal(false)
     }
   }
 
+  // Start audio playback on user interaction
+  const handleTouchStart = () => {
+    if (!isPlaying) {
+      soundRef.current.play().catch((error) => console.error('Audio play failed:', error));
+      setIsPlaying(true);
+    }
+  };
+
+  // 방향 감지 이벤트 핸들러
+  const handleOrientation = useCallback((event) => {
+    if (!isOrientationEnabled) return;
+
+    const { beta, gamma } = event;
+    const betaDiff = Math.abs(beta - targetBeta);
+    const gammaDiff = Math.abs(gamma - targetGamma);
+    const distance = Math.min(maxDistance, Math.max(betaDiff, gammaDiff));
+
+    // Blur 조절 로직 유지
+    if (betaDiff <= tolerance && gammaDiff <= tolerance) {
+      setBlurAmount(0);
+    } else {
+      const blur = Math.min(maxBlur, distance / 5);
+      setBlurAmount(blur);
+    }
+
+    // 🎯 음성 페이드 인 및 볼륨 조절 로직
+    if (speechRef.current && speechSynthesis) {
+      if (distance <= 10) {
+        soundRef.current.volume = 1;
+        speechRef.current.volume = 0;
+      } else if (distance > 10 && distance <= 30) {
+        if (!speechSynthesis.speaking) {
+          speechSynthesis.speak(speechRef.current);
+        }
+        const fade = (30 - distance) / 20;
+        soundRef.current.volume = fade;
+        speechRef.current.volume = 1 - fade;
+      } else if (distance > 30 && distance <= 40) {
+        soundRef.current.volume = 0;
+        speechRef.current.volume = 1;
+      } else {
+        soundRef.current.volume = 1;
+        speechRef.current.volume = 0;
+      }
+    }
+  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, maxBlur, maxDistance, setBlurAmount]);
+
+  // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
-    if (window.DeviceOrientationEvent) {
-      setPermissionGranted(true)
-      window.addEventListener('deviceorientation', handleOrientation)
+    console.log('Orientation enabled:', isOrientationEnabled) // 디버깅용 로그
+    
+    let orientationHandler = null;
+    
+    if (window.DeviceOrientationEvent && isOrientationEnabled) {
+      console.log('Adding orientation listener') // 디버깅용 로그
+      orientationHandler = handleOrientation;
+      window.addEventListener('deviceorientation', orientationHandler)
     }
 
     return () => {
-      window.removeEventListener('deviceorientation', handleOrientation)
+      if (orientationHandler) {
+        console.log('Removing orientation listener') // 디버깅용 로그
+        window.removeEventListener('deviceorientation', orientationHandler)
+      }
     }
-  }, [])
+  }, [isOrientationEnabled, handleOrientation])
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-exhibition-bg overflow-hidden">
-      <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
-      <audio ref={audioRef} src="/assets/sound.mp3" preload="auto" />
+    <div
+      className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden"
+      onTouchStart={handleTouchStart}
+    >
+      <div className="w-full pt-[10px]">
+        <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
+      </div>
       
       {/* iOS 권한 요청 모달 */}
       {isIOS && showPermissionModal && (
