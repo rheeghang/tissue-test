@@ -4,6 +4,8 @@ import RotatedText from './RotatedText'
 const ExhibitionText = () => {
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+  const [showPermissionModal, setShowPermissionModal] = useState(false)
   const audioRef = useRef(null)
   const initialSoundPlayed = useRef(false)
   const textReadPlayed = useRef(false)
@@ -22,9 +24,20 @@ const ExhibitionText = () => {
   const title = "우리의 몸에는 타인이 깃든다"
   const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
 
+  // iOS 디바이스 체크
+  useEffect(() => {
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+    setIsIOS(isIOSDevice)
+    if (isIOSDevice) {
+      setShowPermissionModal(true)
+    }
+  }, [])
+
   // 🔹 TTS 음성 페이드 인 & 클리어링 기능
   const speakTextWithEffect = (text, clarity) => {
-    if (synth.speaking) synth.cancel()
+    if (synth.speaking) {
+      synth.cancel()
+    }
 
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'ko-KR'
@@ -40,7 +53,32 @@ const ExhibitionText = () => {
       utterance.text = text.replace(/([가-힣])/g, "$1 ") // 단어가 띄엄띄엄 들리는 효과
     }
 
-    synth.speak(utterance)
+    // iOS에서 사용자 상호작용 후 TTS 실행
+    if (isIOS) {
+      const playTTS = () => {
+        synth.speak(utterance)
+      }
+      document.addEventListener('touchstart', playTTS, { once: true })
+      document.addEventListener('click', playTTS, { once: true })
+    } else {
+      synth.speak(utterance)
+    }
+  }
+
+  // iOS 권한 요청 처리
+  const handlePermissionRequest = async () => {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission()
+        if (permission === 'granted') {
+          setPermissionGranted(true)
+          setShowPermissionModal(false)
+          window.addEventListener('deviceorientation', handleOrientation)
+        }
+      } catch (error) {
+        console.error('권한 요청 실패:', error)
+      }
+    }
   }
 
   // 🔹 오디오 페이드 인 함수 (거리에 따른 볼륨 조절)
@@ -111,25 +149,6 @@ const ExhibitionText = () => {
     }
   }
 
-  // 🔹 사용자 클릭 이벤트로 오디오 활성화
-  const enableAudioOnUserInteraction = () => {
-    if (audioRef.current && !initialSoundPlayed.current) {
-      audioRef.current.play().then(() => {
-        initialSoundPlayed.current = true
-      }).catch(error => console.error("사용자 입력 없이 오디오 재생 불가:", error))
-    }
-  }
-
-  useEffect(() => {
-    window.addEventListener("click", enableAudioOnUserInteraction, { once: true })
-    window.addEventListener("touchstart", enableAudioOnUserInteraction, { once: true })
-
-    return () => {
-      window.removeEventListener("click", enableAudioOnUserInteraction)
-      window.removeEventListener("touchstart", enableAudioOnUserInteraction)
-    }
-  }, [])
-
   // 🔹 방향 감지 이벤트 핸들러
   const handleOrientation = (event) => {
     const { beta, gamma } = event
@@ -176,6 +195,22 @@ const ExhibitionText = () => {
     <div className="flex justify-center items-center min-h-screen bg-exhibition-bg overflow-hidden">
       <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
       <audio ref={audioRef} src="/assets/sound.mp3" preload="auto" />
+      
+      {/* iOS 권한 요청 모달 */}
+      {isIOS && showPermissionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
+            <h2 className="text-xl font-bold mb-4">방향 감지 권한 필요</h2>
+            <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지 권한이 필요합니다.</p>
+            <button
+              onClick={handlePermissionRequest}
+              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            >
+              권한 허용하기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
