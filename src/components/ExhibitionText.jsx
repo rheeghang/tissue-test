@@ -6,6 +6,7 @@ const ExhibitionText = () => {
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
+  const [ttsInitialized, setTtsInitialized] = useState(false)
   const audioRef = useRef(null)
   const initialSoundPlayed = useRef(false)
   const textReadPlayed = useRef(false)
@@ -24,17 +25,41 @@ const ExhibitionText = () => {
   const title = "우리의 몸에는 타인이 깃든다"
   const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
 
-  // iOS 디바이스 체크
+  // iOS 디바이스 체크 및 TTS 초기화
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     setIsIOS(isIOSDevice)
+    
+    // TTS 초기화
+    const initTTS = () => {
+      if (synth) {
+        // iOS에서 TTS 초기화를 위한 더미 발화
+        const dummyUtterance = new SpeechSynthesisUtterance('')
+        dummyUtterance.volume = 0
+        synth.speak(dummyUtterance)
+        setTtsInitialized(true)
+      }
+    }
+
     if (isIOSDevice) {
       setShowPermissionModal(true)
+      // iOS에서는 사용자 상호작용 후 TTS 초기화
+      const initOnInteraction = () => {
+        initTTS()
+        document.removeEventListener('touchstart', initOnInteraction)
+        document.removeEventListener('click', initOnInteraction)
+      }
+      document.addEventListener('touchstart', initOnInteraction)
+      document.addEventListener('click', initOnInteraction)
+    } else {
+      initTTS()
     }
   }, [])
 
   // 🔹 TTS 음성 페이드 인 & 클리어링 기능
   const speakTextWithEffect = (text, clarity) => {
+    if (!ttsInitialized) return
+
     if (synth.speaking) {
       synth.cancel()
     }
@@ -53,15 +78,10 @@ const ExhibitionText = () => {
       utterance.text = text.replace(/([가-힣])/g, "$1 ") // 단어가 띄엄띄엄 들리는 효과
     }
 
-    // iOS에서 사용자 상호작용 후 TTS 실행
-    if (isIOS) {
-      const playTTS = () => {
-        synth.speak(utterance)
-      }
-      document.addEventListener('touchstart', playTTS, { once: true })
-      document.addEventListener('click', playTTS, { once: true })
-    } else {
+    try {
       synth.speak(utterance)
+    } catch (error) {
+      console.error('TTS 실행 실패:', error)
     }
   }
 
