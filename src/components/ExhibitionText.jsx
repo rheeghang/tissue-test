@@ -7,10 +7,10 @@ const ExhibitionText = () => {
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
-  const [speechSynthesis, setSpeechSynthesis] = useState(null);
-  const speechRef = useRef(null);
-  const soundRef = useRef(new Audio('/path-to-sound1.mp3'));
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentAngles, setCurrentAngles] = useState({ beta: 0, gamma: 0 })
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [showAudioButton, setShowAudioButton] = useState(true)
+  const soundRef = useRef(new Audio(process.env.PUBLIC_URL + '/sound1.mp3'))
 
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
@@ -22,6 +22,41 @@ const ExhibitionText = () => {
   const title = "보이지 않는 조각들: 공기조각"
   const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
 
+  // 오디오 초기화
+  useEffect(() => {
+    const audio = soundRef.current
+    audio.loop = true
+    audio.volume = 1
+
+    // iOS에서 오디오 재생을 위한 설정
+    const setupAudio = () => {
+      audio.load()
+      document.removeEventListener('touchstart', setupAudio)
+    }
+    document.addEventListener('touchstart', setupAudio)
+
+    return () => {
+      audio.pause()
+      audio.currentTime = 0
+      document.removeEventListener('touchstart', setupAudio)
+    }
+  }, [])
+
+  // 오디오 재생 핸들러
+  const handleAudioStart = async () => {
+    try {
+      console.log('Starting audio playback') // 디버깅용 로그
+      await soundRef.current.play()
+      console.log('Audio playing successfully') // 디버깅용 로그
+      setIsPlaying(true)
+      setShowAudioButton(false)
+    } catch (error) {
+      console.error('Audio play failed:', error)
+      // 오류 발생 시 버튼 유지
+      setShowAudioButton(true)
+    }
+  }
+
   // iOS 디바이스 체크
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
@@ -31,31 +66,16 @@ const ExhibitionText = () => {
     }
   }, [])
 
-  // Initialize TTS and sound1.mp3
-  useEffect(() => {
-    speechRef.current = new SpeechSynthesisUtterance(originalText);
-    speechRef.current.rate = 1;
-    speechRef.current.pitch = 1;
-    speechRef.current.volume = 0;
-    setSpeechSynthesis(window.speechSynthesis);
-
-    soundRef.current.loop = true;
-    soundRef.current.volume = 1; // 초기 상태에서 소리 명확히 출력
-
-    return () => {
-      if (speechSynthesis) {
-        speechSynthesis.cancel();
-      }
-      soundRef.current.pause();
-    };
-  }, [originalText]);
-
   // 키보드 이벤트 핸들러
   const handleKeyPress = useCallback((event) => {
     if (event.key.toLowerCase() === 'f') {
       console.log('F key pressed') // 디버깅용 로그
       setIsOrientationEnabled(false)
       setBlurAmount(0)
+      // 방향 감지 이벤트 리스너 제거
+      if (window.DeviceOrientationEvent) {
+        window.removeEventListener('deviceorientation', handleOrientation)
+      }
     }
   }, [setBlurAmount, setIsOrientationEnabled])
 
@@ -87,14 +107,6 @@ const ExhibitionText = () => {
     }
   }
 
-  // Start audio playback on user interaction
-  const handleTouchStart = () => {
-    if (!isPlaying) {
-      soundRef.current.play().catch((error) => console.error('Audio play failed:', error));
-      setIsPlaying(true);
-    }
-  };
-
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (!isOrientationEnabled) {
@@ -103,17 +115,28 @@ const ExhibitionText = () => {
     }
 
     const { beta, gamma } = event
-    const betaDiff = Math.abs(beta - targetBeta)
-    const gammaDiff = Math.abs(gamma - targetGamma)
-    
-    // 각도 차이에 따른 블러 계산 로직 개선
-    const maxAngleDiff = Math.max(betaDiff, gammaDiff)
-    const normalizedDiff = Math.min(maxAngleDiff, maxDistance) / maxDistance
-    const blur = maxBlur * normalizedDiff
-    
-    console.log(`Beta diff: ${betaDiff.toFixed(2)}, Gamma diff: ${gammaDiff.toFixed(2)}, Blur: ${blur.toFixed(2)}`) // 디버깅용 로그
-    
-    setBlurAmount(blur)
+    if (beta !== null && gamma !== null) {  // null 체크 추가
+      setCurrentAngles({ beta, gamma }) // 현재 각도 저장
+      
+      const betaDiff = Math.abs(beta - targetBeta)
+      const gammaDiff = Math.abs(gamma - targetGamma)
+      
+      // 각도 차이에 따른 블러 계산 로직 개선
+      const maxAngleDiff = Math.max(betaDiff, gammaDiff)
+      const normalizedDiff = Math.min(maxAngleDiff, maxDistance) / maxDistance
+      const blur = maxBlur * normalizedDiff
+      
+      console.log(`Beta diff: ${betaDiff.toFixed(2)}, Gamma diff: ${gammaDiff.toFixed(2)}, Blur: ${blur.toFixed(2)}`) // 디버깅용 로그
+      
+      setBlurAmount(blur)
+
+      // 각도에 따른 오디오 볼륨 조절
+      if (soundRef.current) {
+        const volume = 1 - normalizedDiff // 각도가 맞을수록 볼륨 증가
+        soundRef.current.volume = volume
+        console.log('Audio volume:', volume.toFixed(2)) // 디버깅용 로그
+      }
+    }
   }, [isOrientationEnabled, targetBeta, targetGamma, maxDistance, maxBlur])
 
   // 방향 감지 이벤트 리스너 등록
@@ -137,9 +160,8 @@ const ExhibitionText = () => {
   }, [isOrientationEnabled, handleOrientation])
 
   return (
-    <div
-      className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden"
-      onTouchStart={handleTouchStart}
+    <div 
+      className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"
     >
       <div className="w-full pt-[10px]">
         <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
@@ -160,6 +182,26 @@ const ExhibitionText = () => {
           </div>
         </div>
       )}
+
+      {/* 오디오 시작 버튼 */}
+      {showAudioButton && (
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={handleAudioStart}
+            className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
+          >
+            소리 시작하기
+          </button>
+        </div>
+      )}
+
+      {/* 각도 표시 footer */}
+      <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
+        <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
+          β: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
+          γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
+        </div>
+      </div>
     </div>
   )
 }
