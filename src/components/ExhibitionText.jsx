@@ -17,6 +17,7 @@ const ExhibitionText = () => {
   const targetGamma = -60
   const tolerance = 15
   const maxBlur = 10
+  const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "우리의 몸에는 타인이 깃든다"
   const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
@@ -42,8 +43,8 @@ const ExhibitionText = () => {
     synth.speak(utterance)
   }
 
-  // 🔹 오디오 페이드 인 함수
-  const fadeInAudio = () => {
+  // 🔹 오디오 페이드 인 함수 (거리에 따른 볼륨 조절)
+  const fadeInAudio = (distance) => {
     if (audioRef.current && !audioPlayed.current) {
       if (fadeOutInterval.current !== null) {
         clearInterval(fadeOutInterval.current)
@@ -63,8 +64,9 @@ const ExhibitionText = () => {
   
             fadeInInterval.current = setInterval(() => {
               let currentVolume = audioRef.current.volume
-              if (currentVolume < 1) {
-                currentVolume = Math.min(1, currentVolume + 0.05)
+              const targetVolume = Math.min(1, distance / maxDistance) // 거리에 따른 목표 볼륨
+              if (currentVolume < targetVolume) {
+                currentVolume = Math.min(targetVolume, currentVolume + 0.05)
                 audioRef.current.volume = currentVolume
               } else {
                 clearInterval(fadeInInterval.current)
@@ -79,8 +81,8 @@ const ExhibitionText = () => {
     }
   }
 
-  // 🔹 오디오 페이드 아웃 함수
-  const fadeOutAudio = () => {
+  // 🔹 오디오 페이드 아웃 함수 (거리에 따른 볼륨 조절)
+  const fadeOutAudio = (distance) => {
     if (audioRef.current && audioPlayed.current) {
       if (fadeInInterval.current !== null) {
         clearInterval(fadeInInterval.current)
@@ -92,15 +94,18 @@ const ExhibitionText = () => {
       }
 
       let volume = audioRef.current.volume
+      const targetVolume = Math.min(1, distance / maxDistance) // 거리에 따른 목표 볼륨
       fadeOutInterval.current = setInterval(() => {
-        if (volume > 0) {
-          volume = Math.max(0, volume - 0.05)
+        if (volume > targetVolume) {
+          volume = Math.max(targetVolume, volume - 0.05)
           audioRef.current.volume = volume
         } else {
           clearInterval(fadeOutInterval.current)
           fadeOutInterval.current = null
-          audioRef.current.pause()
-          audioPlayed.current = false
+          if (targetVolume === 0) {
+            audioRef.current.pause()
+            audioPlayed.current = false
+          }
         }
       }, 100)
     }
@@ -131,22 +136,25 @@ const ExhibitionText = () => {
     const betaDiff = Math.abs(beta - targetBeta)
     const gammaDiff = Math.abs(gamma - targetGamma)
     
+    // 전체 거리 계산 (0~maxDistance)
+    const distance = Math.min(maxDistance, Math.max(betaDiff, gammaDiff))
+    
     // 명확도 계산 (0~1)
-    const clarity = 1 - Math.min(1, Math.max(betaDiff, gammaDiff) / tolerance)
+    const clarity = 1 - Math.min(1, distance / maxDistance)
     
     if (betaDiff <= tolerance && gammaDiff <= tolerance) {
       // 📌 ✅ 각도 범위 안: 블러 제거 + 오디오 페이드 아웃 + TTS 음성 실행
       setBlurAmount(0)
-      fadeOutAudio()
+      fadeOutAudio(distance)
       if (!textReadPlayed.current) {
         speakTextWithEffect(title + '. ' + originalText, clarity)
         textReadPlayed.current = true
       }
     } else {
       // 📌 ❌ 각도 범위 밖: 블러 증가 + 오디오 페이드 인
-      const blur = Math.min(maxBlur, Math.max(betaDiff, gammaDiff) / 5)
+      const blur = Math.min(maxBlur, distance / 5)
       setBlurAmount(blur)
-      fadeInAudio()
+      fadeInAudio(distance)
 
       // 블러가 다시 생기면 다음번 TTS를 위해 초기화
       textReadPlayed.current = false
