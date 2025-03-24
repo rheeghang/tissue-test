@@ -49,14 +49,21 @@ const ExhibitionText = () => {
       // TTS 에러 핸들러
       ttsRef.current.onerror = (event) => {
         console.error('TTS 에러:', event)
+        setDebugInfo('TTS 에러 발생')
       }
 
       // TTS 시작 핸들러
       ttsRef.current.onstart = () => {
         console.log('TTS 재생 시작')
+        setDebugInfo('TTS 재생 중')
       }
+
+      // 초기 TTS 로드
+      window.speechSynthesis.cancel()
+      window.speechSynthesis.speak(ttsRef.current)
     } else {
       console.error('Speech Synthesis API를 지원하지 않는 브라우저입니다.')
+      setDebugInfo('TTS 지원 안됨')
     }
 
     return () => {
