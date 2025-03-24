@@ -12,7 +12,7 @@ const ExhibitionText = () => {
   const [showAudioButton, setShowAudioButton] = useState(true)
   
   // 오디오 레퍼런스들
-  const noiseSoundRef = useRef(new Audio(process.env.PUBLIC_URL + '/sound1.mp3'))
+  const noiseSoundRef = useRef(new Audio('/assets/sound1.mp3'))
   const ttsRef = useRef(null)
 
   // 목표 각도 및 허용 범위 설정
@@ -51,8 +51,15 @@ const ExhibitionText = () => {
     noiseSound.loop = true
     noiseSound.volume = 0
 
+    // 오디오 로드 에러 핸들링
+    noiseSound.onerror = (e) => {
+      console.error('오디오 로드 에러:', e)
+      console.log('현재 오디오 소스:', noiseSound.src)
+    }
+
     // iOS에서 오디오 재생을 위한 설정
     const setupAudio = () => {
+      console.log('오디오 로드 시작')
       noiseSound.load()
       document.removeEventListener('touchstart', setupAudio)
     }
@@ -68,13 +75,19 @@ const ExhibitionText = () => {
   // 오디오 재생 핸들러
   const handleAudioStart = async () => {
     try {
-      console.log('Starting audio playback')
+      console.log('오디오 재생 시도')
+      console.log('오디오 소스:', noiseSoundRef.current.src)
       await noiseSoundRef.current.play()
-      console.log('Audio playing successfully')
+      console.log('오디오 재생 성공')
       setIsPlaying(true)
       setShowAudioButton(false)
     } catch (error) {
-      console.error('Audio play failed:', error)
+      console.error('오디오 재생 실패:', error)
+      console.log('오디오 상태:', {
+        src: noiseSoundRef.current.src,
+        readyState: noiseSoundRef.current.readyState,
+        error: noiseSoundRef.current.error
+      })
       setShowAudioButton(true)
     }
   }
