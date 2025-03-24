@@ -97,42 +97,24 @@ const ExhibitionText = () => {
 
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
-    if (!isOrientationEnabled) return;
-
-    const { beta, gamma } = event;
-    const betaDiff = Math.abs(beta - targetBeta);
-    const gammaDiff = Math.abs(gamma - targetGamma);
-    const distance = Math.min(maxDistance, Math.max(betaDiff, gammaDiff));
-
-    // Blur 조절 로직 유지
-    if (betaDiff <= tolerance && gammaDiff <= tolerance) {
-      setBlurAmount(0);
-    } else {
-      const blur = Math.min(maxBlur, distance / 5);
-      setBlurAmount(blur);
+    if (!isOrientationEnabled) {
+      console.log('Orientation disabled') // 디버깅용 로그
+      return
     }
 
-    // 🎯 음성 페이드 인 및 볼륨 조절 로직
-    if (speechRef.current && speechSynthesis) {
-      if (distance <= 10) {
-        soundRef.current.volume = 1;
-        speechRef.current.volume = 0;
-      } else if (distance > 10 && distance <= 30) {
-        if (!speechSynthesis.speaking) {
-          speechSynthesis.speak(speechRef.current);
-        }
-        const fade = (30 - distance) / 20;
-        soundRef.current.volume = fade;
-        speechRef.current.volume = 1 - fade;
-      } else if (distance > 30 && distance <= 40) {
-        soundRef.current.volume = 0;
-        speechRef.current.volume = 1;
-      } else {
-        soundRef.current.volume = 1;
-        speechRef.current.volume = 0;
-      }
-    }
-  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, maxBlur, maxDistance, setBlurAmount]);
+    const { beta, gamma } = event
+    const betaDiff = Math.abs(beta - targetBeta)
+    const gammaDiff = Math.abs(gamma - targetGamma)
+    
+    // 각도 차이에 따른 블러 계산 로직 개선
+    const maxAngleDiff = Math.max(betaDiff, gammaDiff)
+    const normalizedDiff = Math.min(maxAngleDiff, maxDistance) / maxDistance
+    const blur = maxBlur * normalizedDiff
+    
+    console.log(`Beta diff: ${betaDiff.toFixed(2)}, Gamma diff: ${gammaDiff.toFixed(2)}, Blur: ${blur.toFixed(2)}`) // 디버깅용 로그
+    
+    setBlurAmount(blur)
+  }, [isOrientationEnabled, targetBeta, targetGamma, maxDistance, maxBlur])
 
   // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
