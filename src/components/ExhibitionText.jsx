@@ -5,6 +5,7 @@ const ExhibitionText = () => {
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
+  const [showPermissionModal, setShowPermissionModal] = useState(true)
   const audioRef = useRef(null)
   const initialSoundPlayed = useRef(false)
   const textReadPlayed = useRef(false)
@@ -26,13 +27,33 @@ const ExhibitionText = () => {
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
     setIsIOS(isIOSDevice)
+    
+    if (!isIOSDevice) {
+      // iOS가 아닌 경우
+      setPermissionGranted(true)
+      window.addEventListener('deviceorientation', handleOrientation)
+      return () => window.removeEventListener('deviceorientation', handleOrientation)
+    }
   }, [])
 
   // 권한 요청 함수
-  const requestPermission = () => {
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation)
-      setPermissionGranted(true)
+  const requestPermission = async () => {
+    try {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission()
+        if (permission === 'granted') {
+          setPermissionGranted(true)
+          setShowPermissionModal(false)
+          window.addEventListener('deviceorientation', handleOrientation)
+        }
+      } else {
+        // 권한 요청이 필요 없는 경우
+        setPermissionGranted(true)
+        setShowPermissionModal(false)
+        window.addEventListener('deviceorientation', handleOrientation)
+      }
+    } catch (error) {
+      console.error('권한 요청 실패:', error)
     }
   }
 
@@ -75,20 +96,9 @@ const ExhibitionText = () => {
     }
   }
 
-  useEffect(() => {
-    if (window.DeviceOrientationEvent) {
-      setPermissionGranted(true)
-      window.addEventListener('deviceorientation', handleOrientation)
-    }
-
-    return () => {
-      window.removeEventListener('deviceorientation', handleOrientation)
-    }
-  }, [])
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-exhibition-bg overflow-hidden">
-      {!permissionGranted && isIOS ? (
+      {showPermissionModal && isIOS ? (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-black">
             <h2 className="text-xl font-bold mb-4">권한 요청</h2>
