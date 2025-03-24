@@ -113,4 +113,5 @@ const RotatedText = ({ text, title, blurAmount }) => {
   )
 }
 
+
 export default RotatedText
