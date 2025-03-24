@@ -10,35 +10,57 @@ const ExhibitionText = () => {
   const [currentAngles, setCurrentAngles] = useState({ beta: 0, gamma: 0 })
   const [isPlaying, setIsPlaying] = useState(false)
   const [showAudioButton, setShowAudioButton] = useState(true)
-  const soundRef = useRef(new Audio(process.env.PUBLIC_URL + '/sound1.mp3'))
+  
+  // 오디오 레퍼런스들
+  const noiseSoundRef = useRef(new Audio(process.env.PUBLIC_URL + '/sound1.mp3'))
+  const ttsRef = useRef(null)
 
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
-  const tolerance = 35  // 완전히 선명해지는 범위 (15 -> 25)
-  const clearThreshold = 45  // 읽을 수 있는 범위 (25 -> 35)
+  const tolerance = 35  // 완전히 선명해지는 범위
+  const clearThreshold = 45  // 읽을 수 있는 범위
   const maxBlur = 10
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "보이지 않는 조각들: 공기조각"
   const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
 
+  // TTS 초기화
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      ttsRef.current = new SpeechSynthesisUtterance(originalText)
+      ttsRef.current.lang = 'ko-KR'
+      ttsRef.current.rate = 1.0
+      ttsRef.current.pitch = 1.0
+      ttsRef.current.volume = 0
+    }
+
+    return () => {
+      if (ttsRef.current) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [originalText])
+
   // 오디오 초기화
   useEffect(() => {
-    const audio = soundRef.current
-    audio.loop = true
-    audio.volume = 1
+    const noiseSound = noiseSoundRef.current
+
+    // 노이즈 사운드 설정
+    noiseSound.loop = true
+    noiseSound.volume = 0
 
     // iOS에서 오디오 재생을 위한 설정
     const setupAudio = () => {
-      audio.load()
+      noiseSound.load()
       document.removeEventListener('touchstart', setupAudio)
     }
     document.addEventListener('touchstart', setupAudio)
 
     return () => {
-      audio.pause()
-      audio.currentTime = 0
+      noiseSound.pause()
+      noiseSound.currentTime = 0
       document.removeEventListener('touchstart', setupAudio)
     }
   }, [])
@@ -46,14 +68,13 @@ const ExhibitionText = () => {
   // 오디오 재생 핸들러
   const handleAudioStart = async () => {
     try {
-      console.log('Starting audio playback') // 디버깅용 로그
-      await soundRef.current.play()
-      console.log('Audio playing successfully') // 디버깅용 로그
+      console.log('Starting audio playback')
+      await noiseSoundRef.current.play()
+      console.log('Audio playing successfully')
       setIsPlaying(true)
       setShowAudioButton(false)
     } catch (error) {
       console.error('Audio play failed:', error)
-      // 오류 발생 시 버튼 유지
       setShowAudioButton(true)
     }
   }
@@ -111,46 +132,58 @@ const ExhibitionText = () => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (!isOrientationEnabled) {
-      console.log('Orientation disabled') // 디버깅용 로그
+      console.log('Orientation disabled')
       return
     }
 
     const { beta, gamma } = event
-    if (beta !== null && gamma !== null) {  // null 체크 추가
-      setCurrentAngles({ beta, gamma }) // 현재 각도 저장
+    if (beta !== null && gamma !== null) {
+      setCurrentAngles({ beta, gamma })
       
       const betaDiff = Math.abs(beta - targetBeta)
       const gammaDiff = Math.abs(gamma - targetGamma)
-      
-      // 각도 차이에 따른 블러 계산 로직 개선
       const maxAngleDiff = Math.max(betaDiff, gammaDiff)
       
-      // 블러 계산 - 3단계로 구분
+      // 블러 계산
       let blur
       if (maxAngleDiff <= tolerance) {
-        // 완전히 선명한 구간
         blur = 0
       } else if (maxAngleDiff <= clearThreshold) {
-        // 읽을 수 있는 구간 (약간의 블러)
         const normalizedDiff = (maxAngleDiff - tolerance) / (clearThreshold - tolerance)
-        blur = 3 * normalizedDiff  // 최대 3px까지만 블러
+        blur = 3 * normalizedDiff
       } else {
-        // 읽기 어려운 구간 (강한 블러)
         const normalizedDiff = (maxAngleDiff - clearThreshold) / (maxDistance - clearThreshold)
-        blur = 3 + (maxBlur - 3) * normalizedDiff  // 3px에서 maxBlur까지 선형적으로 증가
+        blur = 3 + (maxBlur - 3) * normalizedDiff
       }
-      
-      console.log(`Beta diff: ${betaDiff.toFixed(2)}, Gamma diff: ${gammaDiff.toFixed(2)}, Blur: ${blur.toFixed(2)}`) // 디버깅용 로그
       
       setBlurAmount(blur)
 
-      // 각도에 따른 오디오 볼륨 조절
-      if (soundRef.current && isPlaying) {
-        const volume = maxAngleDiff <= tolerance ? 1 : 
-                      maxAngleDiff >= maxDistance ? 0 :
-                      1 - (maxAngleDiff - tolerance) / (maxDistance - tolerance)
-        soundRef.current.volume = Math.max(0, Math.min(1, volume))
-        console.log('Audio volume:', volume.toFixed(2)) // 디버깅용 로그
+      // 오디오 볼륨 조절
+      if (isPlaying) {
+        // TTS 볼륨 계산 (각도가 가까울수록 크게)
+        const ttsVolume = maxAngleDiff <= tolerance ? 1 : 
+                         maxAngleDiff >= maxDistance ? 0 :
+                         1 - (maxAngleDiff - tolerance) / (maxDistance - tolerance)
+        
+        // 노이즈 볼륨 계산 (각도가 멀수록 크게)
+        const noiseVolume = maxAngleDiff <= tolerance ? 0 :
+                          maxAngleDiff >= maxDistance ? 1 :
+                          (maxAngleDiff - tolerance) / (maxDistance - tolerance)
+
+        // TTS 볼륨 조절
+        if (ttsRef.current) {
+          ttsRef.current.volume = Math.max(0, Math.min(1, ttsVolume))
+          if (ttsVolume > 0 && window.speechSynthesis.speaking === false) {
+            window.speechSynthesis.speak(ttsRef.current)
+          } else if (ttsVolume === 0) {
+            window.speechSynthesis.cancel()
+          }
+        }
+
+        // 노이즈 볼륨 적용
+        noiseSoundRef.current.volume = Math.max(0, Math.min(1, noiseVolume))
+        
+        console.log(`TTS Volume: ${ttsVolume.toFixed(2)}, Noise Volume: ${noiseVolume.toFixed(2)}`)
       }
     }
   }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur, isPlaying])
