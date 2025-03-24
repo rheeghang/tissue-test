@@ -4,8 +4,6 @@ import RotatedText from './RotatedText'
 const ExhibitionText = () => {
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
-  const [isIOS, setIsIOS] = useState(false)
-  const [showPermissionModal, setShowPermissionModal] = useState(true)
   const audioRef = useRef(null)
   const initialSoundPlayed = useRef(false)
   const textReadPlayed = useRef(false)
@@ -21,45 +19,11 @@ const ExhibitionText = () => {
   const maxBlur = 10
 
   const title = "우리의 몸에는 타인이 깃든다"
-  const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 존재의 '다름'을 인정할 뿐만 아니라 나와 다른 존재에 취해야 할 태도에 대해 고민하는 전시입니다. 우리 안에는 다양한 경계가 있습니다.  '안과 밖', '우리와 타인', '안전한 것과 위험한 것', '나 그리고 나와 다른' 등의 언어처럼 말이죠. 그러나 경계가 지극히 상대적인 개념이며, 나 또한 누군가에게는 또 다른 타자가 될 수 있다면요? 내가 나인 채로 당신이 당신인 채로, 우리는 어떻게 비대칭적으로 소통하고 함께할 수 있을까요?`
+  const originalText = `2025 ACC 접근성 강화 주제전 《우리의 몸에는 타인이 깃든다》는 '경계 넘기'를 주제로 ...`
 
-  // iOS 디바이스 체크
-  useEffect(() => {
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    setIsIOS(isIOSDevice)
-    
-    if (!isIOSDevice) {
-      // iOS가 아닌 경우
-      setPermissionGranted(true)
-      window.addEventListener('deviceorientation', handleOrientation)
-      return () => window.removeEventListener('deviceorientation', handleOrientation)
-    }
-  }, [])
-
-  // 권한 요청 함수
-  const requestPermission = async () => {
-    try {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        const permission = await DeviceOrientationEvent.requestPermission()
-        if (permission === 'granted') {
-          setPermissionGranted(true)
-          setShowPermissionModal(false)
-          window.addEventListener('deviceorientation', handleOrientation)
-        }
-      } else {
-        // 권한 요청이 필요 없는 경우
-        setPermissionGranted(true)
-        setShowPermissionModal(false)
-        window.addEventListener('deviceorientation', handleOrientation)
-      }
-    } catch (error) {
-      console.error('권한 요청 실패:', error)
-    }
-  }
-
-  // 🔹 TTS 음성 페이드 인 & 클리어링 기능 추가 (JS 버전)
+  // 🔹 TTS 음성 페이드 인 & 클리어링 기능
   const speakTextWithEffect = (text, clarity) => {
-    if (synth.speaking) synth.cancel() // 기존 음성 중지
+    if (synth.speaking) synth.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'ko-KR'
@@ -78,42 +42,131 @@ const ExhibitionText = () => {
     synth.speak(utterance)
   }
 
-  // 🔹 방향 감지 이벤트 핸들러 (TTS 음성 페이드 적용)
+  // 🔹 오디오 페이드 인 함수
+  const fadeInAudio = () => {
+    if (audioRef.current && !audioPlayed.current) {
+      if (fadeOutInterval.current !== null) {
+        clearInterval(fadeOutInterval.current)
+        fadeOutInterval.current = null
+      }
+  
+      if (fadeInInterval.current !== null) {
+        return
+      }
+  
+      const playPromise = audioRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audioRef.current.volume = 0
+            audioPlayed.current = true
+  
+            fadeInInterval.current = setInterval(() => {
+              let currentVolume = audioRef.current.volume
+              if (currentVolume < 1) {
+                currentVolume = Math.min(1, currentVolume + 0.05)
+                audioRef.current.volume = currentVolume
+              } else {
+                clearInterval(fadeInInterval.current)
+                fadeInInterval.current = null
+              }
+            }, 100)
+          })
+          .catch((error) => {
+            console.error("오디오 자동 재생 실패:", error)
+          })
+      }
+    }
+  }
+
+  // 🔹 오디오 페이드 아웃 함수
+  const fadeOutAudio = () => {
+    if (audioRef.current && audioPlayed.current) {
+      if (fadeInInterval.current !== null) {
+        clearInterval(fadeInInterval.current)
+        fadeInInterval.current = null
+      }
+
+      if (fadeOutInterval.current !== null) {
+        return
+      }
+
+      let volume = audioRef.current.volume
+      fadeOutInterval.current = setInterval(() => {
+        if (volume > 0) {
+          volume = Math.max(0, volume - 0.05)
+          audioRef.current.volume = volume
+        } else {
+          clearInterval(fadeOutInterval.current)
+          fadeOutInterval.current = null
+          audioRef.current.pause()
+          audioPlayed.current = false
+        }
+      }, 100)
+    }
+  }
+
+  // 🔹 사용자 클릭 이벤트로 오디오 활성화
+  const enableAudioOnUserInteraction = () => {
+    if (audioRef.current && !initialSoundPlayed.current) {
+      audioRef.current.play().then(() => {
+        initialSoundPlayed.current = true
+      }).catch(error => console.error("사용자 입력 없이 오디오 재생 불가:", error))
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener("click", enableAudioOnUserInteraction, { once: true })
+    window.addEventListener("touchstart", enableAudioOnUserInteraction, { once: true })
+
+    return () => {
+      window.removeEventListener("click", enableAudioOnUserInteraction)
+      window.removeEventListener("touchstart", enableAudioOnUserInteraction)
+    }
+  }, [])
+
+  // 🔹 방향 감지 이벤트 핸들러
   const handleOrientation = (event) => {
     const { beta, gamma } = event
     const betaDiff = Math.abs(beta - targetBeta)
     const gammaDiff = Math.abs(gamma - targetGamma)
+    
+    // 명확도 계산 (0~1)
+    const clarity = 1 - Math.min(1, Math.max(betaDiff, gammaDiff) / tolerance)
+    
+    if (betaDiff <= tolerance && gammaDiff <= tolerance) {
+      // 📌 ✅ 각도 범위 안: 블러 제거 + 오디오 페이드 아웃 + TTS 음성 실행
+      setBlurAmount(0)
+      fadeOutAudio()
+      if (!textReadPlayed.current) {
+        speakTextWithEffect(title + '. ' + originalText, clarity)
+        textReadPlayed.current = true
+      }
+    } else {
+      // 📌 ❌ 각도 범위 밖: 블러 증가 + 오디오 페이드 인
+      const blur = Math.min(maxBlur, Math.max(betaDiff, gammaDiff) / 5)
+      setBlurAmount(blur)
+      fadeInAudio()
 
-    let clarity = 1 - Math.min(1, Math.max(betaDiff, gammaDiff) / tolerance) // 0~1 값 생성
-    const newBlur = maxBlur * (1 - clarity) // 블러 정도 조절 (0~10)
-    setBlurAmount(newBlur)
-
-    if (!textReadPlayed.current) {
-      speakTextWithEffect(title + '. ' + originalText, clarity)
-      textReadPlayed.current = true
-    } else if (blurAmount > 2) {
-      textReadPlayed.current = false // 블러가 생기면 다시 음성 활성화
+      // 블러가 다시 생기면 다음번 TTS를 위해 초기화
+      textReadPlayed.current = false
     }
   }
 
+  useEffect(() => {
+    if (window.DeviceOrientationEvent) {
+      setPermissionGranted(true)
+      window.addEventListener('deviceorientation', handleOrientation)
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation)
+    }
+  }, [])
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-exhibition-bg overflow-hidden">
-      {showPermissionModal && isIOS ? (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl text-black">
-            <h2 className="text-xl font-bold mb-4">권한 요청</h2>
-            <p className="mb-4">기기 방향 감지 권한을 허용해 주세요.</p>
-            <button
-              onClick={requestPermission}
-              className="bg-exhibition-bg text-exhibition-text px-4 py-2 rounded hover:opacity-90 transition-opacity"
-            >
-              권한 허용하기
-            </button>
-          </div>
-        </div>
-      ) : (
-        <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
-      )}
+      <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
       <audio ref={audioRef} src="/assets/sound.mp3" preload="auto" />
     </div>
   )
