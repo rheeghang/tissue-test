@@ -10,6 +10,7 @@ const ExhibitionText = () => {
   const [currentAngles, setCurrentAngles] = useState({ beta: 0, gamma: 0 })
   const [isPlaying, setIsPlaying] = useState(false)
   const [showAudioButton, setShowAudioButton] = useState(true)
+  const [debugInfo, setDebugInfo] = useState('')
   
   // 오디오 레퍼런스들
   const noiseSoundRef = useRef(new Audio(process.env.PUBLIC_URL + '/assets/sound1.mp3'))
@@ -29,11 +30,33 @@ const ExhibitionText = () => {
   // TTS 초기화
   useEffect(() => {
     if ('speechSynthesis' in window) {
+      console.log('TTS 초기화 시작')
       ttsRef.current = new SpeechSynthesisUtterance(originalText)
       ttsRef.current.lang = 'ko-KR'
       ttsRef.current.rate = 1.0
       ttsRef.current.pitch = 1.0
       ttsRef.current.volume = 0
+
+      // TTS 이벤트 핸들러
+      ttsRef.current.onend = () => {
+        console.log('TTS 재생 완료')
+        if (ttsRef.current && ttsRef.current.volume > 0.1) {
+          console.log('TTS 재시작')
+          window.speechSynthesis.speak(ttsRef.current)
+        }
+      }
+
+      // TTS 에러 핸들러
+      ttsRef.current.onerror = (event) => {
+        console.error('TTS 에러:', event)
+      }
+
+      // TTS 시작 핸들러
+      ttsRef.current.onstart = () => {
+        console.log('TTS 재생 시작')
+      }
+    } else {
+      console.error('Speech Synthesis API를 지원하지 않는 브라우저입니다.')
     }
 
     return () => {
@@ -151,7 +174,7 @@ const ExhibitionText = () => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (!isOrientationEnabled) {
-      console.log('Orientation disabled')
+      setDebugInfo('Orientation disabled')
       return
     }
 
@@ -192,17 +215,26 @@ const ExhibitionText = () => {
         // TTS 볼륨 조절
         if (ttsRef.current) {
           ttsRef.current.volume = Math.max(0, Math.min(1, ttsVolume))
-          if (ttsVolume > 0 && window.speechSynthesis.speaking === false) {
-            window.speechSynthesis.speak(ttsRef.current)
-          } else if (ttsVolume === 0) {
-            window.speechSynthesis.cancel()
+          
+          // TTS 재생/중지 로직
+          if (ttsVolume > 0.1) {  // 볼륨이 0.1 이상일 때만 재생
+            if (!window.speechSynthesis.speaking) {
+              setDebugInfo('TTS 시작 시도')
+              window.speechSynthesis.cancel() // 기존 재생 중지
+              window.speechSynthesis.speak(ttsRef.current)
+            }
+          } else {
+            if (window.speechSynthesis.speaking) {
+              setDebugInfo('TTS 중지')
+              window.speechSynthesis.cancel()
+            }
           }
         }
 
         // 노이즈 볼륨 적용
         noiseSoundRef.current.volume = Math.max(0, Math.min(1, noiseVolume))
         
-        console.log(`TTS Volume: ${ttsVolume.toFixed(2)}, Noise Volume: ${noiseVolume.toFixed(2)}`)
+        setDebugInfo(`각도: ${maxAngleDiff.toFixed(1)}° | TTS: ${ttsVolume.toFixed(2)} | 노이즈: ${noiseVolume.toFixed(2)}`)
       }
     }
   }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur, isPlaying])
@@ -268,6 +300,13 @@ const ExhibitionText = () => {
         <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
           β: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
           γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
+        </div>
+      </div>
+
+      {/* 디버그 정보 표시 */}
+      <div className="fixed top-4 left-4 z-50">
+        <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
+          {debugInfo}
         </div>
       </div>
     </div>
