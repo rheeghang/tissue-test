@@ -15,7 +15,8 @@ const ExhibitionText = () => {
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
-  const tolerance = 15
+  const tolerance = 15  // 완전히 선명해지는 범위
+  const clearThreshold = 25  // 읽을 수 있는 범위
   const maxBlur = 10
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
@@ -123,21 +124,36 @@ const ExhibitionText = () => {
       
       // 각도 차이에 따른 블러 계산 로직 개선
       const maxAngleDiff = Math.max(betaDiff, gammaDiff)
-      const normalizedDiff = Math.min(maxAngleDiff, maxDistance) / maxDistance
-      const blur = maxBlur * normalizedDiff
+      
+      // 블러 계산 - 3단계로 구분
+      let blur
+      if (maxAngleDiff <= tolerance) {
+        // 완전히 선명한 구간
+        blur = 0
+      } else if (maxAngleDiff <= clearThreshold) {
+        // 읽을 수 있는 구간 (약간의 블러)
+        const normalizedDiff = (maxAngleDiff - tolerance) / (clearThreshold - tolerance)
+        blur = 3 * normalizedDiff  // 최대 3px까지만 블러
+      } else {
+        // 읽기 어려운 구간 (강한 블러)
+        const normalizedDiff = (maxAngleDiff - clearThreshold) / (maxDistance - clearThreshold)
+        blur = 3 + (maxBlur - 3) * normalizedDiff  // 3px에서 maxBlur까지 선형적으로 증가
+      }
       
       console.log(`Beta diff: ${betaDiff.toFixed(2)}, Gamma diff: ${gammaDiff.toFixed(2)}, Blur: ${blur.toFixed(2)}`) // 디버깅용 로그
       
       setBlurAmount(blur)
 
       // 각도에 따른 오디오 볼륨 조절
-      if (soundRef.current) {
-        const volume = 1 - normalizedDiff // 각도가 맞을수록 볼륨 증가
-        soundRef.current.volume = volume
+      if (soundRef.current && isPlaying) {
+        const volume = maxAngleDiff <= tolerance ? 1 : 
+                      maxAngleDiff >= maxDistance ? 0 :
+                      1 - (maxAngleDiff - tolerance) / (maxDistance - tolerance)
+        soundRef.current.volume = Math.max(0, Math.min(1, volume))
         console.log('Audio volume:', volume.toFixed(2)) // 디버깅용 로그
       }
     }
-  }, [isOrientationEnabled, targetBeta, targetGamma, maxDistance, maxBlur])
+  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur, isPlaying])
 
   // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
