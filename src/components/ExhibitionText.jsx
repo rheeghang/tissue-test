@@ -27,51 +27,73 @@ const ExhibitionText = () => {
   const title = "보이지 않는 조각들: 공기조각"
   const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
 
-  // TTS 초기화
-  useEffect(() => {
-    if ('speechSynthesis' in window) {
-      console.log('TTS 초기화 시작')
-      ttsRef.current = new SpeechSynthesisUtterance(originalText)
-      ttsRef.current.lang = 'ko-KR'
-      ttsRef.current.rate = 1.0
-      ttsRef.current.pitch = 1.0
-      ttsRef.current.volume = 0
+  // 오디오 재생 핸들러
+  const handleAudioStart = async () => {
+    try {
+      console.log('오디오 재생 시도')
+      console.log('오디오 소스:', noiseSoundRef.current.src)
+      
+      // TTS 초기화
+      if ('speechSynthesis' in window) {
+        console.log('TTS 초기화 시작')
+        ttsRef.current = new SpeechSynthesisUtterance(originalText)
+        ttsRef.current.lang = 'ko-KR'
+        ttsRef.current.rate = 1.0
+        ttsRef.current.pitch = 1.0
+        ttsRef.current.volume = 0
 
-      // TTS 이벤트 핸들러
-      ttsRef.current.onend = () => {
-        console.log('TTS 재생 완료')
-        if (ttsRef.current && ttsRef.current.volume > 0.1) {
-          console.log('TTS 재시작')
-          window.speechSynthesis.speak(ttsRef.current)
+        // TTS 이벤트 핸들러
+        ttsRef.current.onend = () => {
+          console.log('TTS 재생 완료')
+          if (ttsRef.current && ttsRef.current.volume > 0.1) {
+            console.log('TTS 재시작')
+            window.speechSynthesis.speak(ttsRef.current)
+          }
         }
+
+        // TTS 에러 핸들러
+        ttsRef.current.onerror = (event) => {
+          console.error('TTS 에러:', event)
+          setDebugInfo('TTS 에러 발생')
+        }
+
+        // TTS 시작 핸들러
+        ttsRef.current.onstart = () => {
+          console.log('TTS 재생 시작')
+          setDebugInfo('TTS 재생 중')
+        }
+
+        // 초기 TTS 재생은 지연 후 시도
+        setTimeout(() => {
+          window.speechSynthesis.cancel()
+          window.speechSynthesis.speak(ttsRef.current)
+        }, 1000) // 1초 지연
       }
 
-      // TTS 에러 핸들러
-      ttsRef.current.onerror = (event) => {
-        console.error('TTS 에러:', event)
-        setDebugInfo('TTS 에러 발생')
-      }
-
-      // TTS 시작 핸들러
-      ttsRef.current.onstart = () => {
-        console.log('TTS 재생 시작')
-        setDebugInfo('TTS 재생 중')
-      }
-
-      // 초기 TTS 로드
-      window.speechSynthesis.cancel()
-      window.speechSynthesis.speak(ttsRef.current)
-    } else {
-      console.error('Speech Synthesis API를 지원하지 않는 브라우저입니다.')
-      setDebugInfo('TTS 지원 안됨')
+      // 노이즈 사운드 재생
+      await noiseSoundRef.current.play()
+      console.log('오디오 재생 성공')
+      setIsPlaying(true)
+      setShowAudioButton(false)
+    } catch (error) {
+      console.error('오디오 재생 실패:', error)
+      console.log('오디오 상태:', {
+        src: noiseSoundRef.current.src,
+        readyState: noiseSoundRef.current.readyState,
+        error: noiseSoundRef.current.error
+      })
+      setShowAudioButton(true)
     }
+  }
 
+  // TTS 초기화 useEffect 제거 (handleAudioStart로 이동)
+  useEffect(() => {
     return () => {
       if (ttsRef.current) {
         window.speechSynthesis.cancel()
       }
     }
-  }, [originalText])
+  }, [])
 
   // 오디오 초기화
   useEffect(() => {
@@ -107,26 +129,6 @@ const ExhibitionText = () => {
       document.removeEventListener('touchstart', setupAudio)
     }
   }, [])
-
-  // 오디오 재생 핸들러
-  const handleAudioStart = async () => {
-    try {
-      console.log('오디오 재생 시도')
-      console.log('오디오 소스:', noiseSoundRef.current.src)
-      await noiseSoundRef.current.play()
-      console.log('오디오 재생 성공')
-      setIsPlaying(true)
-      setShowAudioButton(false)
-    } catch (error) {
-      console.error('오디오 재생 실패:', error)
-      console.log('오디오 상태:', {
-        src: noiseSoundRef.current.src,
-        readyState: noiseSoundRef.current.readyState,
-        error: noiseSoundRef.current.error
-      })
-      setShowAudioButton(true)
-    }
-  }
 
   // iOS 디바이스 체크
   useEffect(() => {
@@ -227,8 +229,11 @@ const ExhibitionText = () => {
           if (ttsVolume > 0.1) {  // 볼륨이 0.1 이상일 때만 재생
             if (!window.speechSynthesis.speaking) {
               setDebugInfo('TTS 시작 시도')
-              window.speechSynthesis.cancel() // 기존 재생 중지
-              window.speechSynthesis.speak(ttsRef.current)
+              // TTS 재생도 지연 후 시도
+              setTimeout(() => {
+                window.speechSynthesis.cancel()
+                window.speechSynthesis.speak(ttsRef.current)
+              }, 500) // 0.5초 지연
             }
           } else {
             if (window.speechSynthesis.speaking) {
