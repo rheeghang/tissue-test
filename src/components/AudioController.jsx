@@ -117,26 +117,13 @@ const AudioController = ({
     const startIndex = Math.max(0, Math.min(startWordIndex, words.length - 1));
     
     try {
-      // 기존 TTS 정리
       window.speechSynthesis.cancel();
       
-      // 새로운 utterance 생성
       const utterance = new SpeechSynthesisUtterance(words.slice(startIndex).join(' '));
-      
-      // 설정 적용
       utterance.lang = 'ko-KR';
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
-      utterance.volume = 0; // 초기 볼륨은 0에서 시작
-
-      // 이벤트 핸들러 설정
-      utterance.onstart = () => {
-        console.log('TTS 재생 시작:', {
-          시작단어: words[startIndex],
-          현재인덱스: startIndex
-        });
-        smoothTTSFade(utterance, 0, 1); // 시작 시 페이드 인
-      };
+      utterance.volume = 1;
 
       utterance.onboundary = (event) => {
         if (event.name === 'word') {
@@ -156,13 +143,13 @@ const AudioController = ({
         setDebugInfo('TTS 에러: ' + event.error);
       };
 
-      // 현재 utterance 저장
       ttsRef.current = utterance;
-
-      // iOS Safari를 위한 특별 처리
-      setTimeout(() => {
-        window.speechSynthesis.speak(utterance);
-      }, 100);
+      window.speechSynthesis.speak(utterance);
+      
+      console.log('TTS 재생 시작:', {
+        시작단어: words[startIndex],
+        현재인덱스: startIndex
+      });
     } catch (error) {
       console.error('TTS 재생 실패:', error);
       setDebugInfo('TTS 재생 실패: ' + error.message);
@@ -171,35 +158,14 @@ const AudioController = ({
 
   // 오디오 초기화
   useEffect(() => {
-    // TTS 초기화
-    if (!ttsRef.current) {
-      const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '));
-      Object.assign(utterance, {
-        lang: 'ko-KR',
-        rate: 1.0,
-        pitch: 1.0,
-        volume: 0
-      });
-      setupTTSEventHandlers(utterance);
-      ttsRef.current = utterance;
-    }
-
     // 노이즈 사운드 초기화
     const initNoiseSound = () => {
       try {
         noiseSoundRef.current = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
         const noiseSound = noiseSoundRef.current;
         noiseSound.loop = true;
-        noiseSound.volume = 0;
+        noiseSound.volume = 1;
         noiseSound.preload = 'auto';
-        
-        // iOS Safari를 위한 특별 처리
-        noiseSound.play().then(() => {
-          noiseSound.pause(); // 즉시 일시정지
-        }).catch(error => {
-          console.error('노이즈 사운드 초기화 실패:', error);
-        });
-        
         return noiseSound;
       } catch (error) {
         console.error('노이즈 사운드 생성 실패:', error);
@@ -220,15 +186,9 @@ const AudioController = ({
         const isInTargetAngle = maxAngleDiff <= tolerance;
         if (isInTargetAngle) {
           noiseSound.volume = 0;
-          if (ttsRef.current) {
-            ttsRef.current.volume = 1;
-            playTTS(currentWordIndexRef.current); // 현재 단어부터 재생
-          }
+          playTTS(0);
         } else {
-          noiseSound.volume = Math.min(1, maxAngleDiff / maxDistance);
-          if (ttsRef.current) {
-            ttsRef.current.volume = 0;
-          }
+          noiseSound.volume = 1;
         }
       } catch (error) {
         console.error('오디오 초기화 실패:', error);
@@ -237,7 +197,6 @@ const AudioController = ({
       }
     };
 
-    // 터치/클릭 이벤트 핸들러
     const handleUserInteraction = () => {
       setupAudio();
       document.removeEventListener('touchstart', handleUserInteraction);
@@ -258,23 +217,19 @@ const AudioController = ({
       document.removeEventListener('touchstart', handleUserInteraction);
       document.removeEventListener('click', handleUserInteraction);
     };
-  }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance, maxDistance]);
+  }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance]);
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
     if (!isPlaying) return;
 
     const isInTargetAngle = maxAngleDiff <= tolerance;
-    const targetNoiseVolume = isInTargetAngle ? 0 : Math.min(1, maxAngleDiff / maxDistance);
-
-    let prevInTargetAngle = false;
     
     // 상태 로깅
     console.log('오디오 상태:', {
       isInTargetAngle,
       maxAngleDiff,
       tolerance,
-      targetNoiseVolume,
       isSpeaking: window.speechSynthesis.speaking,
       isPaused: window.speechSynthesis.paused,
       currentWordIndex: currentWordIndexRef.current
@@ -282,61 +237,38 @@ const AudioController = ({
 
     // 노이즈 사운드와 TTS 동시 제어
     if (noiseSoundRef.current) {
-      const currentNoiseVolume = noiseSoundRef.current.volume;
-      
       if (isInTargetAngle) {
         // 목표 각도 진입
         console.log('목표 각도 진입');
-        
-        // 노이즈 페이드 아웃
-        if (currentNoiseVolume > 0) {
-          smoothVolumeFade(currentNoiseVolume, 0);
-        }
+        noiseSoundRef.current.volume = 0;
         
         // TTS 처리
         if (!window.speechSynthesis.speaking) {
-          // TTS가 재생 중이 아닐 때 새로 시작
           console.log('TTS 새로 시작 (현재 단어부터):', currentWordIndexRef.current);
           playTTS(currentWordIndexRef.current);
         } else if (window.speechSynthesis.paused) {
-          // TTS가 일시정지 상태일 때 재개
           console.log('TTS 재개');
           window.speechSynthesis.resume();
-          if (ttsRef.current) {
-            smoothTTSFade(ttsRef.current, ttsRef.current.volume, 1);
-          }
         }
       } else {
         // 목표 각도 이탈
         console.log('목표 각도 이탈');
+        noiseSoundRef.current.volume = 1;
         
-        // 노이즈 페이드 인
-        if (noiseSoundRef.current.paused) {
-          noiseSoundRef.current.play().catch(console.error);
-        }
-        smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
-
-        // TTS 일시정지 및 페이드 아웃
+        // TTS 일시정지
         if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-          if (ttsRef.current) {
-            smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0, 300, () => {
-              window.speechSynthesis.pause();
-            });
-          }
+          window.speechSynthesis.pause();
         }
       }
-
-      prevInTargetAngle = isInTargetAngle;
     }
 
     // 디버그 정보 업데이트
-    const noiseVolume = noiseSoundRef.current?.volume.toFixed(2) || '0.00';
+    const noiseVolume = noiseSoundRef.current?.volume || 0;
     const ttsStatus = window.speechSynthesis.paused ? '일시정지' : 
                      window.speechSynthesis.speaking ? '재생중' : '정지';
-    const ttsVolume = ttsRef.current?.volume.toFixed(2) || '0.00';
     const currentWord = wordsArrayRef.current[currentWordIndexRef.current];
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume}) | 현재 단어: ${currentWord}`);
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} | 현재 단어: ${currentWord}`);
+  }, [isPlaying, maxAngleDiff, tolerance]);
 
   const initTTS = () => {
     if (!window.speechSynthesis) {
