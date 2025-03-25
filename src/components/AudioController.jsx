@@ -122,7 +122,7 @@ const AudioController = ({
         lang: 'ko-KR',
         rate: 1.0,
         pitch: 1.0,
-        volume: ttsRef.current?.volume || 1  // 현재 볼륨 유지 또는 기본값 1
+        volume: 1  // 초기 볼륨을 1로 설정
       });
 
       setupTTSEventHandlers(utterance);
@@ -132,7 +132,6 @@ const AudioController = ({
       
       console.log('TTS 재생:', {
         시작단어: words[startIndex],
-        현재단어인덱스: startIndex,
         남은단어수: words.length - startIndex
       });
     } catch (error) {
@@ -219,14 +218,11 @@ const AudioController = ({
           smoothVolumeFade(currentNoiseVolume, 0);
         }
         
-        // TTS 페이드 인 및 재생
-        if (ttsRef.current) {
-          if (ttsRef.current.volume < 1) {
-            smoothTTSFade(ttsRef.current, ttsRef.current.volume, 1);
-          }
+        // TTS 페이드 인
+        if (ttsRef.current && ttsRef.current.volume < 1) {
+          smoothTTSFade(ttsRef.current, ttsRef.current.volume, 1);
           if (!window.speechSynthesis.speaking) {
-            // 마지막으로 재생된 단어부터 이어서 재생
-            playTTS(currentWordIndexRef.current);
+            window.speechSynthesis.speak(ttsRef.current);
           }
         }
 
@@ -235,19 +231,15 @@ const AudioController = ({
           noiseSoundRef.current.pause();
         }
       } else {
-        // 목표 각도 이탈: 노이즈 페이드 인 & TTS 일시정지
+        // 목표 각도 이탈: 노이즈 페이드 인 & TTS 페이드 아웃
         if (noiseSoundRef.current.paused) {
           noiseSoundRef.current.play().catch(console.error);
         }
         smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
 
-        // TTS 페이드 아웃 후 일시정지
+        // TTS 페이드 아웃
         if (ttsRef.current && ttsRef.current.volume > 0) {
           smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0);
-          // 현재 단어 위치 저장
-          if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause();
-          }
         }
       }
     }
@@ -256,8 +248,7 @@ const AudioController = ({
     const noiseVolume = noiseSoundRef.current?.volume.toFixed(2) || '0.00';
     const ttsStatus = window.speechSynthesis.speaking ? '재생중' : '정지';
     const ttsVolume = ttsRef.current?.volume.toFixed(2) || '0.00';
-    const currentWord = wordsArrayRef.current[currentWordIndexRef.current];
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume}) | 현재 단어: ${currentWord}`);
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume})`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
   const initTTS = () => {
