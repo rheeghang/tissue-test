@@ -299,11 +299,14 @@ const AudioController = ({
 }
 
 useEffect(() => {
-  console.log('💡 전달된 상태 값 확인:', {
+  console.log('🎯 상태 값 출력:', {
+    isPlaying,
+    noiseVolume: noiseSoundRef.current?.volume,
+    ttsVolume: ttsRef.current?.volume,
     maxAngleDiff,
     tolerance,
     maxDistance
   })
-}, [maxAngleDiff, tolerance, maxDistance])
+}, [isPlaying, maxAngleDiff, tolerance, maxDistance])
 
 export default AudioController 
