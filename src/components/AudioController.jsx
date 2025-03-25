@@ -215,98 +215,62 @@ const AudioController = ({
 
   // 볼륨 업데이트
   useEffect(() => {
-    console.log('볼륨 업데이트 시도:', {
-      isPlaying,
-      hasNoiseRef: !!noiseSoundRef.current,
-      hasTTSRef: !!ttsRef.current,
-      maxAngleDiff,
-      tolerance,
-      maxDistance,
-      currentNoiseVolume: noiseSoundRef.current?.volume,
-      currentTTSVolume: ttsRef.current?.volume,
-      isSpeaking: window.speechSynthesis?.speaking
-    })
-
     if (!isPlaying) {
       console.log('오디오가 재생 중이 아님')
       return
     }
 
-    if (!noiseSoundRef.current) {
-      console.log('노이즈 사운드 레퍼런스가 없음')
-      return
-    }
-
-    if (!ttsRef.current) {
-      console.log('TTS 레퍼런스가 없음')
-      return
-    }
-
-    // 목표 각도 범위 안에 들어왔는지 확인
-    const isInTargetAngle = maxAngleDiff <= tolerance
-
-    // TTS 볼륨 계산 (각도가 가까울수록 크게)
-    const ttsVolume = maxAngleDiff <= tolerance ? 1 : 
-                     maxAngleDiff >= maxDistance ? 0 :
-                     1 - (maxAngleDiff - tolerance) / (maxDistance - tolerance)
-    
-    // 노이즈 볼륨 계산 (각도가 멀수록 크게)
-    const noiseVolume = maxAngleDiff <= tolerance ? 0 :
-                      maxAngleDiff >= maxDistance ? 1 :
-                      (maxAngleDiff - tolerance) / (maxDistance - tolerance)
-
-    console.log('볼륨 계산 결과:', { 
-      ttsVolume, 
-      noiseVolume, 
-      isInTargetAngle,
+    console.log('🎯 각도 차이와 볼륨 계산:', {
       maxAngleDiff,
-      tolerance 
+      tolerance,
+      isInTargetAngle: maxAngleDiff <= tolerance
     })
 
-    // TTS 볼륨 조절 및 재생 제어
+    const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
+    const ttsVolume = maxAngleDiff <= tolerance ? 1 : 0
+
+    console.log('📊 설정할 볼륨:', {
+      노이즈: noiseVolume,
+      TTS: ttsVolume
+    })
+
+    // 노이즈 사운드 볼륨 설정
+    if (noiseSoundRef.current) {
+      const prevNoiseVolume = noiseSoundRef.current.volume
+      noiseSoundRef.current.volume = noiseVolume
+      console.log('🔊 노이즈 볼륨 변경:', {
+        이전: prevNoiseVolume,
+        현재: noiseSoundRef.current.volume,
+        재생상태: noiseSoundRef.current.paused ? '일시정지' : '재생중'
+      })
+    }
+
+    // TTS 볼륨 설정 및 재생 제어
     if (ttsRef.current) {
-      ttsRef.current.volume = Math.max(0, Math.min(1, ttsVolume))
-      console.log('TTS 볼륨 설정:', ttsRef.current.volume)
-      
-      // 목표 각도 범위 안에 들어왔을 때 TTS 재생
-      if (isInTargetAngle) {
-        if (!window.speechSynthesis.speaking) {
-          console.log('목표 각도 도달: TTS 재생 시작')
-          setDebugInfo('목표 각도 도달: TTS 재생 중')
-          
-          // 처음 재생하는 경우에만 새로운 TTS 인스턴스 생성
-          if (!ttsRef.current.text) {
-            ttsRef.current = new SpeechSynthesisUtterance(originalText)
-            ttsRef.current.lang = 'ko-KR'
-            ttsRef.current.rate = 1.0
-            ttsRef.current.pitch = 1.0
-            ttsRef.current.volume = 1.0
+      const prevTTSVolume = ttsRef.current.volume
+      ttsRef.current.volume = ttsVolume
+      console.log('🗣 TTS 상태:', {
+        이전볼륨: prevTTSVolume,
+        현재볼륨: ttsRef.current.volume,
+        재생중: window.speechSynthesis.speaking,
+        일시정지: window.speechSynthesis.paused
+      })
 
-            // TTS 이벤트 핸들러 설정
-            ttsRef.current.onend = () => {
-              console.log('TTS 재생 완료')
-            }
-          }
-
-          // TTS 재생 시작
+      // 목표 각도 도달 시 TTS 재생
+      if (maxAngleDiff <= tolerance && !window.speechSynthesis.speaking) {
+        console.log('🎯 목표 각도 도달 - TTS 재생 시도')
+        try {
+          window.speechSynthesis.cancel() // 기존 재생 중인 TTS 취소
           window.speechSynthesis.speak(ttsRef.current)
-        }
-      } else {
-        // 목표 각도를 벗어났을 때 TTS 일시 중지
-        if (window.speechSynthesis.speaking) {
-          console.log('목표 각도 벗어남: TTS 일시 중지')
-          setDebugInfo('목표 각도 벗어남: TTS 일시 중지')
-          window.speechSynthesis.pause()
+          console.log('✅ TTS 재생 시작됨')
+        } catch (error) {
+          console.error('❌ TTS 재생 실패:', error)
         }
       }
     }
 
-    // 노이즈 볼륨 적용
-    noiseSoundRef.current.volume = Math.max(0, Math.min(1, noiseVolume))
-    console.log('노이즈 볼륨 설정:', noiseSoundRef.current.volume)
-    
-    setDebugInfo(`각도: ${maxAngleDiff.toFixed(1)}° | TTS: ${ttsVolume.toFixed(2)} | 노이즈: ${noiseVolume.toFixed(2)}`)
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo, originalText])
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(2)}, 노이즈: ${noiseVolume.toFixed(2)}, TTS: ${ttsVolume}`)
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo])
 
   return (
     <>
