@@ -120,32 +120,65 @@ const AudioController = ({
   }, [setDebugInfo])
 
   // TTS 실행 함수를 분리
-  const playTTS = (startTime = 0) => {
+  const playTTS = (startWordIndex = 0) => {
     if (!ttsRef.current || !isPlaying) return;
     
     console.log('🗣️ TTS 재생 시도:', {
       현재상태: window.speechSynthesis.speaking ? '재생중' : '중지됨',
-      텍스트: ttsRef.current.text?.slice(0, 20) + '...',
-      볼륨: ttsRef.current.volume,
-      시작위치: startTime
+      시작단어위치: startWordIndex
     });
 
     try {
       window.speechSynthesis.cancel();
       setTimeout(() => {
         if (ttsRef.current && ttsRef.current.volume > 0) {
-          // 이어듣기를 위한 텍스트 분할
-          if (startTime > 0) {
-            const words = ttsRef.current.text.split(' ');
-            const approximatePosition = Math.floor((startTime / ttsRef.current.text.length) * words.length);
-            ttsRef.current.text = words.slice(approximatePosition).join(' ');
-          }
+          // 단어 단위로 텍스트 분할
+          const words = originalText.split(' ');
+          ttsRef.current.text = words.slice(startWordIndex).join(' ');
+          
+          console.log('TTS 재생 시작:', {
+            시작단어: words[startWordIndex],
+            전체단어수: words.length,
+            남은단어수: words.length - startWordIndex
+          });
+          
           window.speechSynthesis.speak(ttsRef.current);
         }
       }, 100);
     } catch (error) {
       console.error('TTS 재생 실패:', error);
     }
+  };
+
+  // 현재 재생 중인 단어 위치를 추적하기 위한 변수
+  const currentWordIndexRef = useRef(0);
+  
+  // TTS 이벤트 핸들러 설정 함수
+  const setupTTSEventHandlers = (utterance) => {
+    if (!utterance) return;
+    
+    // 단어 경계 이벤트
+    utterance.onboundary = (event) => {
+      if (event.name === 'word') {
+        currentWordIndexRef.current = event.charIndex;
+        console.log('현재 단어 위치:', event.charIndex);
+      }
+    };
+
+    utterance.onend = () => {
+      console.log('TTS 재생 완료');
+      currentWordIndexRef.current = 0;
+    };
+
+    utterance.onerror = (event) => {
+      console.error('TTS 에러:', event);
+      setDebugInfo('TTS 에러 발생: ' + event.error);
+    };
+
+    utterance.onstart = () => {
+      console.log('TTS 재생 시작');
+      setDebugInfo('TTS 재생 중');
+    };
   };
 
   // 페이드 효과를 위한 상태 변수
@@ -202,12 +235,21 @@ const AudioController = ({
       각도차이: maxAngleDiff.toFixed(2),
       목표도달: isInTargetAngle ? 'Y' : 'N',
       목표노이즈볼륨: targetNoiseVolume.toFixed(2),
-      TTS볼륨: ttsVolume
+      TTS볼륨: ttsVolume,
+      현재단어위치: currentWordIndexRef.current
     });
 
     // 노이즈 사운드 페이드 효과 적용
-    if (noiseSoundRef.current && Math.abs(fadeStateRef.current.currentNoiseVolume - targetNoiseVolume) > 0.01) {
-      smoothVolumeFade(fadeStateRef.current.currentNoiseVolume, targetNoiseVolume);
+    if (noiseSoundRef.current) {
+      const currentNoiseVolume = noiseSoundRef.current.volume;
+      if (Math.abs(currentNoiseVolume - targetNoiseVolume) > 0.01) {
+        smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
+      }
+
+      // 노이즈 재생 상태 관리
+      if (targetNoiseVolume > 0 && noiseSoundRef.current.paused) {
+        noiseSoundRef.current.play().catch(console.error);
+      }
     }
 
     // TTS 제어
@@ -221,23 +263,27 @@ const AudioController = ({
       // 목표 각도 진입 시 TTS 재생
       if (isInTargetAngle && !ttsSpeaking && prevVolume === 0 && ttsVolume === 1) {
         console.log('🎯 목표 각도 진입 - TTS 재생');
-        const lastPosition = lastTTSVolumeRef.current;
-        playTTS(lastPosition);
+        const lastWordIndex = Math.floor(currentWordIndexRef.current / 2); // 약간 이전 위치부터 시작
+        playTTS(lastWordIndex);
       }
       // 목표 각도 이탈 시 TTS 일시 중지
       else if (!isInTargetAngle && ttsSpeaking) {
-        console.log('🎯 목표 각도 이탈 - TTS 중지');
-        // 현재 재생 위치 저장
-        const utterance = ttsRef.current;
-        if (utterance) {
-          lastTTSVolumeRef.current = utterance.text.length * (window.speechSynthesis.speaking ? 0.5 : 0);
-        }
+        console.log('🎯 목표 각도 이탈 - TTS 중지', {
+          현재단어위치: currentWordIndexRef.current
+        });
         window.speechSynthesis.cancel();
       }
     }
 
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${fadeStateRef.current.currentNoiseVolume.toFixed(1)}, TTS: ${ttsVolume}`);
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, TTS: ${ttsVolume}, 단어위치: ${currentWordIndexRef.current}`);
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, originalText]);
+
+  // TTS 초기화
+  useEffect(() => {
+    if (ttsRef.current) {
+      setupTTSEventHandlers(ttsRef.current);
+    }
+  }, [ttsRef.current]);
 
   // 사용자 인터랙션을 통한 TTS 실행 (첫 실행용)
   useEffect(() => {
