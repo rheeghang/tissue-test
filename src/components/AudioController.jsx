@@ -74,7 +74,7 @@ const AudioController = ({
     };
   };
 
-  // 상태 변화 속도 제한
+  // 각도에 따른 오디오 제어
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -97,6 +97,17 @@ const AudioController = ({
             window.speechSynthesis.pause();
           }
         }
+
+        // 디버그 정보 업데이트
+        setDebugInfo(`
+          각도차: ${maxAngleDiff.toFixed(1)}° | 
+          허용범위: ${tolerance}° | 
+          노이즈: ${noiseSoundRef.current.volume} | 
+          TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
+          현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
+          목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
+          재생상태: ${isPlaying ? '재생중' : '정지'}
+        `);
       }
     }
   }, [maxAngleDiff, tolerance, isPlaying]);
