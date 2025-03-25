@@ -57,6 +57,12 @@ const AudioController = ({
   useEffect(() => {
     const initAudio = () => {
       try {
+        // TTS 지원 여부 확인
+        if (!window.speechSynthesis) {
+          console.error('TTS를 지원하지 않는 브라우저입니다.');
+          return null;
+        }
+
         // 노이즈 사운드 초기화
         noiseSoundRef.current = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
         const noiseSound = noiseSoundRef.current;
@@ -70,6 +76,13 @@ const AudioController = ({
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         utterance.volume = 1;
+
+        // TTS 상태 확인
+        console.log('TTS 초기화 상태:', {
+          isSupported: !!window.speechSynthesis,
+          voices: window.speechSynthesis.getVoices(),
+          utterance: utterance
+        });
 
         setupTTSEventHandlers(utterance);
         ttsRef.current = utterance;
@@ -87,7 +100,15 @@ const AudioController = ({
         if (!audio) throw new Error('오디오 초기화 실패');
 
         const { noiseSound } = audio;
-        await noiseSound.play();
+        
+        // 오디오 재생 시도
+        try {
+          await noiseSound.play();
+          console.log('노이즈 사운드 재생 시작');
+        } catch (playError) {
+          console.error('노이즈 사운드 재생 실패:', playError);
+          throw playError;
+        }
         
         // 상태 업데이트를 setTimeout으로 지연
         setTimeout(() => {
@@ -96,18 +117,26 @@ const AudioController = ({
           
           // 초기 상태 설정
           const isInTargetAngle = maxAngleDiff <= tolerance;
+          console.log('초기 각도 상태:', {
+            isInTargetAngle,
+            maxAngleDiff,
+            tolerance,
+            noiseVolume: noiseSound.volume,
+            ttsReady: !!ttsRef.current,
+            isSpeaking: window.speechSynthesis.speaking
+          });
+
           if (isInTargetAngle) {
             noiseSound.volume = 0;
-            window.speechSynthesis.speak(ttsRef.current);
+            try {
+              window.speechSynthesis.speak(ttsRef.current);
+              console.log('TTS 재생 시도');
+            } catch (ttsError) {
+              console.error('TTS 재생 실패:', ttsError);
+            }
           } else {
             noiseSound.volume = 1;
           }
-
-          console.log('오디오 초기화 완료:', {
-            isInTargetAngle,
-            noiseVolume: noiseSound.volume,
-            ttsReady: !!ttsRef.current
-          });
         }, 100);
       } catch (error) {
         console.error('오디오 설정 실패:', error);
@@ -154,7 +183,9 @@ const AudioController = ({
         maxAngleDiff,
         tolerance,
         isSpeaking: window.speechSynthesis.speaking,
-        isPaused: window.speechSynthesis.paused
+        isPaused: window.speechSynthesis.paused,
+        noiseVolume: noiseSoundRef.current?.volume,
+        ttsReady: !!ttsRef.current
       });
 
       if (noiseSoundRef.current && ttsRef.current) {
@@ -164,11 +195,21 @@ const AudioController = ({
           noiseSoundRef.current.volume = 0;
           
           if (!window.speechSynthesis.speaking) {
-            console.log('TTS 시작');
-            window.speechSynthesis.speak(ttsRef.current);
+            console.log('TTS 시작 시도');
+            try {
+              window.speechSynthesis.speak(ttsRef.current);
+              console.log('TTS 시작 성공');
+            } catch (error) {
+              console.error('TTS 시작 실패:', error);
+            }
           } else if (window.speechSynthesis.paused) {
-            console.log('TTS 재개');
-            window.speechSynthesis.resume();
+            console.log('TTS 재개 시도');
+            try {
+              window.speechSynthesis.resume();
+              console.log('TTS 재개 성공');
+            } catch (error) {
+              console.error('TTS 재개 실패:', error);
+            }
           }
         } else {
           // 목표 각도 이탈
@@ -176,8 +217,13 @@ const AudioController = ({
           noiseSoundRef.current.volume = 1;
           
           if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-            console.log('TTS 일시정지');
-            window.speechSynthesis.pause();
+            console.log('TTS 일시정지 시도');
+            try {
+              window.speechSynthesis.pause();
+              console.log('TTS 일시정지 성공');
+            } catch (error) {
+              console.error('TTS 일시정지 실패:', error);
+            }
           }
         }
 
