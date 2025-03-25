@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from './RotatedText'
+import AudioController from './AudioController'
 
 const ExhibitionText = () => {
   const [blurAmount, setBlurAmount] = useState(10)
@@ -11,166 +12,18 @@ const ExhibitionText = () => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [showAudioButton, setShowAudioButton] = useState(true)
   const [debugInfo, setDebugInfo] = useState('')
-  
-  
-  // 오디오 레퍼런스들
-  const noiseSoundRef = useRef(null)
-  const ttsRef = useRef(null)
+  const [maxAngleDiff, setMaxAngleDiff] = useState(0)
 
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
   const tolerance = 35  // 완전히 선명해지는 범위
   const clearThreshold = 45  // 읽을 수 있는 범위
-  const maxBlur = 10
+  const maxBlur = 20
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "보이지 않는 조각들: 공기조각"
   const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
-
-  // 오디오 초기화
-  useEffect(() => {
-    // 오디오 객체 생성
-    noiseSoundRef.current = new Audio()
-    noiseSoundRef.current.src = process.env.PUBLIC_URL + '/sound1.mp3'
-    
-    const noiseSound = noiseSoundRef.current
-
-    // 노이즈 사운드 설정
-    noiseSound.loop = true
-    noiseSound.volume = 0
-    noiseSound.preload = 'auto'
-
-    // 오디오 로드 에러 핸들링
-    noiseSound.onerror = (e) => {
-      console.error('오디오 로드 에러:', e)
-      console.log('현재 오디오 소스:', noiseSound.src)
-      console.log('오디오 에러 코드:', noiseSound.error?.code)
-      console.log('오디오 에러 메시지:', noiseSound.error?.message)
-      setDebugInfo('오디오 로드 실패: ' + (noiseSound.error?.message || '알 수 없는 에러'))
-    }
-
-    // 오디오 로드 성공 핸들링
-    noiseSound.oncanplaythrough = () => {
-      console.log('오디오 로드 성공')
-      setDebugInfo('오디오 로드 완료')
-    }
-
-    // iOS에서 오디오 재생을 위한 설정
-    const setupAudio = () => {
-      console.log('오디오 초기화 시작')
-      try {
-        noiseSound.load()
-        // iOS에서 필요한 초기 재생 시도
-        noiseSound.play().then(() => {
-          noiseSound.pause() // 바로 일시정지
-          noiseSound.currentTime = 0 // 시작 위치로 되돌림
-          console.log('오디오 초기화 성공')
-          setDebugInfo('오디오 초기화 완료')
-        }).catch(error => {
-          console.error('오디오 초기화 실패:', error)
-          setDebugInfo('오디오 초기화 실패: ' + error.message)
-        })
-      } catch (error) {
-        console.error('오디오 초기화 중 에러:', error)
-        setDebugInfo('오디오 초기화 중 에러: ' + error.message)
-      }
-      document.removeEventListener('touchstart', setupAudio)
-    }
-    document.addEventListener('touchstart', setupAudio)
-
-    return () => {
-      if (noiseSound) {
-        noiseSound.pause()
-        noiseSound.currentTime = 0
-      }
-      document.removeEventListener('touchstart', setupAudio)
-    }
-  }, [])
-
-  // 오디오 재생 핸들러
-  const handleAudioStart = async () => {
-    try {
-      console.log('오디오 재생 시도')
-      setDebugInfo('오디오 재생 시도 중...')
-      
-      const noiseSound = noiseSoundRef.current
-      if (!noiseSound) {
-        throw new Error('오디오 객체가 초기화되지 않음')
-      }
-
-      // 오디오 상태 로깅
-      console.log('오디오 상태:', {
-        src: noiseSound.src,
-        readyState: noiseSound.readyState,
-        paused: noiseSound.paused,
-        volume: noiseSound.volume,
-        error: noiseSound.error
-      })
-
-      // 오디오가 로드될 때까지 대기
-      if (noiseSound.readyState < 4) { // HAVE_ENOUGH_DATA
-        await new Promise((resolve, reject) => {
-          noiseSound.oncanplaythrough = resolve
-          noiseSound.onerror = reject
-          noiseSound.load()
-        })
-      }
-
-      // 오디오 재생 시도
-      await noiseSound.play()
-      
-      // TTS 초기화 및 재생
-      if ('speechSynthesis' in window) {
-        console.log('TTS 초기화 시작')
-        window.speechSynthesis.cancel() // 기존 TTS 중지
-        
-        ttsRef.current = new SpeechSynthesisUtterance(originalText)
-        ttsRef.current.lang = 'ko-KR'
-        ttsRef.current.rate = 1.0
-        ttsRef.current.pitch = 1.0
-        ttsRef.current.volume = 0
-
-        // TTS 이벤트 핸들러들
-        ttsRef.current.onend = () => {
-          console.log('TTS 재생 완료')
-          if (ttsRef.current && ttsRef.current.volume > 0.1) {
-            console.log('TTS 재시작')
-            window.speechSynthesis.speak(ttsRef.current)
-          }
-        }
-
-        ttsRef.current.onerror = (event) => {
-          console.error('TTS 에러:', event)
-          setDebugInfo('TTS 에러 발생: ' + event.error)
-        }
-
-        ttsRef.current.onstart = () => {
-          console.log('TTS 재생 시작')
-          setDebugInfo('TTS 재생 중')
-        }
-
-        // 초기 TTS 재생
-        setTimeout(() => {
-          try {
-            window.speechSynthesis.speak(ttsRef.current)
-          } catch (error) {
-            console.error('TTS 재생 실패:', error)
-            setDebugInfo('TTS 재생 실패: ' + error.message)
-          }
-        }, 1000)
-      }
-
-      console.log('오디오 재생 성공')
-      setDebugInfo('오디오 재생 중')
-      setIsPlaying(true)
-      setShowAudioButton(false)
-    } catch (error) {
-      console.error('오디오 재생 실패:', error)
-      setDebugInfo('오디오 재생 실패: ' + error.message)
-      setShowAudioButton(true)
-    }
-  }
 
   // iOS 디바이스 체크
   useEffect(() => {
@@ -236,6 +89,7 @@ const ExhibitionText = () => {
       const betaDiff = Math.abs(beta - targetBeta)
       const gammaDiff = Math.abs(gamma - targetGamma)
       const maxAngleDiff = Math.max(betaDiff, gammaDiff)
+      setMaxAngleDiff(maxAngleDiff)
       
       // 블러 계산
       let blur
@@ -250,48 +104,8 @@ const ExhibitionText = () => {
       }
       
       setBlurAmount(blur)
-
-      // 오디오 볼륨 조절
-      if (isPlaying) {
-        // TTS 볼륨 계산 (각도가 가까울수록 크게)
-        const ttsVolume = maxAngleDiff <= tolerance ? 1 : 
-                         maxAngleDiff >= maxDistance ? 0 :
-                         1 - (maxAngleDiff - tolerance) / (maxDistance - tolerance)
-        
-        // 노이즈 볼륨 계산 (각도가 멀수록 크게)
-        const noiseVolume = maxAngleDiff <= tolerance ? 0 :
-                          maxAngleDiff >= maxDistance ? 1 :
-                          (maxAngleDiff - tolerance) / (maxDistance - tolerance)
-
-        // TTS 볼륨 조절
-        if (ttsRef.current) {
-          ttsRef.current.volume = Math.max(0, Math.min(1, ttsVolume))
-          
-          // TTS 재생/중지 로직
-          if (ttsVolume > 0.1) {  // 볼륨이 0.1 이상일 때만 재생
-            if (!window.speechSynthesis.speaking) {
-              setDebugInfo('TTS 시작 시도')
-              // TTS 재생도 지연 후 시도
-              setTimeout(() => {
-                window.speechSynthesis.cancel()
-                window.speechSynthesis.speak(ttsRef.current)
-              }, 500) // 0.5초 지연
-            }
-          } else {
-            if (window.speechSynthesis.speaking) {
-              setDebugInfo('TTS 중지')
-              window.speechSynthesis.cancel()
-            }
-          }
-        }
-
-        // 노이즈 볼륨 적용
-        noiseSoundRef.current.volume = Math.max(0, Math.min(1, noiseVolume))
-        
-        setDebugInfo(`각도: ${maxAngleDiff.toFixed(1)}° | TTS: ${ttsVolume.toFixed(2)} | 노이즈: ${noiseVolume.toFixed(2)}`)
-      }
     }
-  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur, isPlaying])
+  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur])
 
   // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
@@ -337,17 +151,18 @@ const ExhibitionText = () => {
         </div>
       )}
 
-      {/* 오디오 시작 버튼 */}
-      {showAudioButton && (
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={handleAudioStart}
-            className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
-          >
-            소리 시작하기
-          </button>
-        </div>
-      )}
+      {/* AudioController 컴포넌트 */}
+      <AudioController
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        showAudioButton={showAudioButton}
+        setShowAudioButton={setShowAudioButton}
+        setDebugInfo={setDebugInfo}
+        originalText={originalText}
+        maxAngleDiff={maxAngleDiff}
+        tolerance={tolerance}
+        maxDistance={maxDistance}
+      />
 
       {/* 각도 표시 footer */}
       <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
