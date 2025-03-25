@@ -175,51 +175,22 @@ const AudioController = ({
       }
     };
 
-    const cleanup = setupEventListeners();
-    setupAudio();
+    // 권한 허용 시 오디오 초기화 실행
+    if (isPlaying) {
+      setupAudio();
+    }
 
     return () => {
-      cleanup();
       if (noiseSoundRef.current) {
         noiseSoundRef.current.pause();
         noiseSoundRef.current = null;
       }
       window.speechSynthesis.cancel();
     };
-  }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance]);
+  }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance, isPlaying]);
 
   return (
     <>
-      {showAudioButton && (
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={async () => {
-              try {
-                if (noiseSoundRef.current) {
-                  await noiseSoundRef.current.play();
-                  const isInTargetAngle = maxAngleDiff <= tolerance;
-                  noiseSoundRef.current.volume = isInTargetAngle ? 0 : 1;
-                  
-                  setIsPlaying(true);
-                  setShowAudioButton(false);
-                  
-                  if (isInTargetAngle && ttsRef.current) {
-                    console.log('✅ 버튼 클릭 시 목표 각도 진입');
-                    window.speechSynthesis.speak(ttsRef.current);
-                  }
-                }
-              } catch (error) {
-                console.error('오디오 재생 실패:', error);
-                setDebugInfo(`오디오 재생 실패: ${error.message}`);
-              }
-            }}
-            className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
-          >
-            소리 시작하기
-          </button>
-        </div>
-      )}
-      
       {/* 디버그 정보 표시 */}
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div className="font-bold mb-2">디버그 정보:</div>
