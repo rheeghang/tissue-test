@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 
 const AudioController = ({ 
   isPlaying, 
@@ -28,17 +28,14 @@ const AudioController = ({
   });
 
   // TTS 상태 초기화 함수
-  const resetTTS = () => {
+  const resetTTS = useCallback(() => {
     return new Promise((resolve) => {
-      // 1. 현재 실행 중인 TTS 중지
       if (window.speechSynthesis.speaking) {
         console.log('🔄 기존 TTS 중단');
         window.speechSynthesis.cancel();
       }
 
-      // 2. 상태 초기화를 위한 딜레이
       setTimeout(() => {
-        // 3. TTS 재생
         if (ttsRef.current) {
           console.log('🎯 TTS 재생 시도');
           window.speechSynthesis.speak(ttsRef.current);
@@ -46,10 +43,10 @@ const AudioController = ({
         }
       }, 100);
     });
-  };
+  }, []);
 
   // TTS 이벤트 핸들러 설정
-  const setupTTSEventHandlers = (utterance) => {
+  const setupTTSEventHandlers = useCallback((utterance) => {
     if (!utterance) return;
     
     let wordCount = 0;
@@ -81,45 +78,7 @@ const AudioController = ({
     utterance.onstart = () => {
       setTtsState(prev => ({ ...prev, isSpeaking: true, isPaused: false }));
     };
-  };
-
-  // 각도에 따른 오디오 제어
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const now = Date.now();
-    if (now - lastUpdateRef.current > 200) { // 200ms 간격 제한
-      lastUpdateRef.current = now;
-      // 여기서 필요한 상태 업데이트를 수행
-      if (noiseSoundRef.current && ttsRef.current) {
-        const isInTargetAngle = maxAngleDiff <= tolerance;
-        const newVolume = isInTargetAngle ? 0 : 1;
-        noiseSoundRef.current.volume = newVolume;
-
-        if (isInTargetAngle) {
-          console.log('✅ 목표 각도 진입 - TTS 재생');
-          // TTS 즉시 재생
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.speak(ttsRef.current);
-        } else {
-          if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause();
-          }
-        }
-
-        // 디버그 정보 업데이트
-        setDebugInfo(`
-          각도차: ${maxAngleDiff.toFixed(1)}° | 
-          허용범위: ${tolerance}° | 
-          노이즈: ${noiseSoundRef.current.volume} | 
-          TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
-          현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
-          목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
-          재생상태: ${isPlaying ? '재생중' : '정지'}
-        `);
-      }
-    }
-  }, [maxAngleDiff, tolerance, isPlaying]);
+  }, [resetTTS, setDebugInfo]);
 
   // 오디오 초기화
   useEffect(() => {
@@ -157,26 +116,29 @@ const AudioController = ({
         const noiseSound = initAudio();
         if (!noiseSound) throw new Error('오디오 초기화 실패');
         
-        await noiseSound.play();
-        setIsPlaying(true);
-        setShowAudioButton(false);
-        
-        const isInTargetAngle = maxAngleDiff <= tolerance;
-        noiseSound.volume = isInTargetAngle ? 0 : 1;
-        
-        if (isInTargetAngle && ttsRef.current) {
-          console.log('✅ 초기 목표 각도 진입');
-          window.speechSynthesis.speak(ttsRef.current);
+        try {
+          await noiseSound.play();
+          console.log('✅ 노이즈 사운드 재생 시작');
+          
+          const isInTargetAngle = maxAngleDiff <= tolerance;
+          noiseSound.volume = isInTargetAngle ? 0 : 1;
+          
+          if (isInTargetAngle && ttsRef.current) {
+            console.log('✅ 초기 목표 각도 진입');
+            window.speechSynthesis.speak(ttsRef.current);
+          }
+        } catch (playError) {
+          console.error('오디오 재생 실패:', playError);
+          throw playError;
         }
       } catch (error) {
         console.error('오디오 설정 실패:', error);
-        setIsPlaying(false);
-        setShowAudioButton(true);
+        setDebugInfo(`오디오 설정 실패: ${error.message}`);
       }
     };
 
-    // 권한 허용 시 오디오 초기화 실행
     if (isPlaying) {
+      console.log('🎵 오디오 초기화 시작');
       setupAudio();
     }
 
@@ -187,7 +149,42 @@ const AudioController = ({
       }
       window.speechSynthesis.cancel();
     };
-  }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance, isPlaying]);
+  }, [isPlaying, maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo]);
+
+  // 각도에 따른 오디오 제어
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const now = Date.now();
+    if (now - lastUpdateRef.current > 200) {
+      lastUpdateRef.current = now;
+      if (noiseSoundRef.current && ttsRef.current) {
+        const isInTargetAngle = maxAngleDiff <= tolerance;
+        const newVolume = isInTargetAngle ? 0 : 1;
+        noiseSoundRef.current.volume = newVolume;
+
+        if (isInTargetAngle) {
+          console.log('✅ 목표 각도 진입 - TTS 재생');
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(ttsRef.current);
+        } else {
+          if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+          }
+        }
+
+        setDebugInfo(`
+          각도차: ${maxAngleDiff.toFixed(1)}° | 
+          허용범위: ${tolerance}° | 
+          노이즈: ${noiseSoundRef.current.volume} | 
+          TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
+          현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
+          목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
+          재생상태: ${isPlaying ? '재생중' : '정지'}
+        `);
+      }
+    }
+  }, [maxAngleDiff, tolerance, isPlaying, setDebugInfo]);
 
   return (
     <>
