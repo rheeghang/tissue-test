@@ -136,35 +136,56 @@ const AudioController = ({
 
   // 볼륨 업데이트
   useEffect(() => {
-    if (!isPlaying) return
+    if (!isPlaying) {
+      console.log('\n=== 🔇 오디오 비활성화 ===')
+      console.log('재생 상태: 중지됨')
+      console.log('========================\n')
+      return
+    }
 
     const isInTargetAngle = maxAngleDiff <= tolerance
     const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
     const ttsVolume = isInTargetAngle ? 1 : 0
 
+    console.log('\n=== 📊 볼륨 계산 결과 ===')
+    console.log(`현재 각도 차이: ${maxAngleDiff.toFixed(2)}°`)
+    console.log(`목표 각도 범위: ${tolerance}°`)
+    console.log(`목표 도달 여부: ${isInTargetAngle ? '✅ 도달' : '❌ 미도달'}`)
+    console.log(`설정될 노이즈 볼륨: ${noiseVolume.toFixed(2)}`)
+    console.log(`설정될 TTS 볼륨: ${ttsVolume.toFixed(2)}`)
+    console.log('========================\n')
+
     // 노이즈 사운드 볼륨 업데이트
     if (noiseSoundRef.current) {
+      const prevVolume = noiseSoundRef.current.volume
       noiseSoundRef.current.volume = noiseVolume
+      
+      if (Math.abs(prevVolume - noiseVolume) > 0.1) {
+        console.log('\n=== 🔊 노이즈 볼륨 변경 ===')
+        console.log(`이전 볼륨: ${prevVolume.toFixed(2)}`)
+        console.log(`현재 볼륨: ${noiseVolume.toFixed(2)}`)
+        console.log('========================\n')
+      }
     }
 
     // TTS 볼륨 업데이트 및 재생 제어
     if (ttsRef.current) {
+      const prevVolume = ttsRef.current.volume
       ttsRef.current.volume = ttsVolume
-      
-      // TTS 재생 상태 변경 감지
-      if (ttsVolume === 1 && lastTTSVolumeRef.current === 0) {
-        // 볼륨이 0에서 1로 변경될 때 TTS 재생
-        console.log('\n=== TTS 재생 시작 ===')
+
+      if (isInTargetAngle && !window.speechSynthesis.speaking) {
+        console.log('\n=== 🗣 TTS 재생 시작 ===')
+        console.log('재생 텍스트 길이:', ttsRef.current.text?.length)
+        console.log('설정된 볼륨:', ttsVolume.toFixed(2))
+        console.log('언어 설정:', ttsRef.current.lang)
+        console.log('========================\n')
+
         window.speechSynthesis.cancel()
         window.speechSynthesis.speak(ttsRef.current)
-        logAudioStatus()
       }
-      
-      lastTTSVolumeRef.current = ttsVolume
     }
 
-    // 상태 변화가 있을 때만 디버그 정보 업데이트
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume}`)
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume}`)
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo])
 
   // 상태 모니터링
