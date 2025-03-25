@@ -84,9 +84,13 @@ const AudioController = ({
 
         console.log('오디오 초기화 성공')
         setDebugInfo('오디오 초기화 완료')
+        setIsPlaying(true)
+        setShowAudioButton(false)
       } catch (error) {
         console.error('오디오 초기화 실패:', error)
         setDebugInfo('오디오 초기화 실패: ' + error.message)
+        setIsPlaying(false)
+        setShowAudioButton(true)
       }
       document.removeEventListener('touchstart', setupAudio)
     }
@@ -109,10 +113,22 @@ const AudioController = ({
     }
   }, [setDebugInfo])
 
+  useEffect(() => {
+    console.log('💡 isPlaying 상태 변경:', isPlaying)
+  }, [isPlaying])
+
   // 오디오 재생 핸들러
   const handleAudioStart = async () => {
     try {
-      console.log('오디오 재생 시도')
+      console.log('🎵 오디오 재생 시도 - 초기 상태:', {
+        isPlaying,
+        hasNoiseRef: !!noiseSoundRef.current,
+        hasTTSRef: !!ttsRef.current,
+        noiseReadyState: noiseSoundRef.current?.readyState,
+        noisePaused: noiseSoundRef.current?.paused,
+        noiseVolume: noiseSoundRef.current?.volume,
+        ttsSpeaking: window.speechSynthesis?.speaking
+      })
       setDebugInfo('오디오 재생 시도 중...')
       
       const noiseSound = noiseSoundRef.current
@@ -205,7 +221,10 @@ const AudioController = ({
       hasTTSRef: !!ttsRef.current,
       maxAngleDiff,
       tolerance,
-      maxDistance
+      maxDistance,
+      currentNoiseVolume: noiseSoundRef.current?.volume,
+      currentTTSVolume: ttsRef.current?.volume,
+      isSpeaking: window.speechSynthesis?.speaking
     })
 
     if (!isPlaying) {
