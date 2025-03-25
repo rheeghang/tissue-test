@@ -122,16 +122,13 @@ const AudioController = ({
         lang: 'ko-KR',
         rate: 1.0,
         pitch: 1.0,
-        volume: 0  // 초기 볼륨을 0으로 설정
+        volume: 1  // 초기 볼륨을 1로 설정
       });
 
       setupTTSEventHandlers(utterance);
       
       ttsRef.current = utterance;
       window.speechSynthesis.speak(utterance);
-      
-      // TTS 페이드 인 효과 적용
-      smoothTTSFade(utterance, 0, 1, 500);
       
       console.log('TTS 재생:', {
         시작단어: words[startIndex],
@@ -222,6 +219,14 @@ const AudioController = ({
 
     setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'}`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
+
+  const initTTS = () => {
+    if (!window.speechSynthesis) {
+      console.error('TTS를 지원하지 않는 브라우저입니다.');
+      return;
+    }
+    // ... TTS 초기화 코드 ...
+  };
 
   // 오디오 시작 버튼 렌더링
   return (
