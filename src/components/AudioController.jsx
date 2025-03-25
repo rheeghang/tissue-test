@@ -217,7 +217,11 @@ const AudioController = ({
       }
     }
 
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'}`);
+    // 디버그 정보 업데이트
+    const noiseVolume = noiseSoundRef.current?.volume.toFixed(2) || '0.00';
+    const ttsStatus = window.speechSynthesis.speaking ? '재생중' : '정지';
+    const ttsVolume = ttsRef.current?.volume.toFixed(2) || '0.00';
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume})`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
   const initTTS = () => {
