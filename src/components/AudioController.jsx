@@ -186,12 +186,17 @@ const AudioController = ({
       
       if (isInTargetAngle) {
         // 목표 각도 진입: 노이즈 페이드 아웃 & TTS 시작
-        smoothVolumeFade(currentNoiseVolume, 0);
+        if (currentNoiseVolume > 0) {
+          smoothVolumeFade(currentNoiseVolume, 0);
+        }
         
-        if (!window.speechSynthesis.speaking) {
+        // TTS가 재생 중이 아니고, 노이즈가 거의 없을 때 TTS 시작
+        if (!window.speechSynthesis.speaking && currentNoiseVolume < 0.3) {
+          console.log('목표 각도 진입: TTS 시작');
           playTTS(currentWordIndexRef.current);
         }
 
+        // 노이즈가 완전히 페이드 아웃되면 일시정지
         if (currentNoiseVolume === 0) {
           noiseSoundRef.current.pause();
         }
@@ -202,7 +207,9 @@ const AudioController = ({
         }
         smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
 
+        // TTS 중지
         if (window.speechSynthesis.speaking) {
+          console.log('목표 각도 이탈: TTS 중지');
           if (ttsRef.current) {
             smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0);
             setTimeout(() => window.speechSynthesis.cancel(), 500);
@@ -211,7 +218,7 @@ const AudioController = ({
       }
     }
 
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, 단어: ${wordsArrayRef.current[currentWordIndexRef.current]}`);
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'}`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
   // 오디오 시작 버튼 렌더링
