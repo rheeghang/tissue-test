@@ -122,14 +122,16 @@ const AudioController = ({
         lang: 'ko-KR',
         rate: 1.0,
         pitch: 1.0,
-        volume: 0
+        volume: 0  // 초기 볼륨을 0으로 설정
       });
 
       setupTTSEventHandlers(utterance);
-      smoothTTSFade(utterance, 0, 1, 500);
       
       ttsRef.current = utterance;
       window.speechSynthesis.speak(utterance);
+      
+      // TTS 페이드 인 효과 적용
+      smoothTTSFade(utterance, 0, 1, 500);
       
       console.log('TTS 재생:', {
         시작단어: words[startIndex],
@@ -190,10 +192,12 @@ const AudioController = ({
           smoothVolumeFade(currentNoiseVolume, 0);
         }
         
-        // TTS가 재생 중이 아니고, 노이즈가 거의 없을 때 TTS 시작
-        if (!window.speechSynthesis.speaking && currentNoiseVolume < 0.3) {
+        // TTS가 재생 중이 아니면 시작
+        if (!window.speechSynthesis.speaking) {
           console.log('목표 각도 진입: TTS 시작');
-          playTTS(currentWordIndexRef.current);
+          setTimeout(() => {
+            playTTS(currentWordIndexRef.current);
+          }, 100);
         }
 
         // 노이즈가 완전히 페이드 아웃되면 일시정지
