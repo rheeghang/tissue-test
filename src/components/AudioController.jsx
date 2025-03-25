@@ -83,62 +83,6 @@ const AudioController = ({
     };
   }, [resetTTS, setDebugInfo]);
 
-  // 오디오 초기화
-  const initAudio = () => {
-    try {
-      if (!window.speechSynthesis) {
-        console.error('TTS를 지원하지 않는 브라우저입니다.');
-        return null;
-      }
-
-      const noiseSound = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
-      noiseSound.loop = true;
-      noiseSound.volume = 1;
-      noiseSound.preload = 'auto';
-      noiseSoundRef.current = noiseSound;
-
-      const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '));
-      utterance.lang = 'ko-KR';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1;
-
-      setupTTSEventHandlers(utterance);
-      ttsRef.current = utterance;
-
-      return noiseSound;
-    } catch (error) {
-      console.error('오디오 초기화 실패:', error);
-      return null;
-    }
-  };
-
-  const setupAudio = async () => {
-    try {
-      const noiseSound = initAudio();
-      if (!noiseSound) throw new Error('오디오 초기화 실패');
-      
-      try {
-        await noiseSound.play();
-        console.log('✅ 노이즈 사운드 재생 시작');
-        
-        const isInTargetAngle = maxAngleDiff <= tolerance;
-        noiseSound.volume = isInTargetAngle ? 0 : 1;
-        
-        if (isInTargetAngle && ttsRef.current) {
-          console.log('✅ 초기 목표 각도 진입');
-          window.speechSynthesis.speak(ttsRef.current);
-        }
-      } catch (playError) {
-        console.error('오디오 재생 실패:', playError);
-        throw playError;
-      }
-    } catch (error) {
-      console.error('오디오 설정 실패:', error);
-      setDebugInfo(`오디오 설정 실패: ${error.message}`);
-    }
-  };
-
   const handlePermissionRequest = async () => {
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
@@ -147,24 +91,86 @@ const AudioController = ({
           setPermissionGranted(true);
           setShowPermissionModal(false);
           setIsOrientationEnabled(true);
-          setupAudio(); // 권한 허용 후 사운드 재생 시도
+          
+          // 권한 허용과 동시에 오디오 초기화 및 재생
+          const noiseSound = initAudio();
+          if (noiseSound) {
+            try {
+              await noiseSound.play();
+              console.log('✅ 권한 허용 후 노이즈 사운드 재생 시작');
+              
+              const isInTargetAngle = maxAngleDiff <= tolerance;
+              noiseSound.volume = isInTargetAngle ? 0 : 1;
+              
+              if (isInTargetAngle && ttsRef.current) {
+                console.log('✅ 초기 목표 각도 진입');
+                window.speechSynthesis.speak(ttsRef.current);
+              }
+            } catch (playError) {
+              console.error('오디오 재생 실패:', playError);
+              setDebugInfo('오디오 재생 실패: ' + playError.message);
+            }
+          }
         } else {
           setShowPermissionModal(false);
+          setDebugInfo('각도 센서 권한이 거부되었습니다.');
         }
       } catch (error) {
         console.error('권한 요청 실패:', error);
         setShowPermissionModal(false);
+        setDebugInfo('권한 요청 실패: ' + error.message);
       }
     } else {
       setShowPermissionModal(false);
     }
   };
 
-  // 최초 클릭 이벤트에서 사운드 재생 보장
+  // 오디오 초기화
   useEffect(() => {
+    const initAudio = () => {
+      try {
+        if (!window.speechSynthesis) {
+          console.error('TTS를 지원하지 않는 브라우저입니다.');
+          return null;
+        }
+
+        const noiseSound = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
+        noiseSound.loop = true;
+        noiseSound.volume = 1;
+        noiseSound.preload = 'auto';
+        noiseSoundRef.current = noiseSound;
+
+        const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '));
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1;
+
+        setupTTSEventHandlers(utterance);
+        ttsRef.current = utterance;
+
+        return noiseSound;
+      } catch (error) {
+        console.error('오디오 초기화 실패:', error);
+        return null;
+      }
+    };
+
+    // 최초 클릭 이벤트에서 사운드 재생
     const handleUserInteraction = () => {
       console.log('🔊 첫 클릭 이벤트 발생 - 사운드 재생 시도');
-      setupAudio();
+      
+      // iOS가 아닌 경우 바로 오디오 재생
+      if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+        const noiseSound = initAudio();
+        if (noiseSound) {
+          noiseSound.play().catch(error => {
+            console.error('오디오 재생 실패:', error);
+            setDebugInfo('오디오 재생 실패: ' + error.message);
+          });
+        }
+      }
+      
       document.removeEventListener('click', handleUserInteraction);
     };
 
@@ -172,23 +178,13 @@ const AudioController = ({
 
     return () => {
       document.removeEventListener('click', handleUserInteraction);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isPlaying) {
-      console.log('🎵 오디오 초기화 시작');
-      setupAudio();
-    }
-
-    return () => {
       if (noiseSoundRef.current) {
         noiseSoundRef.current.pause();
         noiseSoundRef.current = null;
       }
       window.speechSynthesis.cancel();
     };
-  }, [isPlaying, maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo]);
+  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo]);
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
