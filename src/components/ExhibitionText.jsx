@@ -127,6 +127,29 @@ const ExhibitionText = () => {
     }
   }, [isOrientationEnabled, handleOrientation])
 
+  useEffect(() => {
+    if (!isPlaying) {
+      return
+    }
+
+    const isInTargetAngle = maxAngleDiff <= tolerance
+    const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
+    const ttsVolume = isInTargetAngle ? 1 : 0
+
+    // 이전 상태와 비교를 위한 값들
+    const prevNoiseVolume = noiseSoundRef.current?.volume || 0
+    const prevTTSVolume = ttsRef.current?.volume || 0
+
+    // 볼륨이 크게 변경될 때만 로그
+    if (noiseSoundRef.current && Math.abs(prevNoiseVolume - noiseVolume) > 0.1) {
+      console.log('🔊 노이즈 볼륨:', noiseVolume.toFixed(2))
+    }
+
+    if (Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
+      console.log('🗣 TTS 볼륨:', ttsVolume.toFixed(2))
+    }
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
+
   return (
     <div 
       className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"

@@ -281,6 +281,23 @@ const AudioController = ({
     }
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo, originalText])
 
+  useEffect(() => {
+    const status = {
+      '🎵 재생상태': isPlaying ? '재생중' : '중지됨',
+      '🔊 노이즈볼륨': noiseSoundRef.current?.volume?.toFixed(2) ?? 'N/A',
+      '🗣 TTS볼륨': ttsRef.current?.volume?.toFixed(2) ?? 'N/A',
+      '📐 각도차이': maxAngleDiff.toFixed(2),
+      '🎯 허용오차': tolerance,
+      '📏 최대거리': maxDistance
+    }
+    
+    console.log('\n=== 현재 상태 ===')
+    Object.entries(status).forEach(([key, value]) => {
+      console.log(`${key}: ${value}`)
+    })
+    console.log('================\n')
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
+
   return (
     <>
       {/* 오디오 시작 버튼 */}
