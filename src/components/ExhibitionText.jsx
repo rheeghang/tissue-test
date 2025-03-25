@@ -14,7 +14,7 @@ const ExhibitionText = () => {
   
   
   // 오디오 레퍼런스들
-  const noiseSoundRef = useRef(new Audio(process.env.PUBLIC_URL + '/assets/sound1.mp3'))
+  const noiseSoundRef = useRef(null)
   const ttsRef = useRef(null)
 
   // 목표 각도 및 허용 범위 설정
@@ -28,22 +28,110 @@ const ExhibitionText = () => {
   const title = "보이지 않는 조각들: 공기조각"
   const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.[다음]`
 
+  // 오디오 초기화
+  useEffect(() => {
+    // 오디오 객체 생성
+    noiseSoundRef.current = new Audio()
+    noiseSoundRef.current.src = process.env.PUBLIC_URL + '/sound1.mp3'
+    
+    const noiseSound = noiseSoundRef.current
+
+    // 노이즈 사운드 설정
+    noiseSound.loop = true
+    noiseSound.volume = 0
+    noiseSound.preload = 'auto'
+
+    // 오디오 로드 에러 핸들링
+    noiseSound.onerror = (e) => {
+      console.error('오디오 로드 에러:', e)
+      console.log('현재 오디오 소스:', noiseSound.src)
+      console.log('오디오 에러 코드:', noiseSound.error?.code)
+      console.log('오디오 에러 메시지:', noiseSound.error?.message)
+      setDebugInfo('오디오 로드 실패: ' + (noiseSound.error?.message || '알 수 없는 에러'))
+    }
+
+    // 오디오 로드 성공 핸들링
+    noiseSound.oncanplaythrough = () => {
+      console.log('오디오 로드 성공')
+      setDebugInfo('오디오 로드 완료')
+    }
+
+    // iOS에서 오디오 재생을 위한 설정
+    const setupAudio = () => {
+      console.log('오디오 초기화 시작')
+      try {
+        noiseSound.load()
+        // iOS에서 필요한 초기 재생 시도
+        noiseSound.play().then(() => {
+          noiseSound.pause() // 바로 일시정지
+          noiseSound.currentTime = 0 // 시작 위치로 되돌림
+          console.log('오디오 초기화 성공')
+          setDebugInfo('오디오 초기화 완료')
+        }).catch(error => {
+          console.error('오디오 초기화 실패:', error)
+          setDebugInfo('오디오 초기화 실패: ' + error.message)
+        })
+      } catch (error) {
+        console.error('오디오 초기화 중 에러:', error)
+        setDebugInfo('오디오 초기화 중 에러: ' + error.message)
+      }
+      document.removeEventListener('touchstart', setupAudio)
+    }
+    document.addEventListener('touchstart', setupAudio)
+
+    return () => {
+      if (noiseSound) {
+        noiseSound.pause()
+        noiseSound.currentTime = 0
+      }
+      document.removeEventListener('touchstart', setupAudio)
+    }
+  }, [])
+
   // 오디오 재생 핸들러
   const handleAudioStart = async () => {
     try {
       console.log('오디오 재생 시도')
-      console.log('오디오 소스:', noiseSoundRef.current.src)
+      setDebugInfo('오디오 재생 시도 중...')
       
-      // TTS 초기화
+      const noiseSound = noiseSoundRef.current
+      if (!noiseSound) {
+        throw new Error('오디오 객체가 초기화되지 않음')
+      }
+
+      // 오디오 상태 로깅
+      console.log('오디오 상태:', {
+        src: noiseSound.src,
+        readyState: noiseSound.readyState,
+        paused: noiseSound.paused,
+        volume: noiseSound.volume,
+        error: noiseSound.error
+      })
+
+      // 오디오가 로드될 때까지 대기
+      if (noiseSound.readyState < 4) { // HAVE_ENOUGH_DATA
+        await new Promise((resolve, reject) => {
+          noiseSound.oncanplaythrough = resolve
+          noiseSound.onerror = reject
+          noiseSound.load()
+        })
+      }
+
+      // 오디오 재생 시도
+      await noiseSound.play()
+      
+      // TTS 초기화 및 재생
       if ('speechSynthesis' in window) {
         console.log('TTS 초기화 시작')
+        window.speechSynthesis.cancel() // 기존 TTS 중지
+        
         ttsRef.current = new SpeechSynthesisUtterance(originalText)
         ttsRef.current.lang = 'ko-KR'
         ttsRef.current.rate = 1.0
         ttsRef.current.pitch = 1.0
         ttsRef.current.volume = 0
 
-        // TTS 이벤트 핸들러
+        // TTS 이벤트 핸들러들
         ttsRef.current.onend = () => {
           console.log('TTS 재생 완료')
           if (ttsRef.current && ttsRef.current.volume > 0.1) {
@@ -52,84 +140,37 @@ const ExhibitionText = () => {
           }
         }
 
-        // TTS 에러 핸들러
         ttsRef.current.onerror = (event) => {
           console.error('TTS 에러:', event)
-          setDebugInfo('TTS 에러 발생')
+          setDebugInfo('TTS 에러 발생: ' + event.error)
         }
 
-        // TTS 시작 핸들러
         ttsRef.current.onstart = () => {
           console.log('TTS 재생 시작')
           setDebugInfo('TTS 재생 중')
         }
 
-        // 초기 TTS 재생은 지연 후 시도
+        // 초기 TTS 재생
         setTimeout(() => {
-          window.speechSynthesis.cancel()
-          window.speechSynthesis.speak(ttsRef.current)
-        }, 1000) // 1초 지연
+          try {
+            window.speechSynthesis.speak(ttsRef.current)
+          } catch (error) {
+            console.error('TTS 재생 실패:', error)
+            setDebugInfo('TTS 재생 실패: ' + error.message)
+          }
+        }, 1000)
       }
 
-      // 노이즈 사운드 재생
-      await noiseSoundRef.current.play()
       console.log('오디오 재생 성공')
+      setDebugInfo('오디오 재생 중')
       setIsPlaying(true)
       setShowAudioButton(false)
     } catch (error) {
       console.error('오디오 재생 실패:', error)
-      console.log('오디오 상태:', {
-        src: noiseSoundRef.current.src,
-        readyState: noiseSoundRef.current.readyState,
-        error: noiseSoundRef.current.error
-      })
+      setDebugInfo('오디오 재생 실패: ' + error.message)
       setShowAudioButton(true)
     }
   }
-
-  // TTS 초기화 useEffect 제거 (handleAudioStart로 이동)
-  useEffect(() => {
-    return () => {
-      if (ttsRef.current) {
-        window.speechSynthesis.cancel()
-      }
-    }
-  }, [])
-
-  // 오디오 초기화
-  useEffect(() => {
-    const noiseSound = noiseSoundRef.current
-
-    // 노이즈 사운드 설정
-    noiseSound.loop = true
-    noiseSound.volume = 0
-
-    // 오디오 로드 에러 핸들링
-    noiseSound.onerror = (e) => {
-      console.error('오디오 로드 에러:', e)
-      console.log('현재 오디오 소스:', noiseSound.src)
-      console.log('PUBLIC_URL:', process.env.PUBLIC_URL)
-    }
-
-    // 오디오 로드 성공 핸들링
-    noiseSound.oncanplaythrough = () => {
-      console.log('오디오 로드 성공')
-    }
-
-    // iOS에서 오디오 재생을 위한 설정
-    const setupAudio = () => {
-      console.log('오디오 로드 시작')
-      noiseSound.load()
-      document.removeEventListener('touchstart', setupAudio)
-    }
-    document.addEventListener('touchstart', setupAudio)
-
-    return () => {
-      noiseSound.pause()
-      noiseSound.currentTime = 0
-      document.removeEventListener('touchstart', setupAudio)
-    }
-  }, [])
 
   // iOS 디바이스 체크
   useEffect(() => {
