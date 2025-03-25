@@ -306,4 +306,12 @@ const AudioController = ({
   )
 }
 
+useEffect(() => {
+  console.log('💡 전달된 상태 값 확인:', {
+    maxAngleDiff,
+    tolerance,
+    maxDistance
+  })
+}, [maxAngleDiff, tolerance, maxDistance])
+
 export default AudioController 

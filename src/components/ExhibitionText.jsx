@@ -182,4 +182,10 @@ const ExhibitionText = () => {
   )
 }
 
+useEffect(() => {
+  console.log('🎯 maxAngleDiff:', maxAngleDiff)
+  console.log('🎯 tolerance:', tolerance)
+  console.log('🎯 maxDistance:', maxDistance)
+}, [maxAngleDiff, tolerance, maxDistance])
+
 export default ExhibitionText
