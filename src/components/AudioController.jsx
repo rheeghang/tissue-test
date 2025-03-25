@@ -232,7 +232,7 @@ const AudioController = ({
       {/* 디버그 정보 표시 */}
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div className="font-bold mb-2">디버그 정보:</div>
-        <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
+        <div>01각도차: {maxAngleDiff.toFixed(1)}°</div>
         <div>허용범위: {tolerance}°</div>
         <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
         <div>TTS 상태: {maxAngleDiff <= tolerance ? '재생중' : '정지'}</div>
