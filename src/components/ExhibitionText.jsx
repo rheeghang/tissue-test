@@ -194,7 +194,7 @@ const ExhibitionText = () => {
       {/* 각도 표시 footer */}
       <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
         <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
-          β: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
+          β01: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
           γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
         </div>
       </div>
@@ -202,7 +202,6 @@ const ExhibitionText = () => {
       {/* 디버그 정보 표시 */}
       <div className="fixed top-4 left-4 z-50">
         <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
-          '1'
         </div>
       </div>
     </div>
