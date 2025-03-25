@@ -1,17 +1,18 @@
 import React from 'react'
-import { BrowserRouter } from 'react-router-dom'
-import { Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './Pages/Home'
 import ExhibitionText from './components/ExhibitionText'
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<ExhibitionText />} />
-        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/home" element={<Home />} />
+        <Route path="/Home" element={<Home />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   )
 }
 
