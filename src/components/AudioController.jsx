@@ -249,22 +249,62 @@ const AudioController = ({
     if (ttsRef.current) {
       const prevTTSVolume = ttsRef.current.volume
       ttsRef.current.volume = ttsVolume
-      console.log('🗣 TTS 상태:', {
+      console.log('🗣 TTS 상태 상세:', {
         이전볼륨: prevTTSVolume,
         현재볼륨: ttsRef.current.volume,
         재생중: window.speechSynthesis.speaking,
-        일시정지: window.speechSynthesis.paused
+        일시정지: window.speechSynthesis.paused,
+        텍스트: ttsRef.current.text,
+        언어: ttsRef.current.lang,
+        속도: ttsRef.current.rate,
+        음높이: ttsRef.current.pitch
       })
 
       // 목표 각도 도달 시 TTS 재생
       if (maxAngleDiff <= tolerance && !window.speechSynthesis.speaking) {
         console.log('🎯 목표 각도 도달 - TTS 재생 시도')
         try {
-          window.speechSynthesis.cancel() // 기존 재생 중인 TTS 취소
+          // TTS 재생 전 상태 확인
+          if (!ttsRef.current.text) {
+            console.log('⚠️ TTS 텍스트가 없어서 다시 설정합니다.')
+            ttsRef.current.text = originalText
+            ttsRef.current.lang = 'ko-KR'
+            ttsRef.current.rate = 1.0
+            ttsRef.current.pitch = 1.0
+          }
+
+          // 기존 TTS 상태 초기화
+          window.speechSynthesis.cancel()
+          
+          // TTS 재생 시도
+          console.log('🔄 TTS 재생 직전 상태:', {
+            텍스트길이: ttsRef.current.text?.length,
+            볼륨: ttsRef.current.volume,
+            재생가능: !!window.speechSynthesis,
+            재생중: window.speechSynthesis.speaking,
+            일시정지: window.speechSynthesis.paused
+          })
+          
           window.speechSynthesis.speak(ttsRef.current)
-          console.log('✅ TTS 재생 시작됨')
+          
+          // TTS 재생 시작 확인
+          setTimeout(() => {
+            console.log('✅ TTS 재생 상태 확인:', {
+              재생중: window.speechSynthesis.speaking,
+              일시정지: window.speechSynthesis.paused
+            })
+          }, 100)
         } catch (error) {
           console.error('❌ TTS 재생 실패:', error)
+          console.error('TTS 에러 상세:', {
+            에러타입: error.name,
+            에러메시지: error.message,
+            TTS상태: {
+              사용가능: !!window.speechSynthesis,
+              재생중: window.speechSynthesis.speaking,
+              일시정지: window.speechSynthesis.paused
+            }
+          })
         }
       }
     }
