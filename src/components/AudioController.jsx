@@ -88,23 +88,27 @@ const AudioController = ({
 
         const { noiseSound } = audio;
         await noiseSound.play();
-        setIsPlaying(true);
-        setShowAudioButton(false);
         
-        // 초기 상태 설정
-        const isInTargetAngle = maxAngleDiff <= tolerance;
-        if (isInTargetAngle) {
-          noiseSound.volume = 0;
-          window.speechSynthesis.speak(ttsRef.current);
-        } else {
-          noiseSound.volume = 1;
-        }
+        // 상태 업데이트를 setTimeout으로 지연
+        setTimeout(() => {
+          setIsPlaying(true);
+          setShowAudioButton(false);
+          
+          // 초기 상태 설정
+          const isInTargetAngle = maxAngleDiff <= tolerance;
+          if (isInTargetAngle) {
+            noiseSound.volume = 0;
+            window.speechSynthesis.speak(ttsRef.current);
+          } else {
+            noiseSound.volume = 1;
+          }
 
-        console.log('오디오 초기화 완료:', {
-          isInTargetAngle,
-          noiseVolume: noiseSound.volume,
-          ttsReady: !!ttsRef.current
-        });
+          console.log('오디오 초기화 완료:', {
+            isInTargetAngle,
+            noiseVolume: noiseSound.volume,
+            ttsReady: !!ttsRef.current
+          });
+        }, 100);
       } catch (error) {
         console.error('오디오 설정 실패:', error);
         setIsPlaying(false);
@@ -143,45 +147,48 @@ const AudioController = ({
 
     const isInTargetAngle = maxAngleDiff <= tolerance;
     
-    console.log('각도 상태 변경:', {
-      isInTargetAngle,
-      maxAngleDiff,
-      tolerance,
-      isSpeaking: window.speechSynthesis.speaking,
-      isPaused: window.speechSynthesis.paused
-    });
+    // 상태 변화 감지를 위한 setTimeout
+    setTimeout(() => {
+      console.log('각도 상태 변경:', {
+        isInTargetAngle,
+        maxAngleDiff,
+        tolerance,
+        isSpeaking: window.speechSynthesis.speaking,
+        isPaused: window.speechSynthesis.paused
+      });
 
-    if (noiseSoundRef.current && ttsRef.current) {
-      if (isInTargetAngle) {
-        // 목표 각도 진입
-        console.log('목표 각도 진입');
-        noiseSoundRef.current.volume = 0;
-        
-        if (!window.speechSynthesis.speaking) {
-          console.log('TTS 시작');
-          window.speechSynthesis.speak(ttsRef.current);
-        } else if (window.speechSynthesis.paused) {
-          console.log('TTS 재개');
-          window.speechSynthesis.resume();
+      if (noiseSoundRef.current && ttsRef.current) {
+        if (isInTargetAngle) {
+          // 목표 각도 진입
+          console.log('목표 각도 진입');
+          noiseSoundRef.current.volume = 0;
+          
+          if (!window.speechSynthesis.speaking) {
+            console.log('TTS 시작');
+            window.speechSynthesis.speak(ttsRef.current);
+          } else if (window.speechSynthesis.paused) {
+            console.log('TTS 재개');
+            window.speechSynthesis.resume();
+          }
+        } else {
+          // 목표 각도 이탈
+          console.log('목표 각도 이탈');
+          noiseSoundRef.current.volume = 1;
+          
+          if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+            console.log('TTS 일시정지');
+            window.speechSynthesis.pause();
+          }
         }
-      } else {
-        // 목표 각도 이탈
-        console.log('목표 각도 이탈');
-        noiseSoundRef.current.volume = 1;
-        
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-          console.log('TTS 일시정지');
-          window.speechSynthesis.pause();
-        }
+
+        // 디버그 정보 업데이트
+        const noiseVolume = noiseSoundRef.current.volume;
+        const ttsStatus = window.speechSynthesis.paused ? '일시정지' : 
+                         window.speechSynthesis.speaking ? '재생중' : '정지';
+        const currentWord = wordsArrayRef.current[currentWordIndexRef.current];
+        setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} | 현재 단어: ${currentWord}`);
       }
-
-      // 디버그 정보 업데이트
-      const noiseVolume = noiseSoundRef.current.volume;
-      const ttsStatus = window.speechSynthesis.paused ? '일시정지' : 
-                       window.speechSynthesis.speaking ? '재생중' : '정지';
-      const currentWord = wordsArrayRef.current[currentWordIndexRef.current];
-      setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} | 현재 단어: ${currentWord}`);
-    }
+    }, 100);
   }, [isPlaying, maxAngleDiff, tolerance]);
 
   return (
@@ -193,8 +200,11 @@ const AudioController = ({
               try {
                 if (noiseSoundRef.current) {
                   await noiseSoundRef.current.play();
-                  setIsPlaying(true);
-                  setShowAudioButton(false);
+                  // 상태 업데이트를 setTimeout으로 지연
+                  setTimeout(() => {
+                    setIsPlaying(true);
+                    setShowAudioButton(false);
+                  }, 100);
                 }
               } catch (error) {
                 console.error('오디오 재생 실패:', error);
