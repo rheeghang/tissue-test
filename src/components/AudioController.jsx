@@ -98,6 +98,7 @@ const AudioController = ({
             try {
               await noiseSound.play();
               console.log('✅ 권한 허용 후 노이즈 사운드 재생 시작');
+              setIsPlaying(true);
               
               const isInTargetAngle = maxAngleDiff <= tolerance;
               noiseSound.volume = isInTargetAngle ? 0 : 1;
@@ -164,10 +165,15 @@ const AudioController = ({
       if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
         const noiseSound = initAudio();
         if (noiseSound) {
-          noiseSound.play().catch(error => {
-            console.error('오디오 재생 실패:', error);
-            setDebugInfo('오디오 재생 실패: ' + error.message);
-          });
+          noiseSound.play()
+            .then(() => {
+              setIsPlaying(true);
+              console.log('✅ 노이즈 사운드 재생 시작');
+            })
+            .catch(error => {
+              console.error('오디오 재생 실패:', error);
+              setDebugInfo('오디오 재생 실패: ' + error.message);
+            });
         }
       }
       
@@ -183,8 +189,9 @@ const AudioController = ({
         noiseSoundRef.current = null;
       }
       window.speechSynthesis.cancel();
+      setIsPlaying(false);
     };
-  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo]);
+  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo, setIsPlaying]);
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
