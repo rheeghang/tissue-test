@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 const AudioController = ({ 
   isPlaying, 
@@ -10,120 +10,17 @@ const AudioController = ({
   maxAngleDiff,
   tolerance,
   maxDistance,
-  title = "보이지 않는 조각들: 공기조각",  // 기본값 설정
-  artist = "송예슬"  // 기본값 설정
+  title = "보이지 않는 조각들: 공기조각",
+  artist = "송예슬"
 }) => {
-  // 오디오 레퍼런스들
+  // 오디오 레퍼런스
   const noiseSoundRef = useRef(null)
   const ttsRef = useRef(null)
-  const lastTTSVolumeRef = useRef(0) // TTS 볼륨 상태 추적용
+  const currentWordIndexRef = useRef(0)
+  const wordsArrayRef = useRef(`${title}. 작가 ${artist}. ${originalText}`.split(' '))
 
-  // 디버그 함수
-  const logAudioStatus = () => {
-    if (window.speechSynthesis) {
-      console.log('🗣️ TTS 상태:', {
-        speaking: window.speechSynthesis.speaking,
-        pending: window.speechSynthesis.pending,
-        paused: window.speechSynthesis.paused
-      })
-    }
-
-    const noiseSound = noiseSoundRef.current
-    if (noiseSound) {
-      console.log('🔊 노이즈 상태:', {
-        readyState: noiseSound.readyState,
-        paused: noiseSound.paused,
-        volume: noiseSound.volume,
-        error: noiseSound.error
-      })
-    }
-  }
-
-  // TTS 초기화 함수
-  const initTTS = () => {
-    if (!('speechSynthesis' in window)) {
-      console.error('TTS를 지원하지 않는 브라우저입니다.')
-      return null
-    }
-
-    const fullText = `${title}. 작가 ${artist}. ${originalText}`
-    const utterance = new SpeechSynthesisUtterance(fullText)
-    utterance.lang = 'ko-KR'
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    utterance.volume = 1.0
-
-    utterance.onend = () => {
-      console.log('TTS 재생 완료')
-      logAudioStatus()
-    }
-
-    utterance.onerror = (event) => {
-      console.error('TTS 에러:', event)
-      setDebugInfo('TTS 에러 발생: ' + event.error)
-      logAudioStatus()
-    }
-
-    utterance.onstart = () => {
-      console.log('TTS 재생 시작')
-      setDebugInfo('TTS 재생 중')
-      logAudioStatus()
-    }
-
-    return utterance
-  }
-
-  // 오디오 초기화
-  useEffect(() => {
-    noiseSoundRef.current = new Audio()
-    noiseSoundRef.current.src = process.env.PUBLIC_URL + '/sound1.mp3'
-    
-    const noiseSound = noiseSoundRef.current
-    noiseSound.loop = true
-    noiseSound.volume = 0
-    noiseSound.preload = 'auto'
-
-    // iOS에서 오디오 재생을 위한 설정
-    const setupAudio = async () => {
-      console.log('오디오 초기화 시작')
-      try {
-        await noiseSound.load()
-        await noiseSound.play()  // 여기서 노이즈 사운드를 재생했다가
-        noiseSound.pause()       // 바로 멈추고 있음
-        noiseSound.currentTime = 0
-        
-        // TTS 초기화
-        ttsRef.current = initTTS()
-        
-        console.log('오디오 초기화 성공')
-        setDebugInfo('오디오 초기화 완료')
-        setIsPlaying(true)
-        setShowAudioButton(false)
-      } catch (error) {
-        console.error('오디오 초기화 실패:', error)
-        setDebugInfo('오디오 초기화 실패: ' + error.message)
-        setIsPlaying(false)
-        setShowAudioButton(true)
-      }
-    }
-
-    if ('ontouchstart' in window) {
-      document.addEventListener('touchstart', setupAudio, { once: true })
-    } else {
-      setupAudio()
-    }
-
-    return () => {
-      if (noiseSound) {
-        noiseSound.pause()
-        noiseSound.currentTime = 0
-      }
-      document.removeEventListener('touchstart', setupAudio)
-    }
-  }, [setDebugInfo])
-
-  // TTS 볼륨 페이드 효과를 위한 함수
-  const smoothTTSFade = (utterance, startVol, targetVol, duration = 1000) => {
+  // TTS 볼륨 페이드 효과
+  const smoothTTSFade = (utterance, startVol, targetVol, duration = 500) => {
     if (!utterance) return;
     
     const startTime = performance.now();
@@ -133,13 +30,12 @@ const AudioController = ({
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // 이징 함수 적용 (cubic-bezier)
+      // 이징 함수 적용
       const easeProgress = progress < 0.5
         ? 4 * progress * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-      const newVolume = startVol + (volDiff * easeProgress);
-      utterance.volume = newVolume;
+      utterance.volume = startVol + (volDiff * easeProgress);
 
       if (progress < 1) {
         requestAnimationFrame(fade);
@@ -149,67 +45,39 @@ const AudioController = ({
     requestAnimationFrame(fade);
   };
 
-  // TTS 실행 함수를 분리
-  const playTTS = (startWordIndex = 0) => {
-    if (!ttsRef.current || !isPlaying) return;
+  // 노이즈 볼륨 페이드 효과
+  const smoothVolumeFade = (currentVol, targetVol, duration = 500) => {
+    if (!noiseSoundRef.current) return;
     
-    // 전체 텍스트 구성 (제목, 작가명, 본문)
-    const fullText = `${title}. 작가 ${artist}. ${originalText}`;
-    const words = fullText.split(' ');
-    const startIndex = Math.max(0, Math.min(startWordIndex, words.length - 1));
-    
-    console.log('🗣️ TTS 재생 시도:', {
-      현재상태: window.speechSynthesis.speaking ? '재생중' : '중지됨',
-      시작단어위치: startIndex,
-      시작단어: words[startIndex]
-    });
+    const startTime = performance.now();
+    const volDiff = targetVol - currentVol;
 
-    try {
-      window.speechSynthesis.cancel();
+    const fade = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
       
-      setTimeout(() => {
-        if (ttsRef.current && ttsRef.current.volume > 0) {
-          // 새로운 utterance 생성
-          const utterance = new SpeechSynthesisUtterance(words.slice(startIndex).join(' '));
-          Object.assign(utterance, {
-            lang: 'ko-KR',
-            rate: 1.0,
-            pitch: 1.0,
-            volume: 0  // 시작 볼륨을 0으로 설정
-          });
+      // 이징 함수 적용
+      const easeProgress = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-          // 이벤트 핸들러 설정
-          setupTTSEventHandlers(utterance);
-          
-          // 페이드 인 시작
-          smoothTTSFade(utterance, 0, 1, 1000);
-          
-          ttsRef.current = utterance;
-          window.speechSynthesis.speak(utterance);
-          
-          console.log('TTS 재생 시작:', {
-            시작단어: words[startIndex],
-            전체단어수: words.length,
-            남은단어수: words.length - startIndex
-          });
-        }
-      }, 100);
-    } catch (error) {
-      console.error('TTS 재생 실패:', error);
-    }
+      const newVolume = currentVol + (volDiff * easeProgress);
+      noiseSoundRef.current.volume = newVolume;
+
+      if (progress < 1) {
+        requestAnimationFrame(fade);
+      }
+    };
+
+    requestAnimationFrame(fade);
   };
 
-  // 현재 재생 중인 단어 위치를 추적하기 위한 변수
-  const currentWordIndexRef = useRef(0);
-  const wordsArrayRef = useRef(`${title}. 작가 ${artist}. ${originalText}`.split(' '));
-  
-  // TTS 이벤트 핸들러 설정 함수
+  // TTS 이벤트 핸들러 설정
   const setupTTSEventHandlers = (utterance) => {
     if (!utterance) return;
     
     let wordCount = 0;
     
-    // 단어 경계 이벤트
     utterance.onboundary = (event) => {
       if (event.name === 'word') {
         wordCount++;
@@ -218,10 +86,7 @@ const AudioController = ({
           wordsArrayRef.current.length - 1
         );
         
-        console.log('현재 단어 위치:', {
-          인덱스: currentWordIndexRef.current,
-          단어: wordsArrayRef.current[currentWordIndexRef.current]
-        });
+        console.log('현재 단어:', wordsArrayRef.current[currentWordIndexRef.current]);
       }
     };
 
@@ -233,7 +98,7 @@ const AudioController = ({
 
     utterance.onerror = (event) => {
       console.error('TTS 에러:', event);
-      setDebugInfo('TTS 에러 발생: ' + event.error);
+      setDebugInfo('TTS 에러: ' + event.error);
     };
 
     utterance.onstart = () => {
@@ -242,247 +107,126 @@ const AudioController = ({
     };
   };
 
-  // 페이드 효과를 위한 상태 변수
-  const fadeStateRef = useRef({
-    currentNoiseVolume: 0,
-    targetNoiseVolume: 0,
-    isFading: false
-  });
-
-  // 부드러운 볼륨 전환을 위한 함수
-  const smoothVolumeFade = (currentVol, targetVol, duration = 1000) => {
-    if (fadeStateRef.current.isFading) return;
-    fadeStateRef.current.isFading = true;
-
-    const startTime = performance.now();
-    const startVol = currentVol;
-    const volDiff = targetVol - startVol;
-
-    const fade = (currentTime) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+  // TTS 재생 함수
+  const playTTS = (startWordIndex = 0) => {
+    if (!isPlaying) return;
+    
+    const words = wordsArrayRef.current;
+    const startIndex = Math.max(0, Math.min(startWordIndex, words.length - 1));
+    
+    try {
+      window.speechSynthesis.cancel();
       
-      // 이징 함수 적용 (cubic-bezier)
-      const easeProgress = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      const utterance = new SpeechSynthesisUtterance(words.slice(startIndex).join(' '));
+      Object.assign(utterance, {
+        lang: 'ko-KR',
+        rate: 1.0,
+        pitch: 1.0,
+        volume: 0
+      });
 
-      const newVolume = startVol + (volDiff * easeProgress);
+      setupTTSEventHandlers(utterance);
+      smoothTTSFade(utterance, 0, 1, 500);
       
-      if (noiseSoundRef.current) {
-        noiseSoundRef.current.volume = newVolume;
-        fadeStateRef.current.currentNoiseVolume = newVolume;
-      }
+      ttsRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      
+      console.log('TTS 재생:', {
+        시작단어: words[startIndex],
+        남은단어수: words.length - startIndex
+      });
+    } catch (error) {
+      console.error('TTS 재생 실패:', error);
+    }
+  };
 
-      if (progress < 1) {
-        requestAnimationFrame(fade);
-      } else {
-        fadeStateRef.current.isFading = false;
+  // 오디오 초기화
+  useEffect(() => {
+    noiseSoundRef.current = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
+    const noiseSound = noiseSoundRef.current;
+    noiseSound.loop = true;
+    noiseSound.volume = 0;
+    noiseSound.preload = 'auto';
+
+    const setupAudio = async () => {
+      try {
+        await noiseSound.load();
+        await noiseSound.play();
+        setIsPlaying(true);
+        setShowAudioButton(false);
+      } catch (error) {
+        console.error('오디오 초기화 실패:', error);
+        setIsPlaying(false);
+        setShowAudioButton(true);
       }
     };
 
-    requestAnimationFrame(fade);
-  };
+    if ('ontouchstart' in window) {
+      document.addEventListener('touchstart', setupAudio, { once: true });
+    } else {
+      setupAudio();
+    }
 
-  // 볼륨 업데이트
+    return () => {
+      noiseSound.pause();
+      document.removeEventListener('touchstart', setupAudio);
+    };
+  }, [setIsPlaying, setShowAudioButton]);
+
+  // 각도에 따른 오디오 제어
   useEffect(() => {
     if (!isPlaying) return;
 
     const isInTargetAngle = maxAngleDiff <= tolerance;
     const targetNoiseVolume = isInTargetAngle ? 0 : Math.min(1, maxAngleDiff / maxDistance);
 
-    console.log('📊 상태 업데이트:', {
-      각도차이: maxAngleDiff.toFixed(2),
-      목표도달: isInTargetAngle ? 'Y' : 'N',
-      목표노이즈볼륨: targetNoiseVolume.toFixed(2),
-      현재단어: wordsArrayRef.current[currentWordIndexRef.current]
-    });
-
-    // 노이즈 사운드 페이드 효과 적용
+    // 노이즈 사운드와 TTS 동시 제어
     if (noiseSoundRef.current) {
       const currentNoiseVolume = noiseSoundRef.current.volume;
-      if (Math.abs(currentNoiseVolume - targetNoiseVolume) > 0.01) {
-        smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
-      }
-
-      // 노이즈 재생 상태 관리
-      if (targetNoiseVolume > 0 && noiseSoundRef.current.paused) {
-        noiseSoundRef.current.play().catch(console.error);
-      }
-    }
-
-    // TTS 제어
-    if (ttsRef.current) {
-      const ttsSpeaking = window.speechSynthesis.speaking;
-
-      // 목표 각도 진입 시 TTS 재생
-      if (isInTargetAngle && !ttsSpeaking) {
-        console.log('🎯 목표 각도 진입 - TTS 재생');
-        playTTS(currentWordIndexRef.current);
-      }
-      // 목표 각도 이탈 시 TTS 페이드 아웃 후 중지
-      else if (!isInTargetAngle && ttsSpeaking) {
-        console.log('🎯 목표 각도 이탈 - TTS 페이드 아웃', {
-          현재단어: wordsArrayRef.current[currentWordIndexRef.current]
-        });
+      
+      if (isInTargetAngle) {
+        // 목표 각도 진입: 노이즈 페이드 아웃 & TTS 시작
+        smoothVolumeFade(currentNoiseVolume, 0);
         
-        // 페이드 아웃 후 중지
-        smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0, 500);
-        setTimeout(() => {
-          window.speechSynthesis.cancel();
-        }, 500);
+        if (!window.speechSynthesis.speaking) {
+          playTTS(currentWordIndexRef.current);
+        }
+
+        if (currentNoiseVolume === 0) {
+          noiseSoundRef.current.pause();
+        }
+      } else {
+        // 목표 각도 이탈: 노이즈 페이드 인 & TTS 중지
+        if (noiseSoundRef.current.paused) {
+          noiseSoundRef.current.play().catch(console.error);
+        }
+        smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
+
+        if (window.speechSynthesis.speaking) {
+          if (ttsRef.current) {
+            smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0);
+            setTimeout(() => window.speechSynthesis.cancel(), 500);
+          }
+        }
       }
     }
 
     setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseSoundRef.current?.volume.toFixed(1)}, 단어: ${wordsArrayRef.current[currentWordIndexRef.current]}`);
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, originalText]);
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
-  // TTS 초기화
-  useEffect(() => {
-    if (ttsRef.current) {
-      setupTTSEventHandlers(ttsRef.current);
-    }
-  }, [ttsRef.current]);
-
-  // 사용자 인터랙션을 통한 TTS 실행 (첫 실행용)
-  useEffect(() => {
-    const handleFirstInteraction = () => {
-      if (ttsRef.current && !window.speechSynthesis.speaking && isPlaying) {
-        console.log('🎯 TTS 재생 조건 충족 (첫 실행)');
-        playTTS();
-      }
-    };
-
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener('touchstart', handleFirstInteraction);
-      document.removeEventListener('click', handleFirstInteraction);
-    };
-  }, [isPlaying]);
-
-  // 상태 모니터링
-  useEffect(() => {
-    const status = {
-      '🎵 재생상태': isPlaying ? '재생중' : '중지됨',
-      '🔊 노이즈볼륨': noiseSoundRef.current?.volume?.toFixed(2) ?? 'N/A',
-      '🗣 TTS볼륨': ttsRef.current?.volume?.toFixed(2) ?? 'N/A',
-      '📐 각도차이': maxAngleDiff.toFixed(2),
-      '🎯 허용오차': tolerance,
-      '📏 최대거리': maxDistance
-    }
-    
-    console.log('\n=== 현재 상태 ===')
-    Object.entries(status).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`)
-    })
-    console.log('================\n')
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
-
-  // 오디오 재생 핸들러
-  const handleAudioStart = async () => {
-    try {
-      console.log('🎵 오디오 재생 시도 - 초기 상태:', {
-        isPlaying,
-        hasNoiseRef: !!noiseSoundRef.current,
-        hasTTSRef: !!ttsRef.current,
-        noiseReadyState: noiseSoundRef.current?.readyState,
-        noisePaused: noiseSoundRef.current?.paused,
-        noiseVolume: noiseSoundRef.current?.volume,
-        ttsSpeaking: window.speechSynthesis?.speaking
-      })
-      setDebugInfo('오디오 재생 시도 중...')
-      
-      const noiseSound = noiseSoundRef.current
-      if (!noiseSound) {
-        throw new Error('오디오 객체가 초기화되지 않음')
-      }
-
-      // 오디오 상태 로깅
-      console.log('오디오 상태:', {
-        src: noiseSound.src,
-        readyState: noiseSound.readyState,
-        paused: noiseSound.paused,
-        volume: noiseSound.volume,
-        error: noiseSound.error
-      })
-
-      // 오디오가 로드될 때까지 대기
-      if (noiseSound.readyState < 4) { // HAVE_ENOUGH_DATA
-        await new Promise((resolve, reject) => {
-          noiseSound.oncanplaythrough = resolve
-          noiseSound.onerror = reject
-          noiseSound.load()
-        })
-      }
-
-      // 오디오 재생 시도
-      await noiseSound.play()
-      
-      // TTS 초기화 및 재생
-      if ('speechSynthesis' in window) {
-        console.log('TTS 초기화 시작')
-        window.speechSynthesis.cancel() // 기존 TTS 중지
-        
-        ttsRef.current = new SpeechSynthesisUtterance(originalText)
-        ttsRef.current.lang = 'ko-KR'
-        ttsRef.current.rate = 1.0
-        ttsRef.current.pitch = 1.0
-        ttsRef.current.volume = 1.0  // 초기 볼륨을 1로 설정
-
-        // TTS 이벤트 핸들러들
-        ttsRef.current.onend = () => {
-          console.log('TTS 재생 완료')
-          if (ttsRef.current && ttsRef.current.volume > 0.1) {
-            console.log('TTS 재시작')
-            window.speechSynthesis.speak(ttsRef.current)
-          }
-        }
-
-        ttsRef.current.onerror = (event) => {
-          console.error('TTS 에러:', event)
-          setDebugInfo('TTS 에러 발생: ' + event.error)
-        }
-
-        ttsRef.current.onstart = () => {
-          console.log('TTS 재생 시작')
-          setDebugInfo('TTS 재생 중')
-        }
-
-        // 초기 TTS 재생
-        setTimeout(() => {
-          try {
-            console.log('TTS 재생 시도')
-            window.speechSynthesis.speak(ttsRef.current)
-          } catch (error) {
-            console.error('TTS 재생 실패:', error)
-            setDebugInfo('TTS 재생 실패: ' + error.message)
-          }
-        }, 1000)
-      } else {
-        console.error('TTS를 지원하지 않는 브라우저입니다.')
-        setDebugInfo('TTS를 지원하지 않는 브라우저입니다.')
-      }
-
-      console.log('오디오 재생 성공')
-      setDebugInfo('오디오 재생 중')
-      setIsPlaying(true)
-      setShowAudioButton(false)
-    } catch (error) {
-      console.error('오디오 재생 실패:', error)
-      setDebugInfo('오디오 재생 실패: ' + error.message)
-      setShowAudioButton(true)
-    }
-  }
-
+  // 오디오 시작 버튼 렌더링
   return (
     <>
-      {/* 오디오 시작 버튼 */}
       {showAudioButton && (
         <div className="fixed top-4 right-4 z-50">
           <button
-            onClick={handleAudioStart}
+            onClick={() => {
+              if (noiseSoundRef.current) {
+                noiseSoundRef.current.play();
+                setIsPlaying(true);
+                setShowAudioButton(false);
+              }
+            }}
             className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
           >
             소리 시작하기
@@ -490,7 +234,7 @@ const AudioController = ({
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default AudioController 
+export default AudioController; 
