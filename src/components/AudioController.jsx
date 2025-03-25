@@ -246,7 +246,6 @@ const AudioController = ({
               try {
                 if (noiseSoundRef.current) {
                   await noiseSoundRef.current.play();
-                  // 상태 업데이트를 setTimeout으로 지연
                   setTimeout(() => {
                     setIsPlaying(true);
                     setShowAudioButton(false);
@@ -254,6 +253,7 @@ const AudioController = ({
                 }
               } catch (error) {
                 console.error('오디오 재생 실패:', error);
+                setDebugInfo(`오디오 재생 실패: ${error.message}`);
               }
             }}
             className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
@@ -262,6 +262,21 @@ const AudioController = ({
           </button>
         </div>
       )}
+      
+      {/* 디버그 정보 표시 */}
+      <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
+        <div className="font-bold mb-2">디버그 정보:</div>
+        <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
+        <div>허용범위: {tolerance}°</div>
+        <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
+        <div>TTS 상태: {
+          window.speechSynthesis.paused ? '일시정지' : 
+          window.speechSynthesis.speaking ? '재생중' : '정지'
+        }</div>
+        <div>현재 단어: {wordsArrayRef.current[currentWordIndexRef.current]}</div>
+        <div>TTS 준비: {ttsRef.current ? '예' : '아니오'}</div>
+        <div>재생 중: {isPlaying ? '예' : '아니오'}</div>
+      </div>
     </>
   );
 };
