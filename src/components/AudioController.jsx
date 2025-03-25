@@ -195,9 +195,7 @@ const AudioController = ({
         // TTS가 재생 중이 아니면 시작
         if (!window.speechSynthesis.speaking) {
           console.log('목표 각도 진입: TTS 시작');
-          setTimeout(() => {
-            playTTS(currentWordIndexRef.current);
-          }, 100);
+          playTTS(currentWordIndexRef.current);
         }
 
         // 노이즈가 완전히 페이드 아웃되면 일시정지
