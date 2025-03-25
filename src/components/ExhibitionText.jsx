@@ -202,7 +202,7 @@ const ExhibitionText = () => {
       {/* 디버그 정보 표시 */}
       <div className="fixed top-4 left-4 z-50">
         <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
-          {debugInfo}
+          
         </div>
       </div>
     </div>
