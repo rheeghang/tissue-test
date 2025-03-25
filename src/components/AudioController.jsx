@@ -14,93 +14,114 @@ const AudioController = ({
   // 오디오 레퍼런스들
   const noiseSoundRef = useRef(null)
   const ttsRef = useRef(null)
+  const lastTTSVolumeRef = useRef(0) // TTS 볼륨 상태 추적용
+
+  // 디버그 함수
+  const logAudioStatus = () => {
+    if (window.speechSynthesis) {
+      console.log('🗣️ TTS 상태:', {
+        speaking: window.speechSynthesis.speaking,
+        pending: window.speechSynthesis.pending,
+        paused: window.speechSynthesis.paused
+      })
+    }
+
+    const noiseSound = noiseSoundRef.current
+    if (noiseSound) {
+      console.log('🔊 노이즈 상태:', {
+        readyState: noiseSound.readyState,
+        paused: noiseSound.paused,
+        volume: noiseSound.volume,
+        error: noiseSound.error
+      })
+    }
+  }
+
+  // TTS 초기화 함수
+  const initTTS = () => {
+    if (!('speechSynthesis' in window)) {
+      console.error('TTS를 지원하지 않는 브라우저입니다.')
+      return null
+    }
+
+    const utterance = new SpeechSynthesisUtterance(originalText)
+    utterance.lang = 'ko-KR'
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
+    utterance.volume = 1.0
+
+    utterance.onend = () => {
+      console.log('TTS 재생 완료')
+      logAudioStatus()
+    }
+
+    utterance.onerror = (event) => {
+      console.error('TTS 에러:', event)
+      setDebugInfo('TTS 에러 발생: ' + event.error)
+      logAudioStatus()
+    }
+
+    utterance.onstart = () => {
+      console.log('TTS 재생 시작')
+      setDebugInfo('TTS 재생 중')
+      logAudioStatus()
+    }
+
+    return utterance
+  }
 
   // 오디오 초기화
   useEffect(() => {
-    // 오디오 객체 생성
     noiseSoundRef.current = new Audio()
     noiseSoundRef.current.src = process.env.PUBLIC_URL + '/sound1.mp3'
     
     const noiseSound = noiseSoundRef.current
-
-    // 노이즈 사운드 설정
     noiseSound.loop = true
     noiseSound.volume = 0
     noiseSound.preload = 'auto'
 
-    // 오디오 로드 에러 핸들링
     noiseSound.onerror = (e) => {
       console.error('오디오 로드 에러:', e)
-      console.log('현재 오디오 소스:', noiseSound.src)
-      console.log('오디오 에러 코드:', noiseSound.error?.code)
-      console.log('오디오 에러 메시지:', noiseSound.error?.message)
       setDebugInfo('오디오 로드 실패: ' + (noiseSound.error?.message || '알 수 없는 에러'))
+      logAudioStatus()
     }
 
-    // 오디오 로드 성공 핸들링
     noiseSound.oncanplaythrough = () => {
       console.log('오디오 로드 성공')
       setDebugInfo('오디오 로드 완료')
+      logAudioStatus()
     }
 
     // iOS에서 오디오 재생을 위한 설정
     const setupAudio = async () => {
       console.log('오디오 초기화 시작')
       try {
-        const noiseSound = noiseSoundRef.current
         noiseSound.load()
-        
-        // iOS에서 필요한 초기 재생 시도
         await noiseSound.play()
-        noiseSound.pause() // 바로 일시정지
-        noiseSound.currentTime = 0 // 시작 위치로 되돌림
+        noiseSound.pause()
+        noiseSound.currentTime = 0
         
-        // TTS 초기화도 함께 수행
-        if ('speechSynthesis' in window) {
-          console.log('TTS 초기화 시작')
-          window.speechSynthesis.cancel()
-          
-          ttsRef.current = new SpeechSynthesisUtterance(originalText)
-          ttsRef.current.lang = 'ko-KR'
-          ttsRef.current.rate = 1.0
-          ttsRef.current.pitch = 1.0
-          ttsRef.current.volume = 1.0
-
-          // TTS 이벤트 핸들러 설정
-          ttsRef.current.onend = () => {
-            console.log('TTS 재생 완료')
-          }
-
-          ttsRef.current.onerror = (event) => {
-            console.error('TTS 에러:', event)
-            setDebugInfo('TTS 에러 발생: ' + event.error)
-          }
-
-          ttsRef.current.onstart = () => {
-            console.log('TTS 재생 시작')
-            setDebugInfo('TTS 재생 중')
-          }
-        }
-
+        // TTS 초기화
+        ttsRef.current = initTTS()
+        
         console.log('오디오 초기화 성공')
         setDebugInfo('오디오 초기화 완료')
         setIsPlaying(true)
         setShowAudioButton(false)
+        logAudioStatus()
       } catch (error) {
         console.error('오디오 초기화 실패:', error)
         setDebugInfo('오디오 초기화 실패: ' + error.message)
         setIsPlaying(false)
         setShowAudioButton(true)
+        logAudioStatus()
       }
       document.removeEventListener('touchstart', setupAudio)
     }
 
-    // 모바일과 데스크탑 모두에서 초기화 실행
     if ('ontouchstart' in window) {
-      // 모바일 디바이스
       document.addEventListener('touchstart', setupAudio)
     } else {
-      // 데스크탑
       setupAudio()
     }
 
@@ -113,9 +134,56 @@ const AudioController = ({
     }
   }, [setDebugInfo])
 
+  // 볼륨 업데이트
   useEffect(() => {
-    console.log('💡 isPlaying 상태 변경:', isPlaying)
-  }, [isPlaying])
+    if (!isPlaying) return
+
+    const isInTargetAngle = maxAngleDiff <= tolerance
+    const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
+    const ttsVolume = isInTargetAngle ? 1 : 0
+
+    // 노이즈 사운드 볼륨 업데이트
+    if (noiseSoundRef.current) {
+      noiseSoundRef.current.volume = noiseVolume
+    }
+
+    // TTS 볼륨 업데이트 및 재생 제어
+    if (ttsRef.current) {
+      ttsRef.current.volume = ttsVolume
+      
+      // TTS 재생 상태 변경 감지
+      if (ttsVolume === 1 && lastTTSVolumeRef.current === 0) {
+        // 볼륨이 0에서 1로 변경될 때 TTS 재생
+        console.log('\n=== TTS 재생 시작 ===')
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(ttsRef.current)
+        logAudioStatus()
+      }
+      
+      lastTTSVolumeRef.current = ttsVolume
+    }
+
+    // 상태 변화가 있을 때만 디버그 정보 업데이트
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume}`)
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo])
+
+  // 상태 모니터링
+  useEffect(() => {
+    const status = {
+      '🎵 재생상태': isPlaying ? '재생중' : '중지됨',
+      '🔊 노이즈볼륨': noiseSoundRef.current?.volume?.toFixed(2) ?? 'N/A',
+      '🗣 TTS볼륨': ttsRef.current?.volume?.toFixed(2) ?? 'N/A',
+      '📐 각도차이': maxAngleDiff.toFixed(2),
+      '🎯 허용오차': tolerance,
+      '📏 최대거리': maxDistance
+    }
+    
+    console.log('\n=== 현재 상태 ===')
+    Object.entries(status).forEach(([key, value]) => {
+      console.log(`${key}: ${value}`)
+    })
+    console.log('================\n')
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
 
   // 오디오 재생 핸들러
   const handleAudioStart = async () => {
@@ -213,91 +281,6 @@ const AudioController = ({
     }
   }
 
-  // 볼륨 업데이트
-  useEffect(() => {
-    if (!isPlaying) {
-      return
-    }
-
-    const isInTargetAngle = maxAngleDiff <= tolerance
-    const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
-    const ttsVolume = isInTargetAngle ? 1 : 0
-
-    // 이전 상태와 비교를 위한 값들
-    const prevNoiseVolume = noiseSoundRef.current?.volume || 0
-    const prevTTSVolume = ttsRef.current?.volume || 0
-    const wasSpeaking = window.speechSynthesis?.speaking || false
-
-    // 노이즈 사운드 볼륨 설정 (볼륨이 변경될 때만 로그)
-    if (noiseSoundRef.current && Math.abs(prevNoiseVolume - noiseVolume) > 0.1) {
-      noiseSoundRef.current.volume = noiseVolume
-      console.log('🔊 노이즈 볼륨:', noiseVolume.toFixed(2))
-    }
-
-    // TTS 제어
-    if (ttsRef.current) {
-      // 볼륨이 크게 변경될 때만 로그
-      if (Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
-        ttsRef.current.volume = ttsVolume
-        console.log('🗣 TTS 볼륨:', ttsVolume.toFixed(2))
-      }
-
-      // 목표 각도 도달 시 TTS 재생 (이전에 재생 중이지 않았을 때만)
-      if (isInTargetAngle && !wasSpeaking) {
-        console.log('\n=== TTS 재생 시작 ===')
-        console.log('- 현재 각도 차이:', maxAngleDiff.toFixed(2))
-        console.log('- 목표 각도 범위:', tolerance)
-        
-        try {
-          // TTS 재생 전 상태 확인
-          if (!ttsRef.current.text) {
-            console.log('- TTS 텍스트 재설정')
-            ttsRef.current.text = originalText
-            ttsRef.current.lang = 'ko-KR'
-            ttsRef.current.rate = 1.0
-            ttsRef.current.pitch = 1.0
-          }
-
-          window.speechSynthesis.cancel()
-          window.speechSynthesis.speak(ttsRef.current)
-          
-          // TTS 재생 확인
-          setTimeout(() => {
-            const isSpeaking = window.speechSynthesis.speaking
-            console.log('- TTS 재생 상태:', isSpeaking ? '재생 중' : '재생 실패')
-            console.log('===================\n')
-          }, 100)
-        } catch (error) {
-          console.error('\n=== TTS 재생 실패 ===')
-          console.error('- 에러:', error.message)
-          console.error('===================\n')
-        }
-      }
-    }
-
-    // 디버그 정보는 큰 변화가 있을 때만 업데이트
-    if (Math.abs(prevNoiseVolume - noiseVolume) > 0.1 || Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
-      setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume.toFixed(1)}`)
-    }
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo, originalText])
-
-  useEffect(() => {
-    const status = {
-      '🎵 재생상태': isPlaying ? '재생중' : '중지됨',
-      '🔊 노이즈볼륨': noiseSoundRef.current?.volume?.toFixed(2) ?? 'N/A',
-      '🗣 TTS볼륨': ttsRef.current?.volume?.toFixed(2) ?? 'N/A',
-      '📐 각도차이': maxAngleDiff.toFixed(2),
-      '🎯 허용오차': tolerance,
-      '📏 최대거리': maxDistance
-    }
-    
-    console.log('\n=== 현재 상태 ===')
-    Object.entries(status).forEach(([key, value]) => {
-      console.log(`${key}: ${value}`)
-    })
-    console.log('================\n')
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
-
   return (
     <>
       {/* 오디오 시작 버튼 */}
@@ -314,20 +297,5 @@ const AudioController = ({
     </>
   )
 }
-
-
-console.log('🗣️ TTS 상태:', {
-  speaking: window.speechSynthesis.speaking,
-  pending: window.speechSynthesis.pending,
-  paused: window.speechSynthesis.paused
-})
-
-const noiseSound = noiseSoundRef.current
-console.log('🔊 노이즈 상태:', {
-  readyState: noiseSound?.readyState,
-  paused: noiseSound?.paused,
-  volume: noiseSound?.volume,
-  error: noiseSound?.error
-})
 
 export default AudioController 

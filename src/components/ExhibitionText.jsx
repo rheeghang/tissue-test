@@ -133,29 +133,33 @@ const ExhibitionText = () => {
     }
 
     const isInTargetAngle = maxAngleDiff <= tolerance
-    const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
-    const ttsVolume = isInTargetAngle ? 1 : 0
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 목표도달: ${isInTargetAngle ? 'Y' : 'N'}`)
+  }, [isPlaying, maxAngleDiff, tolerance])
 
-    // 이전 상태와 비교를 위한 값들
-    const prevNoiseVolume = noiseSoundRef.current?.volume || 0
-    const prevTTSVolume = ttsRef.current?.volume || 0
-
-    // 볼륨이 크게 변경될 때만 로그
-    if (noiseSoundRef.current && Math.abs(prevNoiseVolume - noiseVolume) > 0.1) {
-      console.log('🔊 노이즈 볼륨:', noiseVolume.toFixed(2))
+  // 각도에 따른 텍스트 블러 효과
+  const getBlurAmount = () => {
+    if (maxAngleDiff <= tolerance) {
+      return 0 // 목표 각도에 도달하면 블러 없음
     }
+    // 각도 차이가 클수록 블러가 강해짐
+    return Math.min(8, (maxAngleDiff / maxDistance) * 8)
+  }
 
-    if (Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
-      console.log('🗣 TTS 볼륨:', ttsVolume.toFixed(2))
-    }
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
+  useEffect(() => {
+    // 디버깅용 로그
+    console.log('\n=== 각도 상태 ===')
+    console.log('🎯 각도차이:', maxAngleDiff.toFixed(2))
+    console.log('🎯 허용오차:', tolerance)
+    console.log('🎯 최대거리:', maxDistance)
+    console.log('================\n')
+  }, [maxAngleDiff, tolerance, maxDistance])
 
   return (
     <div 
       className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"
     >
       <div className="w-full pt-[10px]">
-        <RotatedText text={originalText} title={title} blurAmount={blurAmount} />
+        <RotatedText text={originalText} title={title} blurAmount={getBlurAmount()} />
       </div>
       
       {/* iOS 권한 요청 모달 */}
@@ -204,11 +208,5 @@ const ExhibitionText = () => {
     </div>
   )
 }
-
-useEffect(() => {
-  console.log('🎯 maxAngleDiff:', maxAngleDiff)
-  console.log('🎯 tolerance:', tolerance)
-  console.log('🎯 maxDistance:', maxDistance)
-}, [maxAngleDiff, tolerance, maxDistance])
 
 export default ExhibitionText
