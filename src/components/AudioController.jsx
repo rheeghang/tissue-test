@@ -148,22 +148,40 @@ const AudioController = ({
         lang: 'ko-KR',
         rate: 1.0,
         pitch: 1.0,
-        volume: 0  // 초기에는 볼륨 0으로 시작
+        volume: 0
       });
       setupTTSEventHandlers(utterance);
       ttsRef.current = utterance;
     }
 
     // 노이즈 사운드 초기화
-    noiseSoundRef.current = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
-    const noiseSound = noiseSoundRef.current;
-    noiseSound.loop = true;
-    noiseSound.volume = 0;
-    noiseSound.preload = 'auto';
+    const initNoiseSound = () => {
+      try {
+        noiseSoundRef.current = new Audio(process.env.PUBLIC_URL + '/sound1.mp3');
+        const noiseSound = noiseSoundRef.current;
+        noiseSound.loop = true;
+        noiseSound.volume = 0;
+        noiseSound.preload = 'auto';
+        
+        // iOS Safari를 위한 특별 처리
+        noiseSound.play().then(() => {
+          noiseSound.pause(); // 즉시 일시정지
+        }).catch(error => {
+          console.error('노이즈 사운드 초기화 실패:', error);
+        });
+        
+        return noiseSound;
+      } catch (error) {
+        console.error('노이즈 사운드 생성 실패:', error);
+        return null;
+      }
+    };
 
     const setupAudio = async () => {
       try {
-        await noiseSound.load();
+        const noiseSound = initNoiseSound();
+        if (!noiseSound) throw new Error('노이즈 사운드 초기화 실패');
+
         await noiseSound.play();
         setIsPlaying(true);
         setShowAudioButton(false);
@@ -174,7 +192,7 @@ const AudioController = ({
           noiseSound.volume = 0;
           if (ttsRef.current) {
             ttsRef.current.volume = 1;
-            window.speechSynthesis.speak(ttsRef.current);
+            playTTS(currentWordIndexRef.current); // 현재 단어부터 재생
           }
         } else {
           noiseSound.volume = Math.min(1, maxAngleDiff / maxDistance);
@@ -189,15 +207,26 @@ const AudioController = ({
       }
     };
 
-    if ('ontouchstart' in window) {
-      document.addEventListener('touchstart', setupAudio, { once: true });
-    } else {
+    // 터치/클릭 이벤트 핸들러
+    const handleUserInteraction = () => {
       setupAudio();
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
+    };
+
+    if ('ontouchstart' in window) {
+      document.addEventListener('touchstart', handleUserInteraction);
+      document.addEventListener('click', handleUserInteraction);
+    } else {
+      handleUserInteraction();
     }
 
     return () => {
-      noiseSound.pause();
-      document.removeEventListener('touchstart', setupAudio);
+      if (noiseSoundRef.current) {
+        noiseSoundRef.current.pause();
+      }
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
     };
   }, [setIsPlaying, setShowAudioButton, maxAngleDiff, tolerance, maxDistance]);
 
@@ -213,31 +242,34 @@ const AudioController = ({
       const currentNoiseVolume = noiseSoundRef.current.volume;
       
       if (isInTargetAngle) {
-        // 목표 각도 진입: 노이즈 페이드 아웃 & TTS 페이드 인
+        // 목표 각도 진입
         if (currentNoiseVolume > 0) {
           smoothVolumeFade(currentNoiseVolume, 0);
+          noiseSoundRef.current.play().catch(console.error);
         }
         
-        // TTS 페이드 인
-        if (ttsRef.current && ttsRef.current.volume < 1) {
-          smoothTTSFade(ttsRef.current, ttsRef.current.volume, 1);
+        // TTS 재생 시작 또는 재개
+        if (ttsRef.current) {
+          if (ttsRef.current.volume < 1) {
+            smoothTTSFade(ttsRef.current, ttsRef.current.volume, 1);
+          }
           if (!window.speechSynthesis.speaking) {
-            window.speechSynthesis.speak(ttsRef.current);
+            playTTS(currentWordIndexRef.current);
+          } else if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
           }
         }
-
-        // 노이즈가 완전히 페이드 아웃되면 일시정지
-        if (currentNoiseVolume === 0) {
-          noiseSoundRef.current.pause();
-        }
       } else {
-        // 목표 각도 이탈: 노이즈 페이드 인 & TTS 페이드 아웃
+        // 목표 각도 이탈
         if (noiseSoundRef.current.paused) {
           noiseSoundRef.current.play().catch(console.error);
         }
         smoothVolumeFade(currentNoiseVolume, targetNoiseVolume);
 
-        // TTS 페이드 아웃
+        // TTS 일시정지
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+          window.speechSynthesis.pause();
+        }
         if (ttsRef.current && ttsRef.current.volume > 0) {
           smoothTTSFade(ttsRef.current, ttsRef.current.volume, 0);
         }
@@ -246,9 +278,11 @@ const AudioController = ({
 
     // 디버그 정보 업데이트
     const noiseVolume = noiseSoundRef.current?.volume.toFixed(2) || '0.00';
-    const ttsStatus = window.speechSynthesis.speaking ? '재생중' : '정지';
+    const ttsStatus = window.speechSynthesis.paused ? '일시정지' : 
+                     window.speechSynthesis.speaking ? '재생중' : '정지';
     const ttsVolume = ttsRef.current?.volume.toFixed(2) || '0.00';
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume})`);
+    const currentWord = wordsArrayRef.current[currentWordIndexRef.current];
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}° | 노이즈: ${noiseVolume} | TTS: ${ttsStatus} (볼륨: ${ttsVolume}) | 현재 단어: ${currentWord}`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
   const initTTS = () => {
@@ -265,11 +299,15 @@ const AudioController = ({
       {showAudioButton && (
         <div className="fixed top-4 right-4 z-50">
           <button
-            onClick={() => {
-              if (noiseSoundRef.current) {
-                noiseSoundRef.current.play();
-                setIsPlaying(true);
-                setShowAudioButton(false);
+            onClick={async () => {
+              try {
+                if (noiseSoundRef.current) {
+                  await noiseSoundRef.current.play();
+                  setIsPlaying(true);
+                  setShowAudioButton(false);
+                }
+              } catch (error) {
+                console.error('오디오 재생 실패:', error);
               }
             }}
             className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-sm hover:bg-white"
