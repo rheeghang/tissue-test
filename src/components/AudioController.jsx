@@ -134,23 +134,27 @@ const AudioController = ({
     }
   }, [setDebugInfo])
 
-  // 사용자 인터랙션을 통한 TTS 실행
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      if (ttsRef.current && !window.speechSynthesis.speaking) {
-        console.log('🔄 터치 이벤트에서 TTS 실행 시도')
-        window.speechSynthesis.speak(ttsRef.current)
-      }
-    }
+  // TTS 실행 함수를 분리
+  const playTTS = () => {
+    if (!ttsRef.current || !isPlaying) return;
+    
+    console.log('🗣️ TTS 재생 시도:', {
+      현재상태: window.speechSynthesis.speaking ? '재생중' : '중지됨',
+      텍스트: ttsRef.current.text?.slice(0, 20) + '...',
+      볼륨: ttsRef.current.volume
+    });
 
-    document.addEventListener('touchstart', handleUserInteraction, { once: true })
-    document.addEventListener('click', handleUserInteraction, { once: true })
-
-    return () => {
-      document.removeEventListener('touchstart', handleUserInteraction)
-      document.removeEventListener('click', handleUserInteraction)
+    try {
+      window.speechSynthesis.cancel();
+      setTimeout(() => {
+        if (ttsRef.current && ttsRef.current.volume > 0) {
+          window.speechSynthesis.speak(ttsRef.current);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('TTS 재생 실패:', error);
     }
-  }, [])
+  };
 
   // 볼륨 업데이트
   useEffect(() => {
@@ -160,21 +164,51 @@ const AudioController = ({
     const noiseVolume = Math.min(1, maxAngleDiff / maxDistance);
     const ttsVolume = isInTargetAngle ? 1 : 0;
 
-    // 볼륨 업데이트
+    console.log('📊 볼륨 업데이트:', {
+      각도차이: maxAngleDiff.toFixed(2),
+      목표도달: isInTargetAngle ? 'Y' : 'N',
+      노이즈볼륨: noiseVolume.toFixed(2),
+      TTS볼륨: ttsVolume
+    });
+
+    // 노이즈 볼륨 업데이트
     if (noiseSoundRef.current) {
       noiseSoundRef.current.volume = noiseVolume;
     }
 
+    // TTS 볼륨 업데이트
     if (ttsRef.current) {
+      const prevVolume = ttsRef.current.volume;
       ttsRef.current.volume = ttsVolume;
 
-      if (isInTargetAngle && !window.speechSynthesis.speaking) {
-        console.log('🗣️ TTS 실행 조건 충족');
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(ttsRef.current);
+      // TTS 재생 조건: 
+      // 1. 목표 각도 안에 있고
+      // 2. 현재 재생 중이 아니고
+      // 3. 이전에 볼륨이 0이었다가 1이 된 경우
+      if (isInTargetAngle && !window.speechSynthesis.speaking && prevVolume === 0 && ttsVolume === 1) {
+        console.log('🎯 TTS 재생 조건 충족 (각도 진입)');
+        playTTS();
       }
     }
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance])
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
+
+  // 사용자 인터랙션을 통한 TTS 실행 (첫 실행용)
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (ttsRef.current && !window.speechSynthesis.speaking && isPlaying) {
+        console.log('🎯 TTS 재생 조건 충족 (첫 실행)');
+        playTTS();
+      }
+    };
+
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+  }, [isPlaying]);
 
   // 상태 모니터링
   useEffect(() => {
