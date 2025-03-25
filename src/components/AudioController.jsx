@@ -134,6 +134,24 @@ const AudioController = ({
     }
   }, [setDebugInfo])
 
+  // 사용자 인터랙션을 통한 TTS 실행
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (ttsRef.current && !window.speechSynthesis.speaking) {
+        console.log('🔄 터치 이벤트에서 TTS 실행 시도')
+        window.speechSynthesis.speak(ttsRef.current)
+      }
+    }
+
+    document.addEventListener('touchstart', handleUserInteraction, { once: true })
+    document.addEventListener('click', handleUserInteraction, { once: true })
+
+    return () => {
+      document.removeEventListener('touchstart', handleUserInteraction)
+      document.removeEventListener('click', handleUserInteraction)
+    }
+  }, [])
+
   // 볼륨 업데이트
   useEffect(() => {
     if (!isPlaying) {
@@ -174,14 +192,16 @@ const AudioController = ({
       ttsRef.current.volume = ttsVolume
 
       if (isInTargetAngle && !window.speechSynthesis.speaking) {
-        console.log('\n=== 🗣 TTS 재생 시작 ===')
-        console.log('재생 텍스트 길이:', ttsRef.current.text?.length)
-        console.log('설정된 볼륨:', ttsVolume.toFixed(2))
-        console.log('언어 설정:', ttsRef.current.lang)
-        console.log('========================\n')
+        console.log('🗣️ TTS 실행 조건 충족')
 
         window.speechSynthesis.cancel()
-        window.speechSynthesis.speak(ttsRef.current)
+
+        setTimeout(() => {
+          if (ttsRef.current) {
+            console.log('🗣️ 상태 갱신 후 TTS 실행 시도')
+            window.speechSynthesis.speak(ttsRef.current)
+          }
+        }, 100)
       }
     }
 
