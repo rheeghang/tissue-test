@@ -34,12 +34,11 @@ const AudioController = ({
       window.speechSynthesis.cancel();
     }
 
-    setTimeout(() => {
-      console.log('🎯 TTS 상태 초기화 후 재실행');
-      if (ttsRef.current) {
-        window.speechSynthesis.speak(ttsRef.current);
-      }
-    }, 100);
+    // 즉시 TTS 재생
+    console.log('🎯 TTS 재생');
+    if (ttsRef.current) {
+      window.speechSynthesis.speak(ttsRef.current);
+    }
   };
 
   // TTS 이벤트 핸들러 설정
@@ -89,8 +88,10 @@ const AudioController = ({
         noiseSoundRef.current.volume = newVolume;
 
         if (isInTargetAngle) {
-          console.log('✅ 목표 각도 진입 - TTS 재생 시도');
-          resetTTS();
+          console.log('✅ 목표 각도 진입 - TTS 재생');
+          // TTS 즉시 재생
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(ttsRef.current);
         } else {
           if (window.speechSynthesis.speaking) {
             window.speechSynthesis.pause();
@@ -145,7 +146,8 @@ const AudioController = ({
         
         if (isInTargetAngle && ttsRef.current) {
           console.log('✅ 초기 목표 각도 진입');
-          resetTTS();
+          // 즉시 TTS 재생
+          window.speechSynthesis.speak(ttsRef.current);
         }
       } catch (error) {
         console.error('오디오 설정 실패:', error);
@@ -184,7 +186,8 @@ const AudioController = ({
                   
                   if (isInTargetAngle && ttsRef.current) {
                     console.log('✅ 버튼 클릭 시 목표 각도 진입');
-                    resetTTS();
+                    // 즉시 TTS 재생
+                    window.speechSynthesis.speak(ttsRef.current);
                   }
                 }
               } catch (error) {
