@@ -29,16 +29,23 @@ const AudioController = ({
 
   // TTS 상태 초기화 함수
   const resetTTS = () => {
-    if (window.speechSynthesis.speaking) {
-      console.log('🔄 기존 TTS 중단');
-      window.speechSynthesis.cancel();
-    }
+    return new Promise((resolve) => {
+      // 1. 현재 실행 중인 TTS 중지
+      if (window.speechSynthesis.speaking) {
+        console.log('🔄 기존 TTS 중단');
+        window.speechSynthesis.cancel();
+      }
 
-    // 즉시 TTS 재생
-    console.log('🎯 TTS 재생');
-    if (ttsRef.current) {
-      window.speechSynthesis.speak(ttsRef.current);
-    }
+      // 2. 상태 초기화를 위한 딜레이
+      setTimeout(() => {
+        // 3. TTS 재생
+        if (ttsRef.current) {
+          console.log('🎯 TTS 재생 시도');
+          window.speechSynthesis.speak(ttsRef.current);
+          resolve();
+        }
+      }, 100);
+    });
   };
 
   // TTS 이벤트 핸들러 설정
@@ -65,7 +72,9 @@ const AudioController = ({
 
     utterance.onerror = (event) => {
       console.error('TTS 에러:', event);
-      resetTTS();
+      resetTTS().catch(error => {
+        console.error('❌ TTS 재생 실패:', error);
+      });
       setDebugInfo('TTS 에러: ' + event.error);
     };
 
@@ -157,7 +166,6 @@ const AudioController = ({
         
         if (isInTargetAngle && ttsRef.current) {
           console.log('✅ 초기 목표 각도 진입');
-          // 즉시 TTS 재생
           window.speechSynthesis.speak(ttsRef.current);
         }
       } catch (error) {
@@ -197,7 +205,6 @@ const AudioController = ({
                   
                   if (isInTargetAngle && ttsRef.current) {
                     console.log('✅ 버튼 클릭 시 목표 각도 진입');
-                    // 즉시 TTS 재생
                     window.speechSynthesis.speak(ttsRef.current);
                   }
                 }
