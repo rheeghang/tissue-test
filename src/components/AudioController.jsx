@@ -80,25 +80,13 @@ const AudioController = ({
     noiseSound.volume = 0
     noiseSound.preload = 'auto'
 
-    noiseSound.onerror = (e) => {
-      console.error('오디오 로드 에러:', e)
-      setDebugInfo('오디오 로드 실패: ' + (noiseSound.error?.message || '알 수 없는 에러'))
-      logAudioStatus()
-    }
-
-    noiseSound.oncanplaythrough = () => {
-      console.log('오디오 로드 성공')
-      setDebugInfo('오디오 로드 완료')
-      logAudioStatus()
-    }
-
     // iOS에서 오디오 재생을 위한 설정
     const setupAudio = async () => {
       console.log('오디오 초기화 시작')
       try {
-        noiseSound.load()
-        await noiseSound.play()
-        noiseSound.pause()
+        await noiseSound.load()
+        await noiseSound.play()  // 여기서 노이즈 사운드를 재생했다가
+        noiseSound.pause()       // 바로 멈추고 있음
         noiseSound.currentTime = 0
         
         // TTS 초기화
@@ -108,19 +96,16 @@ const AudioController = ({
         setDebugInfo('오디오 초기화 완료')
         setIsPlaying(true)
         setShowAudioButton(false)
-        logAudioStatus()
       } catch (error) {
         console.error('오디오 초기화 실패:', error)
         setDebugInfo('오디오 초기화 실패: ' + error.message)
         setIsPlaying(false)
         setShowAudioButton(true)
-        logAudioStatus()
       }
-      document.removeEventListener('touchstart', setupAudio)
     }
 
     if ('ontouchstart' in window) {
-      document.addEventListener('touchstart', setupAudio)
+      document.addEventListener('touchstart', setupAudio, { once: true })
     } else {
       setupAudio()
     }
@@ -164,32 +149,36 @@ const AudioController = ({
     const noiseVolume = Math.min(1, maxAngleDiff / maxDistance);
     const ttsVolume = isInTargetAngle ? 1 : 0;
 
-    console.log('📊 볼륨 업데이트:', {
+    // 노이즈 사운드는 볼륨만 조절하고 재생 상태를 관리하지 않음
+    if (noiseSoundRef.current) {
+      noiseSoundRef.current.volume = noiseVolume;
+    }
+
+    console.log('📊 상태 업데이트:', {
       각도차이: maxAngleDiff.toFixed(2),
       목표도달: isInTargetAngle ? 'Y' : 'N',
       노이즈볼륨: noiseVolume.toFixed(2),
       TTS볼륨: ttsVolume
     });
 
-    // 노이즈 볼륨 업데이트
-    if (noiseSoundRef.current) {
-      noiseSoundRef.current.volume = noiseVolume;
-    }
-
-    // TTS 볼륨 업데이트
+    // TTS 제어
     if (ttsRef.current) {
       const prevVolume = ttsRef.current.volume;
       ttsRef.current.volume = ttsVolume;
 
-      // TTS 재생 조건: 
-      // 1. 목표 각도 안에 있고
-      // 2. 현재 재생 중이 아니고
-      // 3. 이전에 볼륨이 0이었다가 1이 된 경우
+      // 목표 각도 진입 시 TTS 재생
       if (isInTargetAngle && !window.speechSynthesis.speaking && prevVolume === 0 && ttsVolume === 1) {
-        console.log('🎯 TTS 재생 조건 충족 (각도 진입)');
+        console.log('🎯 목표 각도 진입 - TTS 재생');
         playTTS();
       }
+      // 목표 각도 이탈 시 TTS 중지
+      else if (!isInTargetAngle && window.speechSynthesis.speaking) {
+        console.log('🎯 목표 각도 이탈 - TTS 중지');
+        window.speechSynthesis.cancel();
+      }
     }
+
+    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}°, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume}`);
   }, [isPlaying, maxAngleDiff, tolerance, maxDistance]);
 
   // 사용자 인터랙션을 통한 TTS 실행 (첫 실행용)
