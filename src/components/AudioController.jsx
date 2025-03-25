@@ -216,101 +216,70 @@ const AudioController = ({
   // 볼륨 업데이트
   useEffect(() => {
     if (!isPlaying) {
-      console.log('오디오가 재생 중이 아님')
       return
     }
 
-    console.log('🎯 각도 차이와 볼륨 계산:', {
-      maxAngleDiff,
-      tolerance,
-      isInTargetAngle: maxAngleDiff <= tolerance
-    })
-
+    const isInTargetAngle = maxAngleDiff <= tolerance
     const noiseVolume = Math.min(1, maxAngleDiff / maxDistance)
-    const ttsVolume = maxAngleDiff <= tolerance ? 1 : 0
+    const ttsVolume = isInTargetAngle ? 1 : 0
 
-    console.log('📊 설정할 볼륨:', {
-      노이즈: noiseVolume,
-      TTS: ttsVolume
-    })
+    // 이전 상태와 비교를 위한 값들
+    const prevNoiseVolume = noiseSoundRef.current?.volume || 0
+    const prevTTSVolume = ttsRef.current?.volume || 0
+    const wasSpeaking = window.speechSynthesis?.speaking || false
 
-    // 노이즈 사운드 볼륨 설정
-    if (noiseSoundRef.current) {
-      const prevNoiseVolume = noiseSoundRef.current.volume
+    // 노이즈 사운드 볼륨 설정 (볼륨이 변경될 때만 로그)
+    if (noiseSoundRef.current && Math.abs(prevNoiseVolume - noiseVolume) > 0.1) {
       noiseSoundRef.current.volume = noiseVolume
-      console.log('🔊 노이즈 볼륨 변경:', {
-        이전: prevNoiseVolume,
-        현재: noiseSoundRef.current.volume,
-        재생상태: noiseSoundRef.current.paused ? '일시정지' : '재생중'
-      })
+      console.log('🔊 노이즈 볼륨:', noiseVolume.toFixed(2))
     }
 
-    // TTS 볼륨 설정 및 재생 제어
+    // TTS 제어
     if (ttsRef.current) {
-      const prevTTSVolume = ttsRef.current.volume
-      ttsRef.current.volume = ttsVolume
-      console.log('🗣 TTS 상태 상세:', {
-        이전볼륨: prevTTSVolume,
-        현재볼륨: ttsRef.current.volume,
-        재생중: window.speechSynthesis.speaking,
-        일시정지: window.speechSynthesis.paused,
-        텍스트: ttsRef.current.text,
-        언어: ttsRef.current.lang,
-        속도: ttsRef.current.rate,
-        음높이: ttsRef.current.pitch
-      })
+      // 볼륨이 크게 변경될 때만 로그
+      if (Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
+        ttsRef.current.volume = ttsVolume
+        console.log('🗣 TTS 볼륨:', ttsVolume.toFixed(2))
+      }
 
-      // 목표 각도 도달 시 TTS 재생
-      if (maxAngleDiff <= tolerance && !window.speechSynthesis.speaking) {
-        console.log('🎯 목표 각도 도달 - TTS 재생 시도')
+      // 목표 각도 도달 시 TTS 재생 (이전에 재생 중이지 않았을 때만)
+      if (isInTargetAngle && !wasSpeaking) {
+        console.log('\n=== TTS 재생 시작 ===')
+        console.log('- 현재 각도 차이:', maxAngleDiff.toFixed(2))
+        console.log('- 목표 각도 범위:', tolerance)
+        
         try {
           // TTS 재생 전 상태 확인
           if (!ttsRef.current.text) {
-            console.log('⚠️ TTS 텍스트가 없어서 다시 설정합니다.')
+            console.log('- TTS 텍스트 재설정')
             ttsRef.current.text = originalText
             ttsRef.current.lang = 'ko-KR'
             ttsRef.current.rate = 1.0
             ttsRef.current.pitch = 1.0
           }
 
-          // 기존 TTS 상태 초기화
           window.speechSynthesis.cancel()
-          
-          // TTS 재생 시도
-          console.log('🔄 TTS 재생 직전 상태:', {
-            텍스트길이: ttsRef.current.text?.length,
-            볼륨: ttsRef.current.volume,
-            재생가능: !!window.speechSynthesis,
-            재생중: window.speechSynthesis.speaking,
-            일시정지: window.speechSynthesis.paused
-          })
-          
           window.speechSynthesis.speak(ttsRef.current)
           
-          // TTS 재생 시작 확인
+          // TTS 재생 확인
           setTimeout(() => {
-            console.log('✅ TTS 재생 상태 확인:', {
-              재생중: window.speechSynthesis.speaking,
-              일시정지: window.speechSynthesis.paused
-            })
+            const isSpeaking = window.speechSynthesis.speaking
+            console.log('- TTS 재생 상태:', isSpeaking ? '재생 중' : '재생 실패')
+            console.log('===================\n')
           }, 100)
         } catch (error) {
-          console.error('❌ TTS 재생 실패:', error)
-          console.error('TTS 에러 상세:', {
-            에러타입: error.name,
-            에러메시지: error.message,
-            TTS상태: {
-              사용가능: !!window.speechSynthesis,
-              재생중: window.speechSynthesis.speaking,
-              일시정지: window.speechSynthesis.paused
-            }
-          })
+          console.error('\n=== TTS 재생 실패 ===')
+          console.error('- 에러:', error.message)
+          console.error('===================\n')
         }
       }
     }
 
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(2)}, 노이즈: ${noiseVolume.toFixed(2)}, TTS: ${ttsVolume}`)
-  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo])
+    // 디버그 정보는 큰 변화가 있을 때만 업데이트
+    if (Math.abs(prevNoiseVolume - noiseVolume) > 0.1 || Math.abs(prevTTSVolume - ttsVolume) > 0.1) {
+      setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 노이즈: ${noiseVolume.toFixed(1)}, TTS: ${ttsVolume.toFixed(1)}`)
+    }
+  }, [isPlaying, maxAngleDiff, tolerance, maxDistance, setDebugInfo, originalText])
 
   return (
     <>
