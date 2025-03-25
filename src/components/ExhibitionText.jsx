@@ -12,6 +12,7 @@ const ExhibitionText = () => {
   const [showAudioButton, setShowAudioButton] = useState(true)
   const [debugInfo, setDebugInfo] = useState('')
   
+  
   // 오디오 레퍼런스들
   const noiseSoundRef = useRef(new Audio(process.env.PUBLIC_URL + '/assets/sound1.mp3'))
   const ttsRef = useRef(null)
