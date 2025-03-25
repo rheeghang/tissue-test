@@ -44,27 +44,61 @@ const AudioController = ({
     }
 
     // iOS에서 오디오 재생을 위한 설정
-    const setupAudio = () => {
+    const setupAudio = async () => {
       console.log('오디오 초기화 시작')
       try {
+        const noiseSound = noiseSoundRef.current
         noiseSound.load()
+        
         // iOS에서 필요한 초기 재생 시도
-        noiseSound.play().then(() => {
-          noiseSound.pause() // 바로 일시정지
-          noiseSound.currentTime = 0 // 시작 위치로 되돌림
-          console.log('오디오 초기화 성공')
-          setDebugInfo('오디오 초기화 완료')
-        }).catch(error => {
-          console.error('오디오 초기화 실패:', error)
-          setDebugInfo('오디오 초기화 실패: ' + error.message)
-        })
+        await noiseSound.play()
+        noiseSound.pause() // 바로 일시정지
+        noiseSound.currentTime = 0 // 시작 위치로 되돌림
+        
+        // TTS 초기화도 함께 수행
+        if ('speechSynthesis' in window) {
+          console.log('TTS 초기화 시작')
+          window.speechSynthesis.cancel()
+          
+          ttsRef.current = new SpeechSynthesisUtterance(originalText)
+          ttsRef.current.lang = 'ko-KR'
+          ttsRef.current.rate = 1.0
+          ttsRef.current.pitch = 1.0
+          ttsRef.current.volume = 1.0
+
+          // TTS 이벤트 핸들러 설정
+          ttsRef.current.onend = () => {
+            console.log('TTS 재생 완료')
+          }
+
+          ttsRef.current.onerror = (event) => {
+            console.error('TTS 에러:', event)
+            setDebugInfo('TTS 에러 발생: ' + event.error)
+          }
+
+          ttsRef.current.onstart = () => {
+            console.log('TTS 재생 시작')
+            setDebugInfo('TTS 재생 중')
+          }
+        }
+
+        console.log('오디오 초기화 성공')
+        setDebugInfo('오디오 초기화 완료')
       } catch (error) {
-        console.error('오디오 초기화 중 에러:', error)
-        setDebugInfo('오디오 초기화 중 에러: ' + error.message)
+        console.error('오디오 초기화 실패:', error)
+        setDebugInfo('오디오 초기화 실패: ' + error.message)
       }
       document.removeEventListener('touchstart', setupAudio)
     }
-    document.addEventListener('touchstart', setupAudio)
+
+    // 모바일과 데스크탑 모두에서 초기화 실행
+    if ('ontouchstart' in window) {
+      // 모바일 디바이스
+      document.addEventListener('touchstart', setupAudio)
+    } else {
+      // 데스크탑
+      setupAudio()
+    }
 
     return () => {
       if (noiseSound) {
