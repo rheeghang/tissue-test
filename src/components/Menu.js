@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ToggleSwitch from './ToggleSwitch';
 
 const Menu = ({ isOpen, onClose }) => {
-  const [isAngleMode, setIsAngleMode] = useState(false);
   const [lastShakeTime, setLastShakeTime] = useState(0);
   const [shakeCount, setShakeCount] = useState(0);
-  const [shakeSpeed, setShakeSpeed] = useState(0);
-  const [debugInfo, setDebugInfo] = useState('');
-  let lastUpdate = 0;
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -20,63 +15,55 @@ const Menu = ({ isOpen, onClose }) => {
     { id: 8, label: '안녕히 엉키기', path: '/8' },
   ];
 
-  const handleMotion = (event) => {
-    const now = Date.now();
-    if (now - lastUpdate < 50) return;
-    lastUpdate = now;
-
-    const { x, y, z } = event.accelerationIncludingGravity;
-    const speed = Math.sqrt(x * x + y * y + z * z);
-    
-    setShakeSpeed(speed);
-    setDebugInfo(prev => `흔들기 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
-    
-    if (speed > 20) {
-      const currentTime = new Date().getTime();
-      if (currentTime - lastShakeTime > 1000) {
-        setLastShakeTime(currentTime);
-        setShakeCount(prev => {
-          const newCount = prev + 1;
-          if (newCount >= 2) {
-            // 메뉴 창만 열기
-            onShake(true);
-            return 0;
-          }
-          return newCount;
-        });
-      }
-    }
-  };
-
-  // iOS 권한 요청
-  const requestPermission = async () => {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const permission = await DeviceOrientationEvent.requestPermission();
-        if (permission === 'granted') {
-          window.addEventListener('devicemotion', handleMotion);
-        }
-      } catch (error) {
-        console.error('권한 요청 실패:', error);
-      }
-    } else {
-      window.addEventListener('devicemotion', handleMotion);
-    }
-  };
-
-  requestPermission();
-
   useEffect(() => {
+    let lastUpdate = 0;
+
+    const handleMotion = (event) => {
+      const now = Date.now();
+      if (now - lastUpdate < 50) return;
+      lastUpdate = now;
+
+      const { x, y, z } = event.accelerationIncludingGravity;
+      const speed = Math.sqrt(x * x + y * y + z * z);
+      
+      if (speed > 30) {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastShakeTime > 1000) {
+          setLastShakeTime(currentTime);
+          setShakeCount(prev => {
+            const newCount = prev + 1;
+            if (newCount >= 2) {
+              onClose(false); // 메뉴 열기
+              return 0;
+            }
+            return newCount;
+          });
+        }
+      }
+    };
+
+    // iOS 권한 요청
+    const requestPermission = async () => {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', handleMotion);
+          }
+        } catch (error) {
+          console.error('권한 요청 실패:', error);
+        }
+      } else {
+        window.addEventListener('devicemotion', handleMotion);
+      }
+    };
+
+    requestPermission();
+
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
     };
   }, [lastShakeTime, shakeCount, onClose]);
-
-  // 메뉴 아이템 클릭 핸들러 추가
-  const handleMenuItemClick = (path) => {
-    window.location.href = path;
-    onClose(true);
-  };
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-600 ${isOpen ? 'opacity-200' : 'opacity-0 pointer-events-none'}`}>
@@ -105,12 +92,6 @@ const Menu = ({ isOpen, onClose }) => {
                 ))}
               </ul>
             </nav>
-          </div>
-          <div className="pb-7">
-            <ToggleSwitch 
-              isOn={isAngleMode} 
-              onToggle={() => setIsAngleMode(!isAngleMode)} 
-            />
           </div>
         </div>
       </div>
