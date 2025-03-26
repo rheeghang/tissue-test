@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import Menu from './components/Menu'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import ExhibitionText from './components/ExhibitionText'
+import Home from './Pages/Home'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     let lastShakeTime = 0
-    const SHAKE_THRESHOLD = 15
+    const SHAKE_THRESHOLD = 30
     const SHAKE_INTERVAL = 1000
 
     const handleMotion = (event) => {
@@ -36,12 +39,19 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <Menu 
-        isOpen={isMenuOpen} 
-        onClose={handleCloseMenu}
-      />
-    </div>
+    <Router>
+      <div className="App">
+        <Menu 
+          isOpen={isMenuOpen} 
+          onClose={handleCloseMenu}
+        />
+        <Routes>
+          <Route path="/" element={<ExhibitionText />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/Home" element={<Home />} />
+        </Routes>
+      </div>
+    </Router>
   )
 }
 
