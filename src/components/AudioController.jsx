@@ -262,7 +262,7 @@ const AudioController = ({
     if (!isPlaying || !noiseSoundRef.current) return
 
     const now = Date.now()
-    if (now - lastUpdateRef.current > 200) {
+    if (now - lastUpdateRef.current > 50) { // 업데이트 간격을 50ms로 줄임
       lastUpdateRef.current = now
       
       const isInTargetAngle = maxAngleDiff <= tolerance
@@ -283,8 +283,8 @@ const AudioController = ({
         }
       } else {
         if (window.speechSynthesis.speaking) {
-          console.log('❌ 목표 각도 이탈 - TTS 일시정지')
-          window.speechSynthesis.pause()
+          console.log('❌ 목표 각도 이탈 - TTS 정지')
+          window.speechSynthesis.cancel() // pause 대신 cancel 사용
         }
       }
 
@@ -305,12 +305,14 @@ const AudioController = ({
       {/* 디버그 정보 표시 */}
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div className="font-bold mb-2">디버그 정보:</div>
-        <div>2각도차: {maxAngleDiff.toFixed(1)}°</div>
+        <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
         <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
         <div>TTS 상태: {maxAngleDiff <= tolerance ? '재생중' : '정지'}</div>
         <div>현재 단어: {wordsArrayRef.current[currentWordIndexRef.current]}</div>
         <div>재생 중: {isPlaying ? '예' : '아니오'}</div>
         <div>목표각도: {maxAngleDiff <= tolerance ? '진입' : '이탈'}</div>
+        <div>iOS 권한: {permissionGranted ? '허용됨' : '미허용'}</div>
+        <div>방향감지: {isOrientationEnabled ? '활성화' : '비활성화'}</div>
       </div>
     </>
   )

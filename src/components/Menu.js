@@ -21,11 +21,11 @@ const Menu = ({ isOpen, onClose }) => {
     let lastX = 0;
     let lastY = 0;
     let lastZ = 0;
-    const SHAKE_THRESHOLD = 15; // 흔들기 감지 임계값
+    const SHAKE_THRESHOLD = 10; // 흔들기 감지 임계값을 낮춤
 
     const handleMotion = (event) => {
       const current = event.timeStamp || new Date().getTime();
-      if ((current - lastUpdate) > 100) { // 100ms 간격으로 체크
+      if ((current - lastUpdate) > 50) { // 체크 간격을 50ms로 줄임
         const diffTime = current - lastUpdate;
         lastUpdate = current;
 
@@ -34,8 +34,10 @@ const Menu = ({ isOpen, onClose }) => {
         const z = event.acceleration.z;
 
         const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
+        console.log('흔들기 속도:', speed); // 디버그 로그
         
         if (speed > SHAKE_THRESHOLD) {
+          console.log('흔들기 감지!'); // 디버그 로그
           setIsShakeDetected(true);
           // 3초 후에 자동으로 메뉴 닫기
           setTimeout(() => {
@@ -52,6 +54,7 @@ const Menu = ({ isOpen, onClose }) => {
 
     // 이미 권한이 허용된 상태이므로 바로 이벤트 리스너 등록
     window.addEventListener('devicemotion', handleMotion);
+    console.log('devicemotion 이벤트 리스너 등록됨'); // 디버그 로그
 
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
