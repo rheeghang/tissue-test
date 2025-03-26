@@ -19,7 +19,13 @@ const Menu = ({ isOpen, onClose }) => {
 
   // 흔들림 감지 로직 추가
   useEffect(() => {
+    let lastUpdate = 0;
+
     const handleMotion = (event) => {
+      const now = Date.now();
+      if (now - lastUpdate < 50) return;
+      lastUpdate = now;
+
       const { x, y, z } = event.accelerationIncludingGravity;
       const speed = Math.sqrt(x * x + y * y + z * z);
       
