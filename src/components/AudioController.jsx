@@ -90,12 +90,35 @@ const AudioController = ({
         return null
       }
 
+      // 기존 오디오 객체가 있다면 제거
+      if (noiseSoundRef.current) {
+        noiseSoundRef.current.pause()
+        noiseSoundRef.current = null
+      }
+
+      console.log('🎵 노이즈 사운드 초기화 시작')
       const noiseSound = new Audio(process.env.PUBLIC_URL + '/sound1.mp3')
+      
+      // 오디오 설정
       noiseSound.loop = true
       noiseSound.volume = 1
       noiseSound.preload = 'auto'
+      
+      // 오디오 로드 완료 확인
+      noiseSound.addEventListener('canplaythrough', () => {
+        console.log('🎵 노이즈 사운드 로드 완료')
+      })
+
+      // 오디오 에러 처리
+      noiseSound.addEventListener('error', (e) => {
+        console.error('🔴 노이즈 사운드 에러:', e)
+        setDebugInfo('노이즈 사운드 에러: ' + e.message)
+      })
+
       noiseSoundRef.current = noiseSound
 
+      // TTS 설정
+      console.log('🗣 TTS 초기화 시작')
       const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '))
       utterance.lang = 'ko-KR'
       utterance.rate = 1.0
@@ -104,14 +127,47 @@ const AudioController = ({
 
       setupTTSEventHandlers(utterance)
       ttsRef.current = utterance
+      console.log('🗣 TTS 초기화 완료')
 
       return noiseSound
     } catch (error) {
-      console.error('오디오 초기화 실패:', error)
+      console.error('❌ 오디오 초기화 실패:', error)
+      setDebugInfo('오디오 초기화 실패: ' + error.message)
       return null
     }
-  }, [setupTTSEventHandlers])
+  }, [setupTTSEventHandlers, setDebugInfo])
 
+  // 오디오 재생 시도 함수
+  const tryPlayAudio = useCallback(async () => {
+    try {
+      if (!noiseSoundRef.current) {
+        console.log('🔄 오디오 초기화 필요')
+        const noiseSound = initAudio()
+        if (!noiseSound) {
+          throw new Error('오디오 초기화 실패')
+        }
+      }
+
+      console.log('▶️ 노이즈 사운드 재생 시도')
+      const playPromise = noiseSoundRef.current.play()
+      
+      if (playPromise !== undefined) {
+        await playPromise
+        console.log('✅ 노이즈 사운드 재생 시작')
+        setIsPlaying(true)
+      }
+    } catch (error) {
+      console.error('❌ 오디오 재생 실패:', error)
+      setDebugInfo('오디오 재생 실패: ' + error.message)
+      
+      // 자동 재생 정책으로 인한 실패인 경우
+      if (error.name === 'NotAllowedError') {
+        setDebugInfo('오디오 재생이 차단되었습니다. 화면을 클릭해주세요.')
+      }
+    }
+  }, [initAudio, setIsPlaying, setDebugInfo])
+
+  // 권한 요청 핸들러
   const handlePermissionRequest = async () => {
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
@@ -121,25 +177,18 @@ const AudioController = ({
           setShowPermissionModal(false)
           setIsOrientationEnabled(true)
           
-          // 권한 허용과 동시에 오디오 초기화 및 재생
-          const noiseSound = initAudio()
-          if (noiseSound) {
-            try {
-              await noiseSound.play()
-              console.log('✅ 권한 허용 후 노이즈 사운드 재생 시작')
-              setIsPlaying(true)
-              
-              const isInTargetAngle = maxAngleDiff <= tolerance
-              noiseSound.volume = isInTargetAngle ? 0 : 1
-              
-              if (isInTargetAngle && ttsRef.current) {
-                console.log('✅ 초기 목표 각도 진입')
-                window.speechSynthesis.speak(ttsRef.current)
-              }
-            } catch (playError) {
-              console.error('오디오 재생 실패:', playError)
-              setDebugInfo('오디오 재생 실패: ' + playError.message)
-            }
+          // 권한 허용 후 오디오 재생 시도
+          await tryPlayAudio()
+          
+          // 각도에 따른 초기 상태 설정
+          const isInTargetAngle = maxAngleDiff <= tolerance
+          if (noiseSoundRef.current) {
+            noiseSoundRef.current.volume = isInTargetAngle ? 0 : 1
+          }
+          
+          if (isInTargetAngle && ttsRef.current) {
+            console.log('✅ 초기 목표 각도 진입 - TTS 재생')
+            window.speechSynthesis.speak(ttsRef.current)
           }
         } else {
           setShowPermissionModal(false)
@@ -152,29 +201,18 @@ const AudioController = ({
       }
     } else {
       setShowPermissionModal(false)
+      // 권한 요청이 필요없는 경우 바로 오디오 재생 시도
+      await tryPlayAudio()
     }
   }
 
-  // 오디오 초기화
+  // 오디오 초기화 useEffect
   useEffect(() => {
-    // 최초 클릭 이벤트에서 사운드 재생
-    const handleUserInteraction = () => {
-      console.log('🔊 첫 클릭 이벤트 발생 - 사운드 재생 시도')
+    const handleUserInteraction = async () => {
+      console.log('🔊 첫 클릭 이벤트 발생')
       
-      // iOS가 아닌 경우 바로 오디오 재생
       if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
-        const noiseSound = initAudio()
-        if (noiseSound) {
-          noiseSound.play()
-            .then(() => {
-              setIsPlaying(true)
-              console.log('✅ 노이즈 사운드 재생 시작')
-            })
-            .catch(error => {
-              console.error('오디오 재생 실패:', error)
-              setDebugInfo('오디오 재생 실패: ' + error.message)
-            })
-        }
+        await tryPlayAudio()
       }
       
       document.removeEventListener('click', handleUserInteraction)
@@ -191,7 +229,7 @@ const AudioController = ({
       window.speechSynthesis.cancel()
       setIsPlaying(false)
     }
-  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo, setIsPlaying, initAudio])
+  }, [tryPlayAudio])
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
