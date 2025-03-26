@@ -17,8 +17,8 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
-  const tolerance = 25  // 완전히 선명해지는 범위
-  const clearThreshold = 35  // 읽을 수 있는 범위
+  const tolerance = 30  // 완전히 선명해지는 범위
+  const clearThreshold = 40  // 읽을 수 있는 범위
   const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
