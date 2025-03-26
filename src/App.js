@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ExhibitionText from './components/ExhibitionText'
 import Home from './Pages/Home'
 import Menu from './components/Menu'
 
-import React, { useState, useEffect, useRef } from 'react'
-
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const lastShakeTimeRef = useRef(0)  // 🔥 포인트: useRef로 유지
+  const [audioStatus, setAudioStatus] = useState('')
 
   useEffect(() => {
     const handleMotion = (event) => {
       const SHAKE_THRESHOLD = 15
       const SHAKE_INTERVAL = 1000
-      const now = Date.now()
+      let lastShakeTime = 0
 
-      if (now - lastShakeTimeRef.current < SHAKE_INTERVAL) return
+      const now = Date.now()
+      if (now - lastShakeTime < SHAKE_INTERVAL) return
 
       const { accelerationIncludingGravity } = event
       if (!accelerationIncludingGravity) return
@@ -28,7 +27,7 @@ function App() {
 
       if (shakeStrength > SHAKE_THRESHOLD) {
         setIsMenuOpen(true)
-        lastShakeTimeRef.current = now  // ✅ 여기서 값 갱신
+        lastShakeTime = now
       }
     }
 
