@@ -128,14 +128,14 @@ const Home = ({ onStartClick }) => {
         onConfirm={requestPermission}
       />
 
-      <div className="fixed bottom-10 left-0 right-0 space-y-2 text-center z-0">
+      <div className="fixed bottom-10 left-0 right-0 space-y-2 text-center z-10">
         <p className="text-lg font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
         <p className="text-lg font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
         <p className="text-lg font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
       </div>
 
       {/* 회전하는 텍스트 박스 */}
-      <div className="fixed inset-0 flex items-center justify-center">
+      <div className="fixed inset-0 flex items-center justify-center z-0">
         <div
           style={{
             transform: `rotate(${gamma}deg)`,
