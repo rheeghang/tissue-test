@@ -125,19 +125,6 @@ const Menu = ({ isOpen, onClose, onShake }) => {
               </div>
             )}
           </div>
-
-          {/* 메뉴 아이템 목록 추가 */}
-          <div className="mt-4 space-y-2">
-            {menuItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => handleMenuItemClick(item.path)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
