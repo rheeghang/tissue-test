@@ -7,6 +7,7 @@ const Menu = ({ isOpen, onClose }) => {
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [shakeSpeed, setShakeSpeed] = useState(0);
   const [lastShakeTime, setLastShakeTime] = useState(0);
+  const [debugInfo, setDebugInfo] = useState('');
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -36,18 +37,19 @@ const Menu = ({ isOpen, onClose }) => {
       const speed = Math.sqrt(x * x + y * y + z * z);
       
       setShakeSpeed(speed);
+      setDebugInfo(prev => `흔들기 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
       
       // 흔들기 감지
-      if (speed > 10) { // 임계값을 10으로 낮춤
+      if (speed > 10) {
         const currentTime = new Date().getTime();
-        if (currentTime - lastShake > 1000) { // 1초 간격으로 체크
+        if (currentTime - lastShake > 1000) {
           lastShake = currentTime;
           shakeCount++;
-          console.log('흔들기 감지:', speed, '횟수:', shakeCount);
+          setDebugInfo(prev => `흔들기 감지! 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
           
-          if (shakeCount >= 2) { // 2번 이상 흔들면 메뉴 표시
-            console.log('메뉴 표시 트리거');
-            onClose(false); // 메뉴 열기
+          if (shakeCount >= 2) {
+            setDebugInfo(prev => '메뉴 표시 트리거!');
+            onClose(false);
             shakeCount = 0;
           }
         }
@@ -71,16 +73,17 @@ const Menu = ({ isOpen, onClose }) => {
       lastZ = gamma;
       
       setShakeSpeed(speed);
+      setDebugInfo(prev => `회전 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
       
       if (speed > 10) {
         const currentTime = new Date().getTime();
         if (currentTime - lastShake > 1000) {
           lastShake = currentTime;
           shakeCount++;
-          console.log('회전 감지:', speed, '횟수:', shakeCount);
+          setDebugInfo(prev => `회전 감지! 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
           
           if (shakeCount >= 2) {
-            console.log('메뉴 표시 트리거');
+            setDebugInfo(prev => '메뉴 표시 트리거!');
             onClose(false);
             shakeCount = 0;
           }
@@ -95,18 +98,18 @@ const Menu = ({ isOpen, onClose }) => {
           if (permission === 'granted') {
             window.addEventListener('devicemotion', handleMotion);
             window.addEventListener('deviceorientation', handleOrientation);
-            console.log('모션/방향 감지 권한 허용됨');
+            setDebugInfo(prev => '모션/방향 감지 권한 허용됨');
           } else {
-            console.log('모션/방향 감지 권한 거부됨');
+            setDebugInfo(prev => '모션/방향 감지 권한 거부됨');
           }
         })
         .catch(error => {
-          console.error('권한 요청 실패:', error);
+          setDebugInfo(prev => '권한 요청 실패: ' + error.message);
         });
     } else {
       window.addEventListener('devicemotion', handleMotion);
       window.addEventListener('deviceorientation', handleOrientation);
-      console.log('모션/방향 감지 이벤트 리스너 등록됨');
+      setDebugInfo(prev => '모션/방향 감지 이벤트 리스너 등록됨');
     }
 
     return () => {
@@ -116,41 +119,40 @@ const Menu = ({ isOpen, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-600 ${(isOpen || isShakeDetected) ? 'opacity-200' : 'opacity-0 pointer-events-none'}`}>
-      <div className={`fixed top-5 left-5 right-5 bottom-5 max-w-[400px] mx-auto bg-white shadow-lg transform transition-transform duration-300 ${(isOpen || isShakeDetected) ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="max-w-3xl mx-auto p-2 text-center h-[calc(100vh-20px)] flex flex-col">
-          <div className="flex justify-center mb-2">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isOpen ? 'block' : 'hidden'}`}>
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">메뉴</h2>
             <button
-              onClick={() => {
-                setIsShakeDetected(false);
-                onClose();
-              }}
-              className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+              onClick={() => onClose(true)}
+              className="text-gray-500 hover:text-gray-700"
             >
-              [닫기]
+              ✕
             </button>
           </div>
-          <div className="flex-1 flex items-center justify-center">
-            <nav>
-              <ul className="space-y-2">
-                {menuItems.map((item) => (
-                  <li key={item.id} className="px-5">
-                    <a
-                      href={item.path}
-                      className="block px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 border-2 border-black"
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-          <div className="pb-7">
-            <ToggleSwitch 
-              isOn={isAngleMode} 
-              onToggle={() => setIsAngleMode(!isAngleMode)} 
-            />
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span>디버그 모드</span>
+              <button
+                onClick={() => setIsDebugMode(!isDebugMode)}
+                className={`px-4 py-2 rounded ${
+                  isDebugMode ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                }`}
+              >
+                {isDebugMode ? '켜짐' : '꺼짐'}
+              </button>
+            </div>
+            
+            {isDebugMode && (
+              <div className="mt-4 p-4 bg-gray-100 rounded">
+                <div className="font-bold mb-2">디버그 정보:</div>
+                <div>흔들기 속도: {shakeSpeed.toFixed(2)}</div>
+                <div>마지막 흔들기: {lastShakeTime ? new Date(lastShakeTime).toLocaleTimeString() : '없음'}</div>
+                <div className="mt-2">{debugInfo}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
