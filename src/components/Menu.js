@@ -44,14 +44,7 @@ const Menu = ({ isOpen, onClose, onShake }) => {
           setShakeCount(prev => {
             const newCount = prev + 1;
             if (newCount >= 2) {
-              try {
-                onShake(true);
-                const randomIndex = Math.floor(Math.random() * menuItems.length);
-                const selectedMenu = menuItems[randomIndex];
-                window.location.href = selectedMenu.path;
-              } catch (error) {
-                console.error('메뉴 실행 중 오류:', error);
-              }
+              onShake(true);
               return 0;
             }
             return newCount;
@@ -87,6 +80,12 @@ const Menu = ({ isOpen, onClose, onShake }) => {
       window.removeEventListener('devicemotion', handleMotion);
     };
   }, [shakeCount, lastShakeTime, onShake]);
+
+  // 메뉴 아이템 클릭 핸들러 추가
+  const handleMenuItemClick = (path) => {
+    window.location.href = path;
+    onClose(true);
+  };
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isOpen ? 'block' : 'hidden'}`}>
@@ -125,6 +124,19 @@ const Menu = ({ isOpen, onClose, onShake }) => {
                 <div className="mt-2">{debugInfo}</div>
               </div>
             )}
+          </div>
+
+          {/* 메뉴 아이템 목록 추가 */}
+          <div className="mt-4 space-y-2">
+            {menuItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => handleMenuItemClick(item.path)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
