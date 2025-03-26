@@ -128,10 +128,10 @@ const Home = ({ onStartClick }) => {
         onConfirm={requestPermission}
       />
 
-      <div className="fixed top-10 left-0 right-0 space-y-2 text-center">
-        <p className="text-3xl font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
-        <p className="text-3xl font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
-        <p className="text-3xl font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
+      <div className="fixed top-3 left-0 right-0 space-y-2 text-center">
+        <p className="text-lg font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
+        <p className="text-lg font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
+        <p className="text-lg font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
       </div>
 
       {/* 회전하는 텍스트 박스 */}
@@ -153,10 +153,10 @@ const Home = ({ onStartClick }) => {
       </div>
 
       {/* 시작하기 버튼 */}
-      <div className="fixed bottom-10 left-0 right-0 flex justify-center">
+      <div className="fixed bottom-3 left-0 right-0 flex justify-center">
         <button 
           onClick={onStartClick}
-          className="w-48 rounded-lg bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
+          className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
         >
           시작하기
         </button>

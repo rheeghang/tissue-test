@@ -236,6 +236,7 @@ const AudioController = ({
 
   return (
     <>
+      {/* 디버그 정보 임시 주석 처리
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
         <div>목표각도: {maxAngleDiff <= tolerance ? '진입' : '이탈'}</div>
@@ -247,6 +248,7 @@ const AudioController = ({
         <div>방향감지: {isOrientationEnabled ? '활성화' : '비활성화'}</div>
         <div>사용자상호작용: {hasUserInteraction ? '완료' : '대기중'}</div>
       </div>
+      */}
     </>
   )
 }
