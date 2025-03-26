@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import ToggleSwitch from './ToggleSwitch';
 
 const Menu = ({ isOpen, onClose }) => {
+  const [isAngleMode, setIsAngleMode] = useState(false);
   const [lastShakeTime, setLastShakeTime] = useState(0);
-  const SHAKE_THRESHOLD = 20; // 흔들기 감도 설정
-  const SHAKE_INTERVAL = 1000; // 1초 간격 설정
+  const SHAKE_THRESHOLD = 15;
+  const SHAKE_INTERVAL = 1000;
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -21,14 +23,13 @@ const Menu = ({ isOpen, onClose }) => {
       const now = Date.now();
       if (now - lastShakeTime < SHAKE_INTERVAL) return;
 
-      const { acceleration } = event;
-      if (!acceleration) return;
+      const { accelerationIncludingGravity } = event;
+      if (!accelerationIncludingGravity) return;
 
-      // 흔들기 감지 로직
       const shakeStrength =
-        Math.abs(acceleration.x) +
-        Math.abs(acceleration.y) +
-        Math.abs(acceleration.z);
+        Math.abs(accelerationIncludingGravity.x || 0) +
+        Math.abs(accelerationIncludingGravity.y || 0) +
+        Math.abs(accelerationIncludingGravity.z || 0);
 
       if (shakeStrength > SHAKE_THRESHOLD) {
         onClose(false); // false를 전달하여 메뉴 열기
@@ -36,23 +37,8 @@ const Menu = ({ isOpen, onClose }) => {
       }
     };
 
-    // iOS 권한 요청
-    const requestPermission = async () => {
-      if (typeof DeviceMotionEvent.requestPermission === 'function') {
-        try {
-          const permission = await DeviceMotionEvent.requestPermission();
-          if (permission === 'granted') {
-            window.addEventListener('devicemotion', handleMotion);
-          }
-        } catch (error) {
-          console.error('권한 요청 실패:', error);
-        }
-      } else {
-        window.addEventListener('devicemotion', handleMotion);
-      }
-    };
-
-    requestPermission();
+    // 모션 이벤트 리스너 등록
+    window.addEventListener('devicemotion', handleMotion);
 
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
@@ -86,6 +72,12 @@ const Menu = ({ isOpen, onClose }) => {
                 ))}
               </ul>
             </nav>
+          </div>
+          <div className="pb-7">
+            <ToggleSwitch 
+              isOn={isAngleMode} 
+              onToggle={() => setIsAngleMode(!isAngleMode)} 
+            />
           </div>
         </div>
       </div>
