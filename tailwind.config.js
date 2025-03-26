@@ -18,8 +18,8 @@ module.exports = {
         'vivid-blue': '#000000', // 순수한 파란색 (채도 100%)
         'vivid-yellow': '#FFFFFF', // 순수한 노란색 (채도 100%)
         'exhibition': {
-          bg: '#000000', // 배경색
-          text: '#FFFFFF', // 텍스트 색상
+          bg: '#FFFFFF', // 배경색
+          text: '#000000', // 텍스트 색상
         }
       }
     },

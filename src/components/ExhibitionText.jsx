@@ -202,7 +202,7 @@ const ExhibitionText = () => {
             <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지 권한이 필요합니다.</p>
             <button
               onClick={handlePermissionRequest}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              className="w-full bg-blue-500 text-black py-2 px-4 rounded hover:bg-blue-600"
             >
               권한 허용하기
             </button>
@@ -218,7 +218,7 @@ const ExhibitionText = () => {
         setShowAudioButton={setShowAudioButton}
         setDebugInfo={setDebugInfo}
         originalText={originalText}
-        maxAngleDiff={maxAngleDiff}
+        maxAngleDiff={maxAngleDiff} 
         tolerance={tolerance}
         maxDistance={maxDistance}
       />

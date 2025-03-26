@@ -59,9 +59,9 @@ const RotatedText = ({ text, title, blurAmount }) => {
   return (
     <div className="outer-container w-full pt-[10vh] relative">
         
-        <div className="text-block mb-[50px] text-white">
+        <div className="text-block mb-[50px] text-black">
           <h1 
-            className="text-lg text-center mb-8 title-span block text-white"
+            className="text-lg text-center mb-8 title-span block text-black"
             tabIndex="0"
             style={{
               transform: 'rotate(45deg)',
@@ -77,7 +77,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
           </h1>
 
           <div 
-            className="text-base text-center block text-white"
+            className="text-base text-center block text-black"
             style={{
               transform: 'rotate(45deg)',
               transformOrigin: 'center center',
@@ -92,7 +92,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
           </div>
 
           <div 
-            className="text-sm text-center block text-white"
+            className="text-sm text-center block text-black"
             style={{
               transform: 'rotate(45deg)',
               transformOrigin: 'center center',
@@ -110,7 +110,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
 
         <div 
         ref={containerRef}
-        className="container w-full relative inline-block text-base leading-[1.5rem] text-left text-white"
+        className="container w-full relative inline-block text-base leading-[1.5rem] text-left text-black"
         style={{
           wordWrap: 'break-word',
           overflow: 'visible',
