@@ -82,6 +82,36 @@ const AudioController = ({
     }
   }, [resetTTS, setDebugInfo])
 
+  // 오디오 초기화 함수
+  const initAudio = useCallback(() => {
+    try {
+      if (!window.speechSynthesis) {
+        console.error('TTS를 지원하지 않는 브라우저입니다.')
+        return null
+      }
+
+      const noiseSound = new Audio(process.env.PUBLIC_URL + '/sound1.mp3')
+      noiseSound.loop = true
+      noiseSound.volume = 1
+      noiseSound.preload = 'auto'
+      noiseSoundRef.current = noiseSound
+
+      const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '))
+      utterance.lang = 'ko-KR'
+      utterance.rate = 1.0
+      utterance.pitch = 1.0
+      utterance.volume = 1
+
+      setupTTSEventHandlers(utterance)
+      ttsRef.current = utterance
+
+      return noiseSound
+    } catch (error) {
+      console.error('오디오 초기화 실패:', error)
+      return null
+    }
+  }, [setupTTSEventHandlers])
+
   const handlePermissionRequest = async () => {
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
@@ -127,35 +157,6 @@ const AudioController = ({
 
   // 오디오 초기화
   useEffect(() => {
-    const initAudio = () => {
-      try {
-        if (!window.speechSynthesis) {
-          console.error('TTS를 지원하지 않는 브라우저입니다.')
-          return null
-        }
-
-        const noiseSound = new Audio(process.env.PUBLIC_URL + '/sound1.mp3')
-        noiseSound.loop = true
-        noiseSound.volume = 1
-        noiseSound.preload = 'auto'
-        noiseSoundRef.current = noiseSound
-
-        const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '))
-        utterance.lang = 'ko-KR'
-        utterance.rate = 1.0
-        utterance.pitch = 1.0
-        utterance.volume = 1
-
-        setupTTSEventHandlers(utterance)
-        ttsRef.current = utterance
-
-        return noiseSound
-      } catch (error) {
-        console.error('오디오 초기화 실패:', error)
-        return null
-      }
-    }
-
     // 최초 클릭 이벤트에서 사운드 재생
     const handleUserInteraction = () => {
       console.log('🔊 첫 클릭 이벤트 발생 - 사운드 재생 시도')
@@ -190,7 +191,7 @@ const AudioController = ({
       window.speechSynthesis.cancel()
       setIsPlaying(false)
     }
-  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo, setIsPlaying])
+  }, [maxAngleDiff, tolerance, setupTTSEventHandlers, setDebugInfo, setIsPlaying, initAudio])
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
