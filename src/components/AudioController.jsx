@@ -29,6 +29,14 @@ const AudioController = ({
       noiseSound.volume = 1
       noiseSoundRef.current = noiseSound
 
+      // 오디오 로드 완료 확인
+      noiseSound.addEventListener('canplaythrough', () => {
+        console.log('오디오 로드 완료')
+        noiseSound.play().catch(error => {
+          console.error('오디오 재생 실패:', error)
+        })
+      })
+
       return noiseSound
     } catch (error) {
       console.error('오디오 초기화 실패:', error)
@@ -44,9 +52,9 @@ const AudioController = ({
       try {
         const noiseSound = initAudio()
         if (noiseSound) {
-          await noiseSound.play()
           const isInTargetAngle = maxAngleDiff <= tolerance
           noiseSound.volume = isInTargetAngle ? 0 : 1
+          console.log('오디오 초기화 완료, 볼륨:', noiseSound.volume)
         }
       } catch (error) {
         console.error('오디오 재생 실패:', error)
@@ -77,6 +85,7 @@ const AudioController = ({
 
       if (noiseSoundRef.current.volume !== newVolume) {
         noiseSoundRef.current.volume = newVolume
+        console.log('노이즈 볼륨 변경:', newVolume)
       }
 
       // TTS 상태 관리
@@ -88,11 +97,25 @@ const AudioController = ({
           utterance.rate = 1.0
           utterance.pitch = 1.0
           utterance.volume = 1.0
+          
+          utterance.onstart = () => {
+            console.log('TTS 재생 시작')
+          }
+          
+          utterance.onend = () => {
+            console.log('TTS 재생 종료')
+          }
+          
+          utterance.onerror = (event) => {
+            console.error('TTS 오류:', event)
+          }
+          
           window.speechSynthesis.speak(utterance)
         }
       } else {
         if (window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel()
+          console.log('TTS 정지')
         }
       }
 

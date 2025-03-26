@@ -4,6 +4,9 @@ import ToggleSwitch from './ToggleSwitch';
 const Menu = ({ isOpen, onClose }) => {
   const [isAngleMode, setIsAngleMode] = useState(false);
   const [isShakeDetected, setIsShakeDetected] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(false);
+  const [shakeSpeed, setShakeSpeed] = useState(0);
+  const [lastShakeTime, setLastShakeTime] = useState(0);
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -21,43 +24,94 @@ const Menu = ({ isOpen, onClose }) => {
     let lastX = 0;
     let lastY = 0;
     let lastZ = 0;
-    const SHAKE_THRESHOLD = 10; // 흔들기 감지 임계값을 낮춤
+    let shakeCount = 0;
+    let lastShake = 0;
 
     const handleMotion = (event) => {
-      const current = event.timeStamp || new Date().getTime();
-      if ((current - lastUpdate) > 50) { // 체크 간격을 50ms로 줄임
-        const diffTime = current - lastUpdate;
-        lastUpdate = current;
+      const now = Date.now();
+      if (now - lastUpdate < 50) return; // 50ms 간격으로 업데이트
+      lastUpdate = now;
 
-        const x = event.acceleration.x;
-        const y = event.acceleration.y;
-        const z = event.acceleration.z;
-
-        const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
-        console.log('흔들기 속도:', speed); // 디버그 로그
-        
-        if (speed > SHAKE_THRESHOLD) {
-          console.log('흔들기 감지!'); // 디버그 로그
-          setIsShakeDetected(true);
-          // 3초 후에 자동으로 메뉴 닫기
-          setTimeout(() => {
-            setIsShakeDetected(false);
-            onClose();
-          }, 3000);
+      const { x, y, z } = event.accelerationIncludingGravity;
+      const speed = Math.sqrt(x * x + y * y + z * z);
+      
+      setShakeSpeed(speed);
+      
+      // 흔들기 감지
+      if (speed > 10) { // 임계값을 10으로 낮춤
+        const currentTime = new Date().getTime();
+        if (currentTime - lastShake > 1000) { // 1초 간격으로 체크
+          lastShake = currentTime;
+          shakeCount++;
+          console.log('흔들기 감지:', speed, '횟수:', shakeCount);
+          
+          if (shakeCount >= 2) { // 2번 이상 흔들면 메뉴 표시
+            console.log('메뉴 표시 트리거');
+            onClose(false); // 메뉴 열기
+            shakeCount = 0;
+          }
         }
-
-        lastX = x;
-        lastY = y;
-        lastZ = z;
       }
     };
 
-    // 이미 권한이 허용된 상태이므로 바로 이벤트 리스너 등록
-    window.addEventListener('devicemotion', handleMotion);
-    console.log('devicemotion 이벤트 리스너 등록됨'); // 디버그 로그
+    const handleOrientation = (event) => {
+      const now = Date.now();
+      if (now - lastUpdate < 50) return;
+      lastUpdate = now;
+
+      const { alpha, beta, gamma } = event;
+      const speed = Math.sqrt(
+        Math.pow(alpha - lastX, 2) + 
+        Math.pow(beta - lastY, 2) + 
+        Math.pow(gamma - lastZ, 2)
+      );
+      
+      lastX = alpha;
+      lastY = beta;
+      lastZ = gamma;
+      
+      setShakeSpeed(speed);
+      
+      if (speed > 10) {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastShake > 1000) {
+          lastShake = currentTime;
+          shakeCount++;
+          console.log('회전 감지:', speed, '횟수:', shakeCount);
+          
+          if (shakeCount >= 2) {
+            console.log('메뉴 표시 트리거');
+            onClose(false);
+            shakeCount = 0;
+          }
+        }
+      }
+    };
+
+    // iOS에서 DeviceMotionEvent 권한 요청
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(permission => {
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', handleMotion);
+            window.addEventListener('deviceorientation', handleOrientation);
+            console.log('모션/방향 감지 권한 허용됨');
+          } else {
+            console.log('모션/방향 감지 권한 거부됨');
+          }
+        })
+        .catch(error => {
+          console.error('권한 요청 실패:', error);
+        });
+    } else {
+      window.addEventListener('devicemotion', handleMotion);
+      window.addEventListener('deviceorientation', handleOrientation);
+      console.log('모션/방향 감지 이벤트 리스너 등록됨');
+    }
 
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
+      window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, [onClose]);
 
