@@ -14,11 +14,15 @@ const AudioController = ({
   const lastUpdateRef = useRef(0)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isOrientationEnabled, setIsOrientationEnabled] = useState(false)
+  const [audioStatus, setAudioStatus] = useState('초기화 대기')
+  const [ttsStatus, setTtsStatus] = useState('초기화 대기')
   const wordsArrayRef = useRef(`${title}. 작가 ${artist}. ${originalText}`.split(' '))
 
   // 오디오 초기화 함수
   const initAudio = () => {
     try {
+      setAudioStatus('오디오 초기화 중...')
+      
       if (noiseSoundRef.current) {
         noiseSoundRef.current.pause()
         noiseSoundRef.current = null
@@ -31,14 +35,26 @@ const AudioController = ({
 
       // 오디오 로드 완료 확인
       noiseSound.addEventListener('canplaythrough', () => {
-        console.log('오디오 로드 완료')
-        noiseSound.play().catch(error => {
-          console.error('오디오 재생 실패:', error)
-        })
+        setAudioStatus('오디오 로드 완료, 재생 시도 중...')
+        noiseSound.play()
+          .then(() => {
+            setAudioStatus('오디오 재생 중')
+            console.log('오디오 재생 시작')
+          })
+          .catch(error => {
+            setAudioStatus('오디오 재생 실패: ' + error.message)
+            console.error('오디오 재생 실패:', error)
+          })
+      })
+
+      noiseSound.addEventListener('error', (error) => {
+        setAudioStatus('오디오 에러: ' + error.message)
+        console.error('오디오 에러:', error)
       })
 
       return noiseSound
     } catch (error) {
+      setAudioStatus('오디오 초기화 실패: ' + error.message)
       console.error('오디오 초기화 실패:', error)
       return null
     }
@@ -46,7 +62,10 @@ const AudioController = ({
 
   // 오디오 초기화 useEffect
   useEffect(() => {
-    if (!isPlaying) return
+    if (!isPlaying) {
+      setAudioStatus('재생 중지됨')
+      return
+    }
 
     const initializeAudio = async () => {
       try {
@@ -54,10 +73,10 @@ const AudioController = ({
         if (noiseSound) {
           const isInTargetAngle = maxAngleDiff <= tolerance
           noiseSound.volume = isInTargetAngle ? 0 : 1
-          console.log('오디오 초기화 완료, 볼륨:', noiseSound.volume)
+          setAudioStatus(`오디오 재생 중 (볼륨: ${noiseSound.volume})`)
         }
       } catch (error) {
-        console.error('오디오 재생 실패:', error)
+        setAudioStatus('오디오 재생 실패: ' + error.message)
       }
     }
 
@@ -85,7 +104,7 @@ const AudioController = ({
 
       if (noiseSoundRef.current.volume !== newVolume) {
         noiseSoundRef.current.volume = newVolume
-        console.log('노이즈 볼륨 변경:', newVolume)
+        setAudioStatus(`오디오 재생 중 (볼륨: ${newVolume})`)
       }
 
       // TTS 상태 관리
@@ -99,14 +118,17 @@ const AudioController = ({
           utterance.volume = 1.0
           
           utterance.onstart = () => {
+            setTtsStatus('TTS 재생 중')
             console.log('TTS 재생 시작')
           }
           
           utterance.onend = () => {
+            setTtsStatus('TTS 재생 완료')
             console.log('TTS 재생 종료')
           }
           
           utterance.onerror = (event) => {
+            setTtsStatus('TTS 오류: ' + event.error)
             console.error('TTS 오류:', event)
           }
           
@@ -115,7 +137,7 @@ const AudioController = ({
       } else {
         if (window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel()
-          console.log('TTS 정지')
+          setTtsStatus('TTS 정지됨')
         }
       }
 
@@ -136,11 +158,12 @@ const AudioController = ({
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div className="font-bold mb-2">디버그 정보:</div>
         <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
-        <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
-        <div>TTS 상태: {window.speechSynthesis.speaking ? '재생중' : '정지'}</div>
-        <div>현재 단어: {wordsArrayRef.current[0]}</div>
-        <div>재생 중: {isPlaying ? '예' : '아니오'}</div>
         <div>목표각도: {maxAngleDiff <= tolerance ? '진입' : '이탈'}</div>
+        <div className="mt-2 font-bold">오디오 상태:</div>
+        <div>{audioStatus}</div>
+        <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
+        <div className="mt-2 font-bold">TTS 상태:</div><div>{ttsStatus}</div>
+        <div>재생 중: {isPlaying ? '예' : '아니오'}</div>
         <div>iOS 권한: {permissionGranted ? '허용됨' : '미허용'}</div>
         <div>방향감지: {isOrientationEnabled ? '활성화' : '비활성화'}</div>
       </div>
