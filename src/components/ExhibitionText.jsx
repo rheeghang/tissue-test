@@ -17,9 +17,9 @@ const ExhibitionText = () => {
   // 목표 각도 및 허용 범위 설정
   const targetBeta = 45
   const targetGamma = -60
-  const tolerance = 35  // 완전히 선명해지는 범위
-  const clearThreshold = 45  // 읽을 수 있는 범위
-  const maxBlur = 20
+  const tolerance = 25  // 완전히 선명해지는 범위
+  const clearThreshold = 35  // 읽을 수 있는 범위
+  const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "보이지 않는 조각들: 공기조각"

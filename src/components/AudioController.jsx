@@ -18,6 +18,9 @@ const AudioController = ({
   const [ttsStatus, setTtsStatus] = useState('초기화 대기')
   const [hasUserInteraction, setHasUserInteraction] = useState(false)
   const wordsArrayRef = useRef(`${title}. 작가 ${artist}. ${originalText}`.split(' '))
+  const lastAngleState = useRef(null) // 'in' 또는 'out'
+  const isSpeakingRef = useRef(false)
+  const lastDebugInfoRef = useRef('')
 
   // 사용자 상호작용 처리
   useEffect(() => {
@@ -135,7 +138,7 @@ const AudioController = ({
         if (noiseSound) {
           const isInTargetAngle = maxAngleDiff <= tolerance
           noiseSound.volume = isInTargetAngle ? 0 : 1
-          setAudioStatus(`오디오 재생 중 (볼륨: ${noiseSound.volume})`)
+          setAudioStatus(`오디오 재생 중 (볼륨: ${noiseSound.volume.toFixed(1)})`)
         }
       } catch (error) {
         setAudioStatus('오디오 재생 실패: ' + error.message)
@@ -160,61 +163,74 @@ const AudioController = ({
     const now = Date.now()
     if (now - lastUpdateRef.current > 50) {
       lastUpdateRef.current = now
-      
+
       const isInTargetAngle = maxAngleDiff <= tolerance
-      const newVolume = isInTargetAngle ? 0 : 1
+      const currentAngleState = isInTargetAngle ? 'in' : 'out'
 
-      if (noiseSoundRef.current.volume !== newVolume) {
-        noiseSoundRef.current.volume = newVolume
-        setAudioStatus(`오디오 재생 중 (볼륨: ${newVolume})`)
-      }
+      if (lastAngleState.current !== currentAngleState) {
+        lastAngleState.current = currentAngleState
 
-      // TTS 상태 관리
-      if (isInTargetAngle) {
-        if (!window.speechSynthesis.speaking) {
+        if (currentAngleState === 'in') {
+          // TTS 모드 진입
+          if (noiseSoundRef.current) {
+            noiseSoundRef.current.pause()
+          }
+          if (!isSpeakingRef.current) {
+            const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '))
+            utterance.lang = 'ko-KR'
+            utterance.rate = 1.0
+            utterance.pitch = 1.0
+            utterance.volume = 1.0
+
+            utterance.onstart = () => {
+              isSpeakingRef.current = true
+              setTtsStatus('TTS 재생 중')
+              console.log('TTS 재생 시작')
+            }
+
+            utterance.onend = () => {
+              isSpeakingRef.current = false
+              setTtsStatus('TTS 재생 완료')
+              console.log('TTS 재생 종료')
+            }
+
+            utterance.onerror = (event) => {
+              isSpeakingRef.current = false
+              setTtsStatus('TTS 오류: ' + event.error)
+              console.error('TTS 오류:', event)
+            }
+
+            window.speechSynthesis.speak(utterance)
+          }
+        } else {
+          // 노이즈 모드 진입
           window.speechSynthesis.cancel()
-          const utterance = new SpeechSynthesisUtterance(wordsArrayRef.current.join(' '))
-          utterance.lang = 'ko-KR'
-          utterance.rate = 1.0
-          utterance.pitch = 1.0
-          utterance.volume = 1.0
-          
-          utterance.onstart = () => {
-            setTtsStatus('TTS 재생 중')
-            console.log('TTS 재생 시작')
-          }
-          
-          utterance.onend = () => {
-            setTtsStatus('TTS 재생 완료')
-            console.log('TTS 재생 종료')
-          }
-          
-          utterance.onerror = (event) => {
-            setTtsStatus('TTS 오류: ' + event.error)
-            console.error('TTS 오류:', event)
-          }
-          
-          window.speechSynthesis.speak(utterance)
-        }
-      } else {
-        if (window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel()
+          isSpeakingRef.current = false
           setTtsStatus('TTS 정지됨')
+          if (noiseSoundRef.current?.paused) {
+            noiseSoundRef.current.play()
+          }
+          noiseSoundRef.current.volume = 1
+          setAudioStatus(`오디오 재생 중 (볼륨: 1.0)`)
         }
       }
 
-      setDebugInfo(`
+      const newDebugInfo = `
         각도차: ${maxAngleDiff.toFixed(1)}° | 
         허용범위: ${tolerance}° | 
         노이즈: ${noiseSoundRef.current.volume} | 
-        TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'} | 
+        TTS: ${isSpeakingRef.current ? '재생중' : '정지'} | 
         현재 단어: ${wordsArrayRef.current[0]} |
-        목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
+        목표각도: ${currentAngleState === 'in' ? '진입' : '이탈'} |
         재생상태: ${isPlaying ? '재생중' : '정지'} |
         iOS 권한: ${permissionGranted ? '허용됨' : '미허용'} |
         방향감지: ${isOrientationEnabled ? '활성화' : '비활성화'} |
         사용자상호작용: ${hasUserInteraction ? '완료' : '대기중'}
-      `)
+      `
+      if (lastDebugInfoRef.current !== newDebugInfo) {
+        lastDebugInfoRef.current = newDebugInfo
+        setDebugInfo(newDebugInfo)
+      }
     }
   }, [maxAngleDiff, tolerance, isPlaying, setDebugInfo, permissionGranted, isOrientationEnabled, hasUserInteraction])
 
