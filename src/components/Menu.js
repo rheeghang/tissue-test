@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import ToggleSwitch from './ToggleSwitch';
 
-const Menu = ({ isOpen, onClose }) => {
-  const [isAngleMode, setIsAngleMode] = useState(false);
-  const [isShakeDetected, setIsShakeDetected] = useState(false);
+const Menu = ({ isOpen, onClose, onShake }) => {
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [shakeSpeed, setShakeSpeed] = useState(0);
+  const [shakeCount, setShakeCount] = useState(0);
   const [lastShakeTime, setLastShakeTime] = useState(0);
   const [debugInfo, setDebugInfo] = useState('');
+  const [permissionStatus, setPermissionStatus] = useState('대기중');
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -20,17 +19,16 @@ const Menu = ({ isOpen, onClose }) => {
     { id: 8, label: '안녕히 엉키기', path: '/8' },
   ];
 
+  // 흔들기 감지 로직
   useEffect(() => {
     let lastUpdate = 0;
     let lastX = 0;
     let lastY = 0;
     let lastZ = 0;
-    let shakeCount = 0;
-    let lastShake = 0;
 
     const handleMotion = (event) => {
       const now = Date.now();
-      if (now - lastUpdate < 50) return; // 50ms 간격으로 업데이트
+      if (now - lastUpdate < 50) return;
       lastUpdate = now;
 
       const { x, y, z } = event.accelerationIncludingGravity;
@@ -39,84 +37,49 @@ const Menu = ({ isOpen, onClose }) => {
       setShakeSpeed(speed);
       setDebugInfo(prev => `흔들기 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
       
-      // 흔들기 감지
       if (speed > 10) {
         const currentTime = new Date().getTime();
-        if (currentTime - lastShake > 1000) {
-          lastShake = currentTime;
-          shakeCount++;
-          setDebugInfo(prev => `흔들기 감지! 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
-          
-          if (shakeCount >= 2) {
-            setDebugInfo(prev => '메뉴 표시 트리거!');
-            onClose(false);
-            shakeCount = 0;
-          }
+        if (currentTime - lastShakeTime > 1000) {
+          setLastShakeTime(currentTime);
+          setShakeCount(prev => {
+            const newCount = prev + 1;
+            if (newCount >= 2) {
+              onShake(true); // 흔들기 감지 시 메뉴 열기
+              return 0;
+            }
+            return newCount;
+          });
         }
       }
     };
 
-    const handleOrientation = (event) => {
-      const now = Date.now();
-      if (now - lastUpdate < 50) return;
-      lastUpdate = now;
-
-      const { alpha, beta, gamma } = event;
-      const speed = Math.sqrt(
-        Math.pow(alpha - lastX, 2) + 
-        Math.pow(beta - lastY, 2) + 
-        Math.pow(gamma - lastZ, 2)
-      );
-      
-      lastX = alpha;
-      lastY = beta;
-      lastZ = gamma;
-      
-      setShakeSpeed(speed);
-      setDebugInfo(prev => `회전 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
-      
-      if (speed > 10) {
-        const currentTime = new Date().getTime();
-        if (currentTime - lastShake > 1000) {
-          lastShake = currentTime;
-          shakeCount++;
-          setDebugInfo(prev => `회전 감지! 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
-          
-          if (shakeCount >= 2) {
-            setDebugInfo(prev => '메뉴 표시 트리거!');
-            onClose(false);
-            shakeCount = 0;
-          }
-        }
-      }
-    };
-
-    // iOS에서 DeviceMotionEvent 권한 요청
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then(permission => {
+    // iOS 권한 요청
+    const requestPermission = async () => {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          setPermissionStatus('권한 요청 중...');
+          const permission = await DeviceOrientationEvent.requestPermission();
           if (permission === 'granted') {
+            setPermissionStatus('권한 허용됨');
             window.addEventListener('devicemotion', handleMotion);
-            window.addEventListener('deviceorientation', handleOrientation);
-            setDebugInfo(prev => '모션/방향 감지 권한 허용됨');
           } else {
-            setDebugInfo(prev => '모션/방향 감지 권한 거부됨');
+            setPermissionStatus('권한 거부됨');
           }
-        })
-        .catch(error => {
-          setDebugInfo(prev => '권한 요청 실패: ' + error.message);
-        });
-    } else {
-      window.addEventListener('devicemotion', handleMotion);
-      window.addEventListener('deviceorientation', handleOrientation);
-      setDebugInfo(prev => '모션/방향 감지 이벤트 리스너 등록됨');
-    }
+        } catch (error) {
+          setPermissionStatus('권한 요청 실패: ' + error.message);
+        }
+      } else {
+        setPermissionStatus('일반 브라우저');
+        window.addEventListener('devicemotion', handleMotion);
+      }
+    };
+
+    requestPermission();
 
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
-      window.removeEventListener('deviceorientation', handleOrientation);
     };
-  }, [onClose]);
+  }, [shakeCount, lastShakeTime, onShake]);
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isOpen ? 'block' : 'hidden'}`}>
@@ -149,7 +112,9 @@ const Menu = ({ isOpen, onClose }) => {
               <div className="mt-4 p-4 bg-gray-100 rounded">
                 <div className="font-bold mb-2">디버그 정보:</div>
                 <div>흔들기 속도: {shakeSpeed.toFixed(2)}</div>
+                <div>흔들기 횟수: {shakeCount}</div>
                 <div>마지막 흔들기: {lastShakeTime ? new Date(lastShakeTime).toLocaleTimeString() : '없음'}</div>
+                <div>권한 상태: {permissionStatus}</div>
                 <div className="mt-2">{debugInfo}</div>
               </div>
             )}
