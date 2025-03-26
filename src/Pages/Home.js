@@ -128,7 +128,7 @@ const Home = ({ onStartClick }) => {
         onConfirm={requestPermission}
       />
 
-      <div className="fixed top-3 left-0 right-0 space-y-2 text-center">
+      <div className="fixed bottom-10 left-0 right-0 space-y-2 text-center z-0">
         <p className="text-lg font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
         <p className="text-lg font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
         <p className="text-lg font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>

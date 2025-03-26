@@ -6,8 +6,11 @@ import Home from './Pages/Home'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [motionPermissionGranted, setMotionPermissionGranted] = useState(false)
 
   useEffect(() => {
+    if (!motionPermissionGranted) return
+
     let lastShakeTime = 0
     const SHAKE_THRESHOLD = 30
     const SHAKE_INTERVAL = 1000
@@ -32,21 +35,21 @@ function App() {
 
     window.addEventListener('devicemotion', handleMotion)
     return () => window.removeEventListener('devicemotion', handleMotion)
-  }, [])
-
-  const handleCloseMenu = () => {
-    setIsMenuOpen(false)
-  }
+  }, [motionPermissionGranted])
 
   return (
     <Router>
       <div className="App">
         <Menu 
           isOpen={isMenuOpen} 
-          onClose={handleCloseMenu}
+          onClose={() => setIsMenuOpen(false)}
         />
         <Routes>
-          <Route path="/" element={<ExhibitionText />} />
+          <Route path="/" element={
+            <ExhibitionText 
+              onMotionPermissionGranted={() => setMotionPermissionGranted(true)} 
+            />
+          } />
           <Route path="/home" element={<Home />} />
           <Route path="/Home" element={<Home />} />
         </Routes>

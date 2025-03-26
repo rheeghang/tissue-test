@@ -16,8 +16,12 @@ const Menu = ({ isOpen, onClose }) => {
   ];
 
   return (
-    <div className={`fixed inset-0 bg-cyan-500 bg-opacity-50 transition-opacity duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-      <div className={`fixed top-5 left-5 right-5 bottom-5 max-w-[400px] mx-auto bg-white shadow-lg transform transition-transform duration-300 ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+    <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-[9999] ${
+      isOpen ? 'opacity-100 visible' : 'opacity-0 invisible hidden'
+    }`}>
+      <div className={`fixed top-5 left-5 right-5 bottom-5 max-w-[400px] mx-auto bg-white shadow-lg transform transition-transform duration-300 ${
+        isOpen ? 'translate-y-0' : '-translate-y-full'
+      }`}>
         <div className="max-w-3xl mx-auto p-2 text-center h-[calc(100vh-20px)] flex flex-col">
           <div className="flex justify-center mb-2">
             <button

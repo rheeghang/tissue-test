@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from './RotatedText'
 import AudioController from './AudioController'
 
-const ExhibitionText = () => {
+const ExhibitionText = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -57,40 +57,21 @@ const ExhibitionText = () => {
   // iOS 권한 요청 처리
   const handlePermissionRequest = async () => {
     try {
-      // 방향 감지 권한 요청
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         const orientationPermission = await DeviceOrientationEvent.requestPermission();
         if (orientationPermission === 'granted') {
-          // 방향 감지 권한 획득 후 처리
           setPermissionGranted(true);
           setIsOrientationEnabled(true);
-          
-          // AudioContext 초기화
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          await audioContext.resume();
-          console.log('AudioContext 초기화 완료');
-          
-          // 약간의 지연 후 오디오 초기화
-          setTimeout(() => {
-            setIsPlaying(true);
-            console.log('오디오 재생 시작');
-          }, 100);
-        } else {
-          console.log('iOS 권한 거부됨');
-          setPermissionGranted(false);
-          setIsOrientationEnabled(false);
         }
       }
 
-      // 모션 감지 권한 요청
       if (typeof DeviceMotionEvent.requestPermission === 'function') {
         const motionPermission = await DeviceMotionEvent.requestPermission();
         if (motionPermission === 'granted') {
-          // 모션 감지 권한 획득 후 처리
+          onMotionPermissionGranted(); // 부모 컴포넌트에 권한 허용 알림
         }
       }
 
-      // 모든 권한이 허용되면 모달 닫기
       setShowPermissionModal(false);
     } catch (error) {
       console.error('권한 요청 실패:', error);
@@ -214,18 +195,22 @@ const ExhibitionText = () => {
       />
 
       {/* 각도 표시 footer */}
+      {/*
       <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
         <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
           β01: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
           γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
         </div>
       </div>
+      */}
 
       {/* 디버그 정보 표시 */}
+      {/*
       <div className="fixed top-4 left-4 z-50">
         <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
         </div>
       </div>
+      */}
     </div>
   )
 }
