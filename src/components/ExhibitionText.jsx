@@ -57,15 +57,12 @@ const ExhibitionText = () => {
   // iOS 권한 요청 처리
   const handlePermissionRequest = async () => {
     try {
+      // 방향 감지 권한 요청
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        console.log('iOS 권한 요청 시작');
-        const permissionState = await DeviceOrientationEvent.requestPermission();
-        console.log('iOS 권한 상태:', permissionState);
-        
-        if (permissionState === 'granted') {
-          console.log('iOS 권한 허용됨');
+        const orientationPermission = await DeviceOrientationEvent.requestPermission();
+        if (orientationPermission === 'granted') {
+          // 방향 감지 권한 획득 후 처리
           setPermissionGranted(true);
-          setShowPermissionModal(false);
           setIsOrientationEnabled(true);
           
           // AudioContext 초기화
@@ -83,27 +80,20 @@ const ExhibitionText = () => {
           setPermissionGranted(false);
           setIsOrientationEnabled(false);
         }
-      } else {
-        console.log('non-iOS 디바이스');
-        setPermissionGranted(true);
-        setShowPermissionModal(false);
-        setIsOrientationEnabled(true);
-        
-        // AudioContext 초기화
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        await audioContext.resume();
-        console.log('AudioContext 초기화 완료');
-        
-        // 약간의 지연 후 오디오 초기화
-        setTimeout(() => {
-          setIsPlaying(true);
-          console.log('오디오 재생 시작');
-        }, 100);
       }
+
+      // 모션 감지 권한 요청
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        const motionPermission = await DeviceMotionEvent.requestPermission();
+        if (motionPermission === 'granted') {
+          // 모션 감지 권한 획득 후 처리
+        }
+      }
+
+      // 모든 권한이 허용되면 모달 닫기
+      setShowPermissionModal(false);
     } catch (error) {
-      console.error('권한 요청 중 오류:', error);
-      setPermissionGranted(false);
-      setIsOrientationEnabled(false);
+      console.error('권한 요청 실패:', error);
     }
   };
 
@@ -198,8 +188,8 @@ const ExhibitionText = () => {
       {isIOS && showPermissionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
-            <h2 className="text-xl font-bold mb-4">방향 감지 권한 필요</h2>
-            <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지 권한이 필요합니다.</p>
+            <h2 className="text-xl font-bold mb-4">권한 필요</h2>
+            <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지와 모션 감지 권한이 필요합니다.</p>
             <button
               onClick={handlePermissionRequest}
               className="w-full bg-blue-500 text-black py-2 px-4 rounded hover:bg-blue-600"
