@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
@@ -8,30 +7,28 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 배경 오버레이 */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       ></div>
       
       {/* 모달 컨텐츠 */}
-      <div className="relative z-50 w-80  bg-white p-5 ">
+      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl">
         <h3 className="mb-4 text-xl font-bold text-gray-900">센서 권한 요청</h3>
-        <p className="mb-4 text-gray-600">
+        <p className="mb-6 text-gray-600">
           기기 방향 감지 센서 권한이 필요합니다.
         </p>
-        <div className="w-full">
-          <button
-            onClick={onConfirm}
-            className="w-full  bg-black px-4 py-2 text-white hover:bg-gray-500"
-          >
-            허용
-          </button>
-        </div>
+        <button
+          onClick={onConfirm}
+          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
+        >
+          허용
+        </button>
       </div>
     </div>
   );
 };
 
-const App = () => {
+const Home = ({ onStartClick }) => {
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
@@ -43,8 +40,6 @@ const App = () => {
   const SHAKE_THRESHOLD = 15;
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
-
-  const smoothingFactor = 0.05; // 더 부드러운 움직임 (5% 반영)
 
   const roundTo15Degrees = (angle) => {
     return Math.round(angle / 15) * 15;
@@ -126,45 +121,43 @@ const App = () => {
   }, [permissionGranted]);
 
   return (
-    <div className="text-center min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-white p-4">
       <Modal 
         isOpen={!permissionGranted && showModal}
         onClose={() => setShowModal(false)}
         onConfirm={requestPermission}
       />
 
-      {/* 흔들리면 나타나는 메뉴 */}
-      {menuVisible && (
-        <div className="fixed left-1/2 top-4 -translate-x-1/2 rounded-lg bg-black/80 px-5 py-2.5 text-6xl text-white">
-          📌 메뉴
-        </div>
-      )}
-
-<div className="text-lg fixed left-0 right-0 z-50">
-          <p className="mb-1">Z(α): {roundTo15Degrees(alpha)}°</p>
-          <p className="mb-1">X(β): {roundTo15Degrees(beta)}°</p>
-          <p className="mb-1">Y(γ): {roundTo15Degrees(gamma)}°</p>
-</div>
+      <div className="fixed top-10 left-0 right-0 space-y-2 text-center">
+        <p className="text-3xl font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
+        <p className="text-3xl font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
+        <p className="text-3xl font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
+      </div>
 
       {/* 회전하는 텍스트 박스 */}
       <div className="fixed inset-0 flex items-center justify-center">
         <div
           style={{
-            transform: `rotate(${alpha}deg)`,
-            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            willChange: 'transform',
+            transform: `rotate(${gamma}deg)`,
             backgroundColor: backgroundColor,
+            transition: "all 0.3s",
           }}
-          className="w-72 p-6 pt-6 pb-6 text-left font-sans"
+          className="w-80 p-6 shadow-lg"
         >
-          <p className="leading-relaxed text-lg break-keep">국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.<br></br><br></br>
-큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만, '각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.</p>
+          <p className="text-xl leading-relaxed text-gray-800 break-keep">
+            국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.
+            <br /><br />
+            큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만, '각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.
+          </p>
         </div>
       </div>
 
       {/* 시작하기 버튼 */}
-      <div className="fixed bottom-2 left-0 right-0">
-        <button className="w-48 bg-black text-white py-2 text-xl font-bold">
+      <div className="fixed bottom-10 left-0 right-0 flex justify-center">
+        <button 
+          onClick={onStartClick}
+          className="w-48 rounded-lg bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
+        >
           시작하기
         </button>
       </div>
@@ -172,5 +165,4 @@ const App = () => {
   );
 };
 
-
-export default App;
+export default Home;

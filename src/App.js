@@ -7,15 +7,15 @@ import Menu from './components/Menu'
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [audioStatus, setAudioStatus] = useState('')
+  const lastShakeTime = useRef(0)  // ✅ useRef로 변경
 
   useEffect(() => {
     const handleMotion = (event) => {
       const SHAKE_THRESHOLD = 15
       const SHAKE_INTERVAL = 1000
-      let lastShakeTime = 0
-
       const now = Date.now()
-      if (now - lastShakeTime < SHAKE_INTERVAL) return
+
+      if (now - lastShakeTime.current < SHAKE_INTERVAL) return
 
       const { accelerationIncludingGravity } = event
       if (!accelerationIncludingGravity) return
@@ -27,17 +27,13 @@ function App() {
 
       if (shakeStrength > SHAKE_THRESHOLD) {
         setIsMenuOpen(true)
-        lastShakeTime = now
+        lastShakeTime.current = now  // ✅ 마지막 흔들린 시간 업데이트
       }
     }
 
     window.addEventListener('devicemotion', handleMotion)
     return () => window.removeEventListener('devicemotion', handleMotion)
   }, [])
-
-  const handleCloseMenu = () => {
-    setIsMenuOpen(false)
-  }
 
   return (
     <Router>

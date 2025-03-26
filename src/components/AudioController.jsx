@@ -161,7 +161,7 @@ const AudioController = ({
     if (!isPlaying || !noiseSoundRef.current || !hasUserInteraction) return
 
     const now = Date.now()
-    if (now - lastUpdateRef.current > 50) {
+    if (now - lastUpdateRef.current > 1000) {
       lastUpdateRef.current = now
 
       const isInTargetAngle = maxAngleDiff <= tolerance
