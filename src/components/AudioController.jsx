@@ -3,11 +3,19 @@ import React, { useEffect, useRef, useState } from 'react'
 const AudioController = ({
   isPlaying,
   setIsPlaying,
+  showAudioButton,
+  setShowAudioButton,
+  setDebugInfo,
   originalText,
   maxAngleDiff,
-  tolerance
+  tolerance,
+  maxDistance
 }) => {
+  const [audioStatus, setAudioStatus] = useState('대기중')
   const [ttsStatus, setTtsStatus] = useState('대기중')
+  const [permissionGranted, setPermissionGranted] = useState(false)
+  const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
+  const [hasUserInteraction, setHasUserInteraction] = useState(false)
   const utteranceRef = useRef(null)
   const gainNodeRef = useRef(null)
   const audioContextRef = useRef(null)
@@ -50,10 +58,8 @@ const AudioController = ({
     const isInTargetAngle = maxAngleDiff <= tolerance
 
     if (isInTargetAngle && !window.speechSynthesis.speaking) {
-      // 목표 각도 안에 들어왔을 때 TTS 시작
       window.speechSynthesis.speak(utterance)
     } else if (!isInTargetAngle && window.speechSynthesis.speaking) {
-      // 목표 각도 벗어났을 때 TTS 일시 중지
       window.speechSynthesis.pause()
     }
 
@@ -67,7 +73,7 @@ const AudioController = ({
     }
   }, [isPlaying, maxAngleDiff, tolerance, originalText])
 
-  return null  // UI 렌더링 없음
+
 }
 
 export default AudioController

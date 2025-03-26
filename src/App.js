@@ -27,27 +27,39 @@ function App() {
         Math.abs(accelerationIncludingGravity.y || 0) +
         Math.abs(accelerationIncludingGravity.z || 0)
 
+      console.log('Shake strength:', shakeStrength)
+
       if (shakeStrength > SHAKE_THRESHOLD) {
         setIsMenuOpen(true)
         lastShakeTime = now
+        console.log('Menu opened by shake')
       }
     }
 
     window.addEventListener('devicemotion', handleMotion)
+    console.log('Motion listener added')
+
     return () => window.removeEventListener('devicemotion', handleMotion)
   }, [motionPermissionGranted])
+
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false)
+  }
 
   return (
     <Router>
       <div className="App">
         <Menu 
           isOpen={isMenuOpen} 
-          onClose={() => setIsMenuOpen(false)}
+          onClose={handleCloseMenu}
         />
         <Routes>
           <Route path="/" element={
             <ExhibitionText 
-              onMotionPermissionGranted={() => setMotionPermissionGranted(true)} 
+              onMotionPermissionGranted={() => {
+                setMotionPermissionGranted(true)
+                console.log('Motion permission granted')
+              }}
             />
           } />
           <Route path="/home" element={<Home />} />
