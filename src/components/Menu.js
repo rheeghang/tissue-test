@@ -22,7 +22,7 @@ const Menu = ({ isOpen, onClose }) => {
       <div className={`fixed top-5 left-5 right-5 bottom-5 max-w-[400px] mx-auto bg-white shadow-lg transform transition-transform duration-300 ${
         isOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
-        <div className="max-w-3xl mx-auto p-2 text-center h-[calc(100vh-40px)] flex flex-col">
+        <div className="max-w-3xl mx-auto p-2 text-center h-full overflow-y-auto">
           <div className="flex justify-center mb-2">
             <button
               onClick={onClose}
@@ -31,23 +31,21 @@ const Menu = ({ isOpen, onClose }) => {
               [닫기]
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <nav className="h-full">
-              <ul className="space-y-3 px-2">
-                {menuItems.map((item) => (
-                  <li key={item.id} className="px-5">
-                    <a
-                      href={item.path}
-                      className="block px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 border-2 border-black"
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-          <div className="pt-2 pb-4">
+          <nav>
+            <ul className="space-y-3 px-2">
+              {menuItems.map((item) => (
+                <li key={item.id} className="px-5">
+                  <a
+                    href={item.path}
+                    className="block px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 border-2 border-black"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="py-4">
             <ToggleSwitch 
               isOn={isAngleMode} 
               onToggle={() => setIsAngleMode(!isAngleMode)} 
