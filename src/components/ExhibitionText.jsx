@@ -56,21 +56,44 @@ const ExhibitionText = () => {
 
   // iOS 권한 요청 처리
   const handlePermissionRequest = async () => {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const permission = await DeviceOrientationEvent.requestPermission()
-        if (permission === 'granted') {
+    try {
+      // iOS에서 방향 감지 권한 요청
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const orientationPermission = await DeviceOrientationEvent.requestPermission()
+        
+        if (orientationPermission === 'granted') {
           setPermissionGranted(true)
           setShowPermissionModal(false)
-          setIsOrientationEnabled(true)
+          
+          // 오디오 컨텍스트 생성 및 초기화
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+          await audioContext.resume()
+          
+          // 사용자 인터랙션으로 인한 오디오 초기화를 위해 약간의 지연을 줌
+          setTimeout(() => {
+            setIsPlaying(true)
+            console.log('✅ 권한 획득 완료 - 오디오 및 방향 감지 시작')
+          }, 100)
         } else {
           setShowPermissionModal(false)
+          console.error('방향 감지 권한이 거부됨')
         }
-      } catch (error) {
-        console.error('권한 요청 실패:', error)
+      } else {
+        // non-iOS 디바이스의 경우
+        setPermissionGranted(true)
         setShowPermissionModal(false)
+        
+        // 오디오 컨텍스트 생성 및 초기화
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        await audioContext.resume()
+        
+        setTimeout(() => {
+          setIsPlaying(true)
+          console.log('✅ 권한 획득 완료 - 오디오 시작')
+        }, 100)
       }
-    } else {
+    } catch (error) {
+      console.error('권한 요청 실패:', error)
       setShowPermissionModal(false)
     }
   }

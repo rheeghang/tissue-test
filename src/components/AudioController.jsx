@@ -208,61 +208,95 @@ const AudioController = ({
 
   // 오디오 초기화 useEffect
   useEffect(() => {
-    const handleUserInteraction = async () => {
-      console.log('🔊 첫 클릭 이벤트 발생')
-      
-      if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
-        await tryPlayAudio()
+    if (!isPlaying) return
+
+    const initializeAudio = async () => {
+      try {
+        console.log('🎵 오디오 초기화 시작')
+        const noiseSound = initAudio()
+        if (noiseSound) {
+          // 오디오 로드 완료 대기
+          await new Promise((resolve) => {
+            noiseSound.addEventListener('canplaythrough', resolve, { once: true })
+            noiseSound.load()
+          })
+
+          console.log('🎵 노이즈 사운드 로드 완료, 재생 시도')
+          await noiseSound.play()
+          console.log('✅ 노이즈 사운드 재생 시작')
+
+          // 초기 각도에 따른 볼륨 설정
+          const isInTargetAngle = maxAngleDiff <= tolerance
+          noiseSound.volume = isInTargetAngle ? 0 : 1
+
+          // 목표 각도 안에 있다면 TTS 재생
+          if (isInTargetAngle && ttsRef.current) {
+            console.log('✅ 초기 목표 각도 진입 - TTS 재생')
+            window.speechSynthesis.cancel()
+            window.speechSynthesis.speak(ttsRef.current)
+          }
+        }
+      } catch (error) {
+        console.error('❌ 오디오 초기화 실패:', error)
+        setDebugInfo('오디오 초기화 실패: ' + error.message)
+        
+        if (error.name === 'NotAllowedError') {
+          setDebugInfo('오디오 재생이 차단되었습니다. 화면을 클릭해주세요.')
+        }
       }
-      
-      document.removeEventListener('click', handleUserInteraction)
     }
 
-    document.addEventListener('click', handleUserInteraction)
+    initializeAudio()
 
     return () => {
-      document.removeEventListener('click', handleUserInteraction)
       if (noiseSoundRef.current) {
         noiseSoundRef.current.pause()
         noiseSoundRef.current = null
       }
       window.speechSynthesis.cancel()
-      setIsPlaying(false)
     }
-  }, [tryPlayAudio])
+  }, [isPlaying, initAudio, maxAngleDiff, tolerance, setDebugInfo])
 
   // 각도에 따른 오디오 제어
   useEffect(() => {
-    if (!isPlaying) return
+    if (!isPlaying || !noiseSoundRef.current) return
 
     const now = Date.now()
     if (now - lastUpdateRef.current > 200) {
       lastUpdateRef.current = now
-      if (noiseSoundRef.current && ttsRef.current) {
-        const isInTargetAngle = maxAngleDiff <= tolerance
-        const newVolume = isInTargetAngle ? 0 : 1
-        noiseSoundRef.current.volume = newVolume
+      
+      const isInTargetAngle = maxAngleDiff <= tolerance
+      const newVolume = isInTargetAngle ? 0 : 1
 
-        if (isInTargetAngle) {
+      // 볼륨 변경이 필요한 경우에만 적용
+      if (noiseSoundRef.current.volume !== newVolume) {
+        console.log(`🔊 노이즈 볼륨 변경: ${newVolume}`)
+        noiseSoundRef.current.volume = newVolume
+      }
+
+      // TTS 상태 관리
+      if (isInTargetAngle) {
+        if (!window.speechSynthesis.speaking) {
           console.log('✅ 목표 각도 진입 - TTS 재생')
           window.speechSynthesis.cancel()
           window.speechSynthesis.speak(ttsRef.current)
-        } else {
-          if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause()
-          }
         }
-
-        setDebugInfo(`
-          각도차: ${maxAngleDiff.toFixed(1)}° | 
-          허용범위: ${tolerance}° | 
-          노이즈: ${noiseSoundRef.current.volume} | 
-          TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
-          현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
-          목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
-          재생상태: ${isPlaying ? '재생중' : '정지'}
-        `)
+      } else {
+        if (window.speechSynthesis.speaking) {
+          console.log('❌ 목표 각도 이탈 - TTS 일시정지')
+          window.speechSynthesis.pause()
+        }
       }
+
+      setDebugInfo(`
+        각도차: ${maxAngleDiff.toFixed(1)}° | 
+        허용범위: ${tolerance}° | 
+        노이즈: ${noiseSoundRef.current.volume} | 
+        TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
+        현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
+        목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
+        재생상태: ${isPlaying ? '재생중' : '정지'}
+      `)
     }
   }, [maxAngleDiff, tolerance, isPlaying, setDebugInfo])
 
@@ -271,8 +305,7 @@ const AudioController = ({
       {/* 디버그 정보 표시 */}
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
         <div className="font-bold mb-2">디버그 정보:</div>
-        <div>01각도차: {maxAngleDiff.toFixed(1)}°</div>
-        <div>허용범위: {tolerance}°</div>
+        <div>2각도차: {maxAngleDiff.toFixed(1)}°</div>
         <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
         <div>TTS 상태: {maxAngleDiff <= tolerance ? '재생중' : '정지'}</div>
         <div>현재 단어: {wordsArrayRef.current[currentWordIndexRef.current]}</div>
