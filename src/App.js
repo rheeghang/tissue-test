@@ -7,10 +7,22 @@ import Menu from './components/Menu'
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  const handleShake = () => {
+    setIsMenuOpen(true)
+  }
+
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false)
+  }
+
   return (
     <Router>
       <div className="App">
-        <Menu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+        <Menu 
+          isOpen={isMenuOpen} 
+          onClose={handleCloseMenu}
+          onShake={handleShake}
+        />
         <Routes>
           <Route path="/" element={<ExhibitionText />} />
           <Route path="/home" element={<Home />} />

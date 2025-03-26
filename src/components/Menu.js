@@ -37,14 +37,21 @@ const Menu = ({ isOpen, onClose, onShake }) => {
       setShakeSpeed(speed);
       setDebugInfo(prev => `흔들기 속도: ${speed.toFixed(2)} | 횟수: ${shakeCount}`);
       
-      if (speed > 10) {
+      if (speed > 30) {
         const currentTime = new Date().getTime();
         if (currentTime - lastShakeTime > 1000) {
           setLastShakeTime(currentTime);
           setShakeCount(prev => {
             const newCount = prev + 1;
             if (newCount >= 2) {
-              onShake(true); // 흔들기 감지 시 메뉴 열기
+              try {
+                onShake(true);
+                const randomIndex = Math.floor(Math.random() * menuItems.length);
+                const selectedMenu = menuItems[randomIndex];
+                window.location.href = selectedMenu.path;
+              } catch (error) {
+                console.error('메뉴 실행 중 오류:', error);
+              }
               return 0;
             }
             return newCount;
