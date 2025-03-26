@@ -262,7 +262,7 @@ const AudioController = ({
     if (!isPlaying || !noiseSoundRef.current) return
 
     const now = Date.now()
-    if (now - lastUpdateRef.current > 50) { // 업데이트 간격을 50ms로 줄임
+    if (now - lastUpdateRef.current > 50) {
       lastUpdateRef.current = now
       
       const isInTargetAngle = maxAngleDiff <= tolerance
@@ -277,14 +277,26 @@ const AudioController = ({
       // TTS 상태 관리
       if (isInTargetAngle) {
         if (!window.speechSynthesis.speaking) {
-          console.log('✅ 목표 각도 진입 - TTS 재생')
+          console.log('✅ 목표 각도 진입 - TTS 재생 시도')
           window.speechSynthesis.cancel()
-          window.speechSynthesis.speak(ttsRef.current)
+          
+          // TTS 설정
+          const utterance = ttsRef.current
+          utterance.rate = 1.0
+          utterance.pitch = 1.0
+          utterance.volume = 1.0
+          
+          // TTS 이벤트 리스너 추가
+          utterance.onstart = () => console.log('TTS 재생 시작')
+          utterance.onend = () => console.log('TTS 재생 종료')
+          utterance.onerror = (event) => console.error('TTS 오류:', event)
+          
+          window.speechSynthesis.speak(utterance)
         }
       } else {
         if (window.speechSynthesis.speaking) {
           console.log('❌ 목표 각도 이탈 - TTS 정지')
-          window.speechSynthesis.cancel() // pause 대신 cancel 사용
+          window.speechSynthesis.cancel()
         }
       }
 
@@ -292,7 +304,7 @@ const AudioController = ({
         각도차: ${maxAngleDiff.toFixed(1)}° | 
         허용범위: ${tolerance}° | 
         노이즈: ${noiseSoundRef.current.volume} | 
-        TTS: ${isInTargetAngle ? '재생중' : '정지'} | 
+        TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'} | 
         현재 단어: ${wordsArrayRef.current[currentWordIndexRef.current]} |
         목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
         재생상태: ${isPlaying ? '재생중' : '정지'}
