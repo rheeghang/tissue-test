@@ -8,17 +8,16 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
-  const [currentAngles, setCurrentAngles] = useState({ beta: 0, gamma: 0 })
+  const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
   const [isPlaying, setIsPlaying] = useState(false)
   const [showAudioButton, setShowAudioButton] = useState(true)
   const [debugInfo, setDebugInfo] = useState('')
   const [maxAngleDiff, setMaxAngleDiff] = useState(0)
 
   // 목표 각도 및 허용 범위 설정
-  const targetBeta = 45
-  const targetGamma = -60
-  const tolerance = 30  // 완전히 선명해지는 범위
-  const clearThreshold = 40  // 읽을 수 있는 범위
+  const targetAlpha = 45  // 알파 값만 사용
+  const tolerance = 25    // 완전히 선명해지는 범위
+  const clearThreshold = 35  // 읽을 수 있는 범위
   const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
@@ -85,30 +84,28 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
       return
     }
 
-    const { beta, gamma } = event
-    if (beta !== null && gamma !== null) {
-      setCurrentAngles({ beta, gamma })
+    const { alpha } = event
+    if (alpha !== null) {
+      setCurrentAngles({ alpha })  // alpha 값만 저장
       
-      const betaDiff = Math.abs(beta - targetBeta)
-      const gammaDiff = Math.abs(gamma - targetGamma)
-      const maxAngleDiff = Math.max(betaDiff, gammaDiff)
-      setMaxAngleDiff(maxAngleDiff)
+      const alphaDiff = Math.abs(alpha - targetAlpha)
+      setMaxAngleDiff(alphaDiff)  // alpha 각도 차이만 사용
       
       // 블러 계산
       let blur
-      if (maxAngleDiff <= tolerance) {
+      if (alphaDiff <= tolerance) {
         blur = 0
-      } else if (maxAngleDiff <= clearThreshold) {
-        const normalizedDiff = (maxAngleDiff - tolerance) / (clearThreshold - tolerance)
+      } else if (alphaDiff <= clearThreshold) {
+        const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance)
         blur = 3 * normalizedDiff
       } else {
-        const normalizedDiff = (maxAngleDiff - clearThreshold) / (maxDistance - clearThreshold)
+        const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold)
         blur = 3 + (maxBlur - 3) * normalizedDiff
       }
       
       setBlurAmount(blur)
     }
-  }, [isOrientationEnabled, targetBeta, targetGamma, tolerance, clearThreshold, maxDistance, maxBlur])
+  }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur])
 
   // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
