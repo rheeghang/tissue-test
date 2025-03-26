@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 const Menu = ({ isOpen, onClose }) => {
   const [lastShakeTime, setLastShakeTime] = useState(0);
-  const [shakeCount, setShakeCount] = useState(0);
+  const SHAKE_THRESHOLD = 20; // 흔들기 감도 설정
+  const SHAKE_INTERVAL = 1000; // 1초 간격 설정
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -16,37 +17,30 @@ const Menu = ({ isOpen, onClose }) => {
   ];
 
   useEffect(() => {
-    let lastUpdate = 0;
-
     const handleMotion = (event) => {
       const now = Date.now();
-      if (now - lastUpdate < 50) return;
-      lastUpdate = now;
+      if (now - lastShakeTime < SHAKE_INTERVAL) return;
 
-      const { x, y, z } = event.accelerationIncludingGravity;
-      const speed = Math.sqrt(x * x + y * y + z * z);
-      
-      if (speed > 30) {
-        const currentTime = new Date().getTime();
-        if (currentTime - lastShakeTime > 1000) {
-          setLastShakeTime(currentTime);
-          setShakeCount(prev => {
-            const newCount = prev + 1;
-            if (newCount >= 2) {
-              onClose(false); // 메뉴 열기
-              return 0;
-            }
-            return newCount;
-          });
-        }
+      const { acceleration } = event;
+      if (!acceleration) return;
+
+      // 흔들기 감지 로직
+      const shakeStrength =
+        Math.abs(acceleration.x) +
+        Math.abs(acceleration.y) +
+        Math.abs(acceleration.z);
+
+      if (shakeStrength > SHAKE_THRESHOLD) {
+        onClose(false); // false를 전달하여 메뉴 열기
+        setLastShakeTime(now);
       }
     };
 
     // iOS 권한 요청
     const requestPermission = async () => {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
         try {
-          const permission = await DeviceOrientationEvent.requestPermission();
+          const permission = await DeviceMotionEvent.requestPermission();
           if (permission === 'granted') {
             window.addEventListener('devicemotion', handleMotion);
           }
@@ -63,7 +57,7 @@ const Menu = ({ isOpen, onClose }) => {
     return () => {
       window.removeEventListener('devicemotion', handleMotion);
     };
-  }, [lastShakeTime, shakeCount, onClose]);
+  }, [lastShakeTime, onClose]);
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-600 ${isOpen ? 'opacity-200' : 'opacity-0 pointer-events-none'}`}>
