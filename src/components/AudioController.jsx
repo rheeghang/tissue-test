@@ -18,6 +18,36 @@ const AudioController = ({
   const [ttsStatus, setTtsStatus] = useState('초기화 대기')
   const wordsArrayRef = useRef(`${title}. 작가 ${artist}. ${originalText}`.split(' '))
 
+  // iOS 권한 요청 및 방향 감지 초기화
+  useEffect(() => {
+    const checkPermissions = async () => {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const permission = await DeviceOrientationEvent.requestPermission()
+          if (permission === 'granted') {
+            setPermissionGranted(true)
+            setIsOrientationEnabled(true)
+            setDebugInfo(prev => prev + '\niOS 권한이 허용되었습니다.')
+          } else {
+            setPermissionGranted(false)
+            setIsOrientationEnabled(false)
+            setDebugInfo(prev => prev + '\niOS 권한이 거부되었습니다.')
+          }
+        } catch (error) {
+          console.error('iOS 권한 요청 실패:', error)
+          setDebugInfo(prev => prev + '\niOS 권한 요청 실패: ' + error.message)
+        }
+      } else {
+        // iOS가 아닌 경우
+        setPermissionGranted(true)
+        setIsOrientationEnabled(true)
+        setDebugInfo(prev => prev + '\n일반 브라우저에서 실행 중입니다.')
+      }
+    }
+
+    checkPermissions()
+  }, [setDebugInfo])
+
   // 오디오 초기화 함수
   const initAudio = () => {
     try {
@@ -148,21 +178,21 @@ const AudioController = ({
         TTS: ${window.speechSynthesis.speaking ? '재생중' : '정지'} | 
         현재 단어: ${wordsArrayRef.current[0]} |
         목표각도: ${isInTargetAngle ? '진입' : '이탈'} |
-        재생상태: ${isPlaying ? '재생중' : '정지'}
+        재생상태: ${isPlaying ? '재생중' : '정지'} |
+        iOS 권한: ${permissionGranted ? '허용됨' : '미허용'} |
+        방향감지: ${isOrientationEnabled ? '활성화' : '비활성화'}
       `)
     }
-  }, [maxAngleDiff, tolerance, isPlaying, setDebugInfo])
+  }, [maxAngleDiff, tolerance, isPlaying, setDebugInfo, permissionGranted, isOrientationEnabled])
 
   return (
     <>
       <div className="fixed bottom-4 left-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50">
-        <div className="font-bold mb-2">디버그 정보:</div>
         <div>각도차: {maxAngleDiff.toFixed(1)}°</div>
         <div>목표각도: {maxAngleDiff <= tolerance ? '진입' : '이탈'}</div>
-        <div className="mt-2 font-bold">오디오 상태:</div>
-        <div>{audioStatus}</div>
+        <div className="mt-2 font-bold">오디오 상태:{audioStatus}</div>
         <div>노이즈 볼륨: {noiseSoundRef.current?.volume || 0}</div>
-        <div className="mt-2 font-bold">TTS 상태:</div><div>{ttsStatus}</div>
+        <div className="mt-2 font-bold">TTS 상태:{ttsStatus}</div>
         <div>재생 중: {isPlaying ? '예' : '아니오'}</div>
         <div>iOS 권한: {permissionGranted ? '허용됨' : '미허용'}</div>
         <div>방향감지: {isOrientationEnabled ? '활성화' : '비활성화'}</div>
