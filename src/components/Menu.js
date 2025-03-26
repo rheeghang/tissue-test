@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ToggleSwitch from './ToggleSwitch';
 
 const Menu = ({ isOpen, onClose }) => {
   const [isAngleMode, setIsAngleMode] = useState(false);
-  const [lastShakeTime, setLastShakeTime] = useState(0);
-  const SHAKE_THRESHOLD = 15;
-  const SHAKE_INTERVAL = 1000;
 
   const menuItems = [
     { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
@@ -17,33 +14,6 @@ const Menu = ({ isOpen, onClose }) => {
     { id: 7, label: '아슬아슬', path: '/7' },
     { id: 8, label: '안녕히 엉키기', path: '/8' },
   ];
-
-  useEffect(() => {
-    const handleMotion = (event) => {
-      const now = Date.now();
-      if (now - lastShakeTime < SHAKE_INTERVAL) return;
-
-      const { accelerationIncludingGravity } = event;
-      if (!accelerationIncludingGravity) return;
-
-      const shakeStrength =
-        Math.abs(accelerationIncludingGravity.x || 0) +
-        Math.abs(accelerationIncludingGravity.y || 0) +
-        Math.abs(accelerationIncludingGravity.z || 0);
-
-      if (shakeStrength > SHAKE_THRESHOLD) {
-        onClose(false); // false를 전달하여 메뉴 열기
-        setLastShakeTime(now);
-      }
-    };
-
-    // 모션 이벤트 리스너 등록
-    window.addEventListener('devicemotion', handleMotion);
-
-    return () => {
-      window.removeEventListener('devicemotion', handleMotion);
-    };
-  }, [lastShakeTime, onClose]);
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-600 ${isOpen ? 'opacity-200' : 'opacity-0 pointer-events-none'}`}>
