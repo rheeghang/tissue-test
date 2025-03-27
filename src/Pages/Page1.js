@@ -3,29 +3,26 @@ import RotatedText from '../components/RotatedText'
 import AudioController from '../components/AudioController'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
-    const [blurAmount, setBlurAmount] = useState(10)
-    const [permissionGranted, setPermissionGranted] = useState(false)
-    const [isIOS, setIsIOS] = useState(false)
-    const [showPermissionModal, setShowPermissionModal] = useState(false)
-    const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
-    const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
-    const [isPlaying, setIsPlaying] = useState(false)
-    const [showAudioButton, setShowAudioButton] = useState(true)
-    const [debugInfo, setDebugInfo] = useState('')
-    const [maxAngleDiff, setMaxAngleDiff] = useState(0)
-    const [currentPage, setCurrentPage] = useState(1);
-    const [showHeader, setShowHeader] = useState(true);
+    const [currentAlpha, setCurrentAlpha] = useState(0);
+    const [blurAmount, setBlurAmount] = useState(10);
     const [showAngles, setShowAngles] = useState(false);
     const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
     const [hideTimer, setHideTimer] = useState(null);
-  
-    // 목표 각도 및 허용 범위 설정
-    const targetAlpha = 45  // 알파 값만 사용
-    const tolerance = 25    // 완전히 선명해지는 범위
-    const clearThreshold = 35  // 읽을 수 있는 범위
-    const maxBlur = 30
-    const maxDistance = 45 // 최대 거리 (각도 차이)
-  
+    const [currentPage, setCurrentPage] = useState(1);
+    const [showHeader, setShowHeader] = useState(true);
+    const [showAudioButton, setShowAudioButton] = useState(true);
+    const [debugInfo, setDebugInfo] = useState('')
+    const [maxAngleDiff, setMaxAngleDiff] = useState(0)
+    const [isIOS, setIsIOS] = useState(false)
+    const [showPermissionModal, setShowPermissionModal] = useState(false)
+    const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
+    const [isPlaying, setIsPlaying] = useState(false)
+
+    // 설정값 단순화
+    const targetAlpha = 45;
+    const tolerance = 25;
+    const maxBlur = 8;
+
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
     const caption = "2025, 설치, 초음파 파장, 커스텀 소프트웨어,<br>가변 크기. 국립아시아문화전당 재제작 지원, 작가 제공."
@@ -42,25 +39,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
     }, [])
   
-    // 키보드 이벤트 핸들러
-    const handleKeyPress = useCallback((event) => {
-      if (event.key.toLowerCase() === 'f') {
-        console.log('F key pressed') // 디버깅용 로그
-        setIsOrientationEnabled(false)
-        setBlurAmount(0)
-        // 방향 감지 이벤트 리스너 제거
-        if (window.DeviceOrientationEvent) {
-          window.removeEventListener('deviceorientation', handleOrientation)
-        }
-      }
-    }, [setBlurAmount, setIsOrientationEnabled])
-  
-    useEffect(() => {
-      window.addEventListener('keydown', handleKeyPress)
-      return () => {
-        window.removeEventListener('keydown', handleKeyPress)
-      }
-    }, [handleKeyPress])
   
     // iOS 권한 요청 처리
     const handlePermissionRequest = async () => {
@@ -68,7 +46,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
           const orientationPermission = await DeviceOrientationEvent.requestPermission();
           if (orientationPermission === 'granted') {
-            setPermissionGranted(true);
             setIsOrientationEnabled(true);
           }
         }
@@ -86,42 +63,30 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
     };
   
-    // 15도 단위로 반올림하는 함수
-    const roundTo15Degrees = (angle) => {
-        return Math.round(angle / 15) * 15;
-    };
-
-    // 방향 감지 이벤트 핸들러 수정
+    // Home2.js 스타일로 단순화된 handleOrientation
     const handleOrientation = useCallback((event) => {
-        if (!isOrientationEnabled) {
-            setDebugInfo('Orientation disabled')
-            return
-        }
-
-        const { alpha } = event
-        if (alpha !== null) {
-            setCurrentAngles({ alpha })
+        if (event.alpha !== null) {
+            const alpha = event.alpha;
+            setCurrentAlpha(alpha);
             
-            // Home2.js 방식으로 각도 차이 계산
+            // 각도 차이 계산 단순화
             let angleDiff;
             if (targetAlpha === 0) {
-                // 0도일 때는 360도와도 비교
-                const diff1 = Math.abs(alpha - 0);   // 0도와의 차이
-                const diff2 = Math.abs(alpha - 360); // 360도와의 차이
-                angleDiff = Math.min(diff1, diff2);  // 더 작은 차이 선택
+                const diff1 = Math.abs(alpha - 0);
+                const diff2 = Math.abs(alpha - 360);
+                angleDiff = Math.min(diff1, diff2);
             } else {
-                angleDiff = Math.abs(alpha - targetAlpha);
+                const diff1 = Math.abs(alpha - targetAlpha);
+                const diff2 = Math.abs(diff1 - 360);
+                angleDiff = Math.min(diff1, diff2);
             }
             
-            setMaxAngleDiff(angleDiff)
-            
-            // tolerance 범위 밖에 있을 때
+            // 타이머 로직
             if (angleDiff > tolerance) {
                 if (hideTimer) {
                     clearTimeout(hideTimer);
                     setHideTimer(null);
                 }
-                
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
@@ -133,7 +98,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                     clearTimeout(outOfRangeTimer);
                     setOutOfRangeTimer(null);
                 }
-                
                 if (showAngles && !hideTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(false);
@@ -142,50 +106,19 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }
             }
             
-            // 블러 계산도 수정
-            let blur;
-            if (angleDiff <= tolerance) {
-                blur = 0;
-            } else {
-                // Home2.js 방식으로 블러 계산
-                blur = Math.min(maxBlur, (angleDiff / 60) * maxBlur);
-            }
-            
-            setBlurAmount(blur)
+            // 블러 계산 단순화
+            const blur = angleDiff <= tolerance ? 0 : Math.min(maxBlur, (angleDiff / 60) * maxBlur);
+            setBlurAmount(blur);
         }
-    }, [isOrientationEnabled, targetAlpha, tolerance, maxBlur, outOfRangeTimer, hideTimer, showAngles])
+    }, [targetAlpha, tolerance, maxBlur, outOfRangeTimer, hideTimer, showAngles]);
 
-    // cleanup effect 수정
+    // 이벤트 리스너 설정 단순화
     useEffect(() => {
+        window.addEventListener('deviceorientation', handleOrientation);
         return () => {
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-            }
-            if (hideTimer) {
-                clearTimeout(hideTimer);
-            }
+            window.removeEventListener('deviceorientation', handleOrientation);
         };
-    }, [outOfRangeTimer, hideTimer]);
-  
-    // 방향 감지 이벤트 리스너 등록
-    useEffect(() => {
-      console.log('Orientation enabled:', isOrientationEnabled) // 디버깅용 로그
-      
-      let orientationHandler = null;
-      
-      if (window.DeviceOrientationEvent && isOrientationEnabled) {
-        console.log('Adding orientation listener') // 디버깅용 로그
-        orientationHandler = handleOrientation;
-        window.addEventListener('deviceorientation', orientationHandler)
-      }
-  
-      return () => {
-        if (orientationHandler) {
-          console.log('Removing orientation listener') // 디버깅용 로그
-          window.removeEventListener('deviceorientation', orientationHandler)
-        }
-      }
-    }, [isOrientationEnabled, handleOrientation])
+    }, [handleOrientation]);
   
     useEffect(() => {
       if (!isPlaying) {
@@ -202,44 +135,29 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         return 0 // 목표 각도에 도달하면 블러 없음
       }
       // 각도 차이가 클수록 블러가 강해짐
-      return Math.min(8, (maxAngleDiff / maxDistance) * 8)
+      return Math.min(8, (maxAngleDiff / 60) * 8)
     }
   
-  
-  
-    const handleNextClick = () => {
-      setCurrentPage(2);
-      setShowHeader(false);
-    };
-
-    const handlePrevClick = () => {
-      setCurrentPage(1);
-      setShowHeader(true);
-    };
-
-    const displayText = currentPage === 1 ? originalText : originalText2;
-
     return (
         <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
-            {/* 각도 표시 */}
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
                     <p className="text-2xl text-right">
-                        {Math.round(currentAngles.alpha)}° <br/>
+                        {Math.round(currentAlpha)}° <br/>
                         45°
                     </p>
                 </div>
             )}
-
+            
             <div className="w-full pt-[10px]">
                 <RotatedText 
-                    text={displayText}
+                    text={currentPage === 1 ? originalText : originalText2}
                     title={showHeader ? title : ""} 
                     artist={showHeader ? artist : ""}
                     caption={showHeader ? caption : ""}
-                    blurAmount={getBlurAmount()}
-                    onNextClick={handleNextClick}
-                    onPrevClick={handlePrevClick}
+                    blurAmount={blurAmount}
+                    onNextClick={() => setCurrentPage(2)}
+                    onPrevClick={() => setCurrentPage(1)}
                 />
             </div>
             
@@ -252,7 +170,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 originalText={originalText}
                 maxAngleDiff={maxAngleDiff} 
                 tolerance={tolerance}
-                maxDistance={maxDistance}
+                maxDistance={60}
             />
         </div>
     );
