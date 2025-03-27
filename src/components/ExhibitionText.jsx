@@ -162,7 +162,7 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
         <RotatedText text={originalText} title={title} blurAmount={getBlurAmount()} />
       </div>
       
-      {/* iOS 권한 요청 모달 */}
+      {/* iOS 권한 요청 모달
       {isIOS && showPermissionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
@@ -176,7 +176,7 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* AudioController 컴포넌트 */}
       <AudioController

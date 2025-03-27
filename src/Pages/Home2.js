@@ -41,11 +41,11 @@ const Home = () => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [blurAmounts, setBlurAmounts] = useState([10, 10, 10]);
   
-  const boxAngles = [-10, 8, -6]; // 각 박스의 회전 각도
-  const tolerance = 30; // 허용 범위 ±30도
+  const boxAngles = [330, 15, 360]; // 각 박스의 회전 각도
+  const tolerance = 20; // 허용 범위 ±30도
   const maxBlur = 8; // 최대 블러값
 
-  const SHAKE_THRESHOLD = 15;
+  const SHAKE_THRESHOLD = 30;
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
@@ -184,7 +184,7 @@ const Home = () => {
 
         <div
           style={{
-            transform: 'rotate(8deg)',
+            transform: 'rotate(15deg)',
             filter: `blur(${blurAmounts[1]}px)`,
             transition: 'filter 0.3s ease'
           }}
