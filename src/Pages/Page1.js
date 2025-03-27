@@ -7,7 +7,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
-  const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
+  const [currentAlpha, setCurrentAlpha] = useState(0)
   const [maxAngleDiff, setMaxAngleDiff] = useState(0)
   const [showAngles, setShowAngles] = useState(false);
   const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
@@ -84,85 +84,53 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
-    if (!isOrientationEnabled) return;
-
-    const { alpha } = event
-    if (alpha !== null) {
-      setCurrentAngles({ alpha })
-      
-      const alphaDiff = Math.abs(alpha - targetAlpha)
-      setMaxAngleDiff(alphaDiff)
-      
-      // 블러 계산
-      let blur
-      if (alphaDiff <= tolerance) {
-        blur = 0
-      } else if (alphaDiff <= clearThreshold) {
-        const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance)
-        blur = 3 * normalizedDiff
-      } else {
-        const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold)
-        blur = 3 + (maxBlur - 3) * normalizedDiff
-      }
-      
-      setBlurAmount(blur)
-
-      // 각도 표시 타이머 처리 추가
-      if (alphaDiff > tolerance) {
-        if (hideTimer) {
-          clearTimeout(hideTimer);
-          setHideTimer(null);
-        }
+    if (event.alpha !== null) {
+        // 직접 alpha 값 업데이트
+        setCurrentAlpha(event.alpha);
         
-        if (!outOfRangeTimer) {
-          const timer = setTimeout(() => {
-            setShowAngles(true);
-          }, 5000);
-          setOutOfRangeTimer(timer);
-        }
-      } else {
-        if (outOfRangeTimer) {
-          clearTimeout(outOfRangeTimer);
-          setOutOfRangeTimer(null);
-        }
+        // 각도 차이 계산 단순화
+        const alphaDiff = Math.abs(event.alpha - targetAlpha);
+        setMaxAngleDiff(alphaDiff);
         
-        if (showAngles && !hideTimer) {
-          const timer = setTimeout(() => {
-            setShowAngles(false);
-          }, 3000);
-          setHideTimer(timer);
+        // 블러 계산
+        let blur;
+        if (alphaDiff <= tolerance) {
+            blur = 0;
+        } else if (alphaDiff <= clearThreshold) {
+            const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+            blur = 3 * normalizedDiff;
+        } else {
+            const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+            blur = 3 + (maxBlur - 3) * normalizedDiff;
         }
-      }
-    }
-  }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, hideTimer, showAngles]);
+        setBlurAmount(blur);
 
-  // 방향 감지 이벤트 리스너 등록
+        // 각도 표시 타이머
+        if (alphaDiff > tolerance) {
+            if (!outOfRangeTimer) {
+                const timer = setTimeout(() => setShowAngles(true), 5000);
+                setOutOfRangeTimer(timer);
+            }
+        } else {
+            if (outOfRangeTimer) {
+                clearTimeout(outOfRangeTimer);
+                setOutOfRangeTimer(null);
+            }
+            if (showAngles) {
+                const timer = setTimeout(() => setShowAngles(false), 3000);
+                setHideTimer(timer);
+            }
+        }
+    }
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur]);
+
+  // 이벤트 리스너 등록 단순화
   useEffect(() => {
-    let orientationHandler = null;
-    
-    if (window.DeviceOrientationEvent && isOrientationEnabled) {
-      orientationHandler = handleOrientation;
-      window.addEventListener('deviceorientation', orientationHandler)
-    }
-
+    window.addEventListener('deviceorientation', handleOrientation);
     return () => {
-      if (orientationHandler) {
-        window.removeEventListener('deviceorientation', orientationHandler)
-      }
-    }
-  }, [isOrientationEnabled, handleOrientation])
-
-  // cleanup effect 추가
-  useEffect(() => {
-    return () => {
-      if (outOfRangeTimer) {
-        clearTimeout(outOfRangeTimer);
-      }
-      if (hideTimer) {
-        clearTimeout(hideTimer);
-      }
+        window.removeEventListener('deviceorientation', handleOrientation);
     };
-  }, [outOfRangeTimer, hideTimer]);
+  }, [handleOrientation]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -186,11 +154,16 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
-      {/* 각도 표시 추가 */}
+      {/* 현재 알파값 항상 표시 */}
+      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
+        <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
+      </div>
+
+      {/* 목표각도와 현재각도 차이 표시 */}
       {showAngles && (
         <div className="fixed top-4 right-4 z-50">
           <p className="text-2xl">
-            {Math.round(currentAngles.alpha)}° <br/>
+            {Math.round(currentAlpha)}° <br/>
             {targetAlpha}°
           </p>
         </div>
