@@ -9,16 +9,16 @@ import { AngleModeProvider } from './contexts/AngleModeContext'
 function App() {
   return (
     <AngleModeProvider>
-      <Router>
-        <Layout>
+      <Layout>
+        <Router>
           <Routes>
             <Route path="/" element={<Home2 />} />
             <Route path="/1" element={<Page1 />} />
             <Route path="/2" element={<Page2 />} />
             <Route path="/intro" element={<Intro />} />
           </Routes>
-        </Layout>
-      </Router>
+        </Router>
+      </Layout>
     </AngleModeProvider>
   )
 }

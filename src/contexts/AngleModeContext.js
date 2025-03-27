@@ -1,15 +1,14 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
 const AngleModeContext = createContext();
 
 export const AngleModeProvider = ({ children }) => {
-  // localStorage에서 초기 상태 불러오기
+  // 기본값은 true (각도 모드 활성화)
   const [isAngleMode, setIsAngleMode] = useState(() => {
     const saved = localStorage.getItem('angleMode');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // 각도 모드 변경 함수
   const toggleAngleMode = () => {
     const newMode = !isAngleMode;
     setIsAngleMode(newMode);

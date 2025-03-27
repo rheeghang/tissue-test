@@ -87,52 +87,62 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
-        setCurrentAlpha(event.alpha);
-        
-        // 각도 차이 계산
-        const alphaDiff = Math.abs(event.alpha - targetAlpha);
-        setMaxAngleDiff(alphaDiff);
-        
-        // 각도 표시 로직 (각도 모드와 무관하게 동작)
+      setCurrentAlpha(event.alpha);
+      const alphaDiff = Math.abs(event.alpha - targetAlpha);
+      
+      if (isAngleMode) {  // 각도 모드가 켜져있을 때만
+        // 각도 표시 로직
         if (alphaDiff > tolerance) {
-            if (!outOfRangeTimer) {
-                const timer = setTimeout(() => {
-                    setShowAngles(true);
-                }, 5000);
-                setOutOfRangeTimer(timer);
-            }
+          if (!outOfRangeTimer) {
+            const timer = setTimeout(() => {
+              setShowAngles(true);
+            }, 5000);
+            setOutOfRangeTimer(timer);
+          }
         } else {
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
+          if (outOfRangeTimer) {
+            clearTimeout(outOfRangeTimer);
+            setOutOfRangeTimer(null);
+          }
+          if (showAngles) {
+            if (hideTimer) {
+              clearTimeout(hideTimer);
             }
-            if (showAngles) {
-                if (hideTimer) {
-                    clearTimeout(hideTimer);
-                }
-                const timer = setTimeout(() => {
-                    setShowAngles(false);
-                }, 3000);
-                setHideTimer(timer);
-            }
+            const timer = setTimeout(() => {
+              setShowAngles(false);
+            }, 3000);
+            setHideTimer(timer);
+          }
         }
 
-        // 블러 계산 (각도 모드에 따라 적용)
-        let blur = 0;
-        if (isAngleMode) {
-            if (alphaDiff <= tolerance) {
-                blur = 0;
-            } else if (alphaDiff <= clearThreshold) {
-                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-                blur = 3 * normalizedDiff;
-            } else {
-                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-                blur = 3 + (maxBlur - 3) * normalizedDiff;
-            }
+        // 블러 계산 로직
+        let blur;
+        if (alphaDiff <= tolerance) {
+          blur = 0;
+        } else if (alphaDiff <= clearThreshold) {
+          const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+          blur = 3 * normalizedDiff;
+        } else {
+          const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+          blur = 3 + (maxBlur - 3) * normalizedDiff;
         }
         setBlurAmount(blur);
+      } else {
+        // 각도 모드가 꺼져있을 때
+        // 각도 표시 타이머 정리
+        if (outOfRangeTimer) {
+          clearTimeout(outOfRangeTimer);
+          setOutOfRangeTimer(null);
+        }
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          setHideTimer(null);
+        }
+        setShowAngles(false);  // 각도 표시 숨기기
+        setBlurAmount(0);      // 블러 제거
+      }
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer, isAngleMode]);
+  }, [isAngleMode, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {
@@ -183,7 +193,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
       {/* 목표각도와 현재각도 차이 표시 */}
-      {showAngles && (
+      {isAngleMode && showAngles && (
         <div className="fixed top-4 right-4 z-50">
           <p className="text-2xl">
             {Math.round(currentAlpha)}° <br/>

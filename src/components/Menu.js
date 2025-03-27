@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAngleMode } from '../contexts/AngleModeContext';
 import ToggleSwitch from './ToggleSwitch';
 
-const Menu = ({ isVisible, onClose }) => {
+const Menu = ({ isOpen, onClose }) => {
   const { isAngleMode, toggleAngleMode } = useAngleMode();
 
   const menuItems = [
@@ -17,7 +17,7 @@ const Menu = ({ isVisible, onClose }) => {
   ];
 
   return (
-    <div className={`fixed inset-0 z-50 ${isVisible ? 'block' : 'hidden'}`}>
+    <div className={`fixed inset-0 z-50 ${isOpen ? 'block' : 'hidden'}`}>
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
       <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-lg">
         <div className="max-w-3xl mx-auto p-2 text-center h-full overflow-y-auto">
@@ -48,6 +48,11 @@ const Menu = ({ isVisible, onClose }) => {
               isOn={isAngleMode} 
               onToggle={toggleAngleMode} 
             />
+            <p className="mt-2 text-sm text-gray-600">
+              {isAngleMode 
+                ? "각도에 따라 텍스트가 흐려집니다" 
+                : "각도와 관계없이 선명하게 보입니다"}
+            </p>
           </div>
         </div>
       </div>
