@@ -87,19 +87,15 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     if (event.alpha !== null) {
         setCurrentAlpha(event.alpha);
         
-        // targetAlpha ± 18도 범위 체크
-        const upperBound = (targetAlpha + 18) % 360;
-        const lowerBound = (targetAlpha - 18 + 360) % 360;
-        const currentAngle = event.alpha;
+        // 각도 차이 계산 단순화
+        const alphaDiff = Math.abs(event.alpha - targetAlpha);
+        setMaxAngleDiff(alphaDiff);
         
-        // 목표 각도 범위 안에 있는지 확인
-        const isInRange = lowerBound <= upperBound 
-            ? (currentAngle >= lowerBound && currentAngle <= upperBound)
-            : (currentAngle >= lowerBound || currentAngle <= upperBound);
-
-        if (isInRange) {
+        // 블러 계산
+        let blur;
+        if (alphaDiff <= tolerance) {
+            blur = 0;
             // 목표 각도 범위 안에 있을 때
-            setBlurAmount(0);  // 텍스트 선명하게
             if (showAngles) {
                 if (hideTimer) {
                     clearTimeout(hideTimer);
@@ -123,27 +119,18 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }, 5000);
                 setOutOfRangeTimer(timer);
             }
-            
-            // 블러 계산 - 각도 차이에 따라 블러 강도 조절
-            const alphaDiff = Math.min(
-                Math.abs(currentAngle - targetAlpha),
-                Math.abs(currentAngle - (targetAlpha + 360))
-            );
-            
-            // 블러 값 계산 개선
-            let blurValue;
-            if (alphaDiff <= 25) {  // 가까운 범위
-                blurValue = (alphaDiff / 25) * 10;
-            } else if (alphaDiff <= 45) {  // 중간 범위
-                blurValue = 10 + ((alphaDiff - 25) / 20) * 20;
-            } else {  // 먼 범위
-                blurValue = 30;
+
+            if (alphaDiff <= clearThreshold) {
+                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+                blur = 3 * normalizedDiff;
+            } else {
+                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+                blur = 3 + (maxBlur - 3) * normalizedDiff;
             }
-            
-            setBlurAmount(blurValue);
         }
+        setBlurAmount(blur);
     }
-  }, [targetAlpha, showAngles, outOfRangeTimer, hideTimer]);
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, hideTimer, outOfRangeTimer]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {
@@ -162,7 +149,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     return Math.min(8, (maxAngleDiff / maxDistance) * 8)
   }
 
-  // 페이지 전환 핸들러 수정
+  // 페이지 전환 핸들러 추가
   const handleNextClick = () => {
     setCurrentPage(2);
     setShowHeader(false);
@@ -176,9 +163,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
       {/* 현재 알파값 항상 표시 */}
-      {/* <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
+      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
-      </div> */}
+      </div>
 
       {/* 목표각도와 현재각도 차이 표시 */}
       {showAngles && (
