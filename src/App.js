@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Menu from './components/Menu'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ExhibitionText from './components/ExhibitionText'
-import Home from './Pages/Home2'
+import Home2 from './Pages/Home2'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -54,16 +54,8 @@ function App() {
           onClose={handleCloseMenu}
         />
         <Routes>
-          <Route path="/" element={
-            <ExhibitionText 
-              onMotionPermissionGranted={() => {
-                setMotionPermissionGranted(true)
-                console.log('Motion permission granted')
-              }}
-            />
-          } />
-          <Route path="/home" element={<Home />} />
-          <Route path="/Home" element={<Home />} />
+          <Route path="/" element={<Home2 />} />
+          <Route path="/exhibition" element={<ExhibitionText />} />
         </Routes>
       </div>
     </Router>

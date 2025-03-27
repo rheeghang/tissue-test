@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -28,7 +29,8 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
   );
 };
 
-const Home = ({ onStartClick }) => {
+const Home = () => {
+  const navigate = useNavigate();
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
@@ -36,6 +38,12 @@ const Home = ({ onStartClick }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState("cyan"); // 기본 배경색
   const [showModal, setShowModal] = useState(true);
+  const [currentAlpha, setCurrentAlpha] = useState(0);
+  const [blurAmounts, setBlurAmounts] = useState([10, 10, 10]);
+  
+  const boxAngles = [-10, 8, -6]; // 각 박스의 회전 각도
+  const tolerance = 30; // 허용 범위 ±30도
+  const maxBlur = 8; // 최대 블러값
 
   const SHAKE_THRESHOLD = 15;
   const SHAKE_INTERVAL = 1000;
@@ -75,6 +83,46 @@ const Home = ({ onStartClick }) => {
     }
   };
 
+  const handleOrientation = useCallback((event) => {
+    if (event.alpha !== null) {
+      setCurrentAlpha(event.alpha);
+      
+      // 각 박스별로 블러 계산
+      const newBlurAmounts = boxAngles.map(targetAngle => {
+        const angleDiff = Math.abs(event.alpha - targetAngle);
+        if (angleDiff <= tolerance) {
+          return 0; // 허용 범위 내면 선명하게
+        }
+        // 허용 범위 밖이면 블러 처리
+        return Math.min(maxBlur, (angleDiff / 60) * maxBlur);
+      });
+      
+      setBlurAmounts(newBlurAmounts);
+    }
+  }, []);
+
+  const handleMotion = (event) => {
+    const now = Date.now();
+    if (now - lastShakeTime < SHAKE_INTERVAL) return;
+
+    const { acceleration } = event;
+    if (!acceleration) return;
+
+    const shakeStrength =
+      Math.abs(acceleration.x) +
+      Math.abs(acceleration.y) +
+      Math.abs(acceleration.z);
+
+    if (shakeStrength > SHAKE_THRESHOLD) {
+      setMenuVisible(true);
+      lastShakeTime = now;
+
+      setTimeout(() => {
+        setMenuVisible(false);
+      }, 2000);
+    }
+  };
+
   useEffect(() => {
     const handleOrientation = (event) => {
       setAlpha(event.alpha); // Z축 회전 (Yaw)
@@ -84,28 +132,6 @@ const Home = ({ onStartClick }) => {
       // 뒤집힌 경우 (베타가 +90도 또는 -90도에 가까운 경우) - 색상 변경
       if (Math.abs(event.beta) > 80) {
         setBackgroundColor(getRandomColor());
-      }
-    };
-
-    const handleMotion = (event) => {
-      const now = Date.now();
-      if (now - lastShakeTime < SHAKE_INTERVAL) return;
-
-      const { acceleration } = event;
-      if (!acceleration) return;
-
-      const shakeStrength =
-        Math.abs(acceleration.x) +
-        Math.abs(acceleration.y) +
-        Math.abs(acceleration.z);
-
-      if (shakeStrength > SHAKE_THRESHOLD) {
-        setMenuVisible(true);
-        lastShakeTime = now;
-
-        setTimeout(() => {
-          setMenuVisible(false);
-        }, 2000);
       }
     };
 
@@ -120,51 +146,64 @@ const Home = ({ onStartClick }) => {
     };
   }, [permissionGranted]);
 
+  useEffect(() => {
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, [handleOrientation]);
+
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="relative min-h-screen bg-gray-100">
       <Modal 
         isOpen={!permissionGranted && showModal}
         onClose={() => setShowModal(false)}
         onConfirm={requestPermission}
       />
 
-      <div className="fixed top-2 left-0 right-0 space-y-2 text-center z-10">
-        <p className="text-lg font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
-        <p className="text-lg font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
-        <p className="text-lg font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
+      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
+        <p className="text-xs font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
+        <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
+        <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-8 z-0">
+      <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6 z-0">
         <div
           style={{
-            transform: 'rotate(-15deg)', // 첫 번째 박스는 -15도 회전
+            transform: 'rotate(-10deg)',
+            filter: `blur(${blurAmounts[0]}px)`,
+            transition: 'filter 0.3s ease'
           }}
-          className="w-80 p-6 bg-white shadow-lg"
+          className="w-80 p-4 bg-white shadow-lg"
         >
-          <p className="text-xl leading-relaxed text-gray-800 break-keep">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.
           </p>
         </div>
 
         <div
           style={{
-            transform: 'rotate(10deg)', // 두 번째 박스는 10도 회전
+            transform: 'rotate(8deg)',
+            filter: `blur(${blurAmounts[1]}px)`,
+            transition: 'filter 0.3s ease'
           }}
-          className="w-80 p-6 bg-white shadow-lg"
+          className="w-80 p-4 bg-white shadow-lg"
         >
-          <p className="text-xl leading-relaxed text-gray-800 break-keep">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만,
           </p>
         </div>
 
         <div
           style={{
-            transform: 'rotate(-5deg)', // 세 번째 박스는 -5도 회전
+            transform: 'rotate(-6deg)',
+            filter: `blur(${blurAmounts[2]}px)`,
+            transition: 'filter 0.3s ease'
           }}
-          className="w-80 p-6 bg-white shadow-lg"
+          className="w-80 p-4 bg-white shadow-lg"
         >
-          <p className="text-xl leading-relaxed text-gray-800 break-keep">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             '각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.
           </p>
         </div>
@@ -173,7 +212,7 @@ const Home = ({ onStartClick }) => {
       {/* 시작하기 버튼 */}
       <div className="fixed bottom-3 left-0 right-0 flex justify-center">
         <button 
-          onClick={onStartClick}
+          onClick={() => navigate('/exhibition')}
           className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
         >
           시작하기
