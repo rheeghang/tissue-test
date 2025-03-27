@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
-import AudioController from '../components/AudioController'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
@@ -9,10 +8,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
   const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [showAudioButton, setShowAudioButton] = useState(true)
-  const [debugInfo, setDebugInfo] = useState('')
   const [maxAngleDiff, setMaxAngleDiff] = useState(0)
+  const [showAngles, setShowAngles] = useState(false);
+  const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
+  const [hideTimer, setHideTimer] = useState(null);
+  const [showHeader, setShowHeader] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 45  // 알파 값만 사용
@@ -21,12 +22,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
-  const title = "코 없는 코끼리 no.2"
-    const artist = "엄정순"
-    const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm. 국립아시아문화전당 제작 지원, 작가 제공."
-    const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br>[다음]`
+  const title = "보이지 않는 조각들: 공기조각"
+    const artist = "송예슬"
+    const caption = "2025, 설치, 초음파 파장, 커스텀 소프트웨어,<br>가변 크기. 국립아시아문화전당 재제작 지원, 작가 제공."
+    const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. <span class="font-serif italic">당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요?</span> 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.<br>[다음]`
   
-    const originalText2 = `하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 ‘이방인’, ‘타자’, 그리고 ‘보이지 않는 것’의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. <span class="font-serif italic">코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?</span>`
+    const originalText2 = `[이전]<br>참여자는 좌대 위에 손을 올릴 수 있습니다. 그러면 손끝을 따라 공기 흐름이 위로 퍼지며 만지는 사람에 따라 그 모양과 감각은 조금씩 달라집니다. 그것은 눈에 보이지 않지만, 손끝으로는 분명히 '존재하는' 조각입니다. <span class="font-serif italic">정말 '보는 것'만이 예술을 감상하는 방식의 전부인가요? 손끝으로 만나는 이 조각은 당신에게 어떤 생각을 불러일으키나요?</span>`
 
   // iOS 디바이스 체크
   useEffect(() => {
@@ -71,7 +72,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       if (typeof DeviceMotionEvent.requestPermission === 'function') {
         const motionPermission = await DeviceMotionEvent.requestPermission();
         if (motionPermission === 'granted') {
-          onMotionPermissionGranted(); // 부모 컴포넌트에 권한 허용 알림
+          onMotionPermissionGranted();
         }
       }
 
@@ -83,17 +84,14 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
-    if (!isOrientationEnabled) {
-      setDebugInfo('Orientation disabled')
-      return
-    }
+    if (!isOrientationEnabled) return;
 
     const { alpha } = event
     if (alpha !== null) {
-      setCurrentAngles({ alpha })  // alpha 값만 저장
+      setCurrentAngles({ alpha })
       
       const alphaDiff = Math.abs(alpha - targetAlpha)
-      setMaxAngleDiff(alphaDiff)  // alpha 각도 차이만 사용
+      setMaxAngleDiff(alphaDiff)
       
       // 블러 계산
       let blur
@@ -108,37 +106,63 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
       
       setBlurAmount(blur)
+
+      // 각도 표시 타이머 처리 추가
+      if (alphaDiff > tolerance) {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          setHideTimer(null);
+        }
+        
+        if (!outOfRangeTimer) {
+          const timer = setTimeout(() => {
+            setShowAngles(true);
+          }, 5000);
+          setOutOfRangeTimer(timer);
+        }
+      } else {
+        if (outOfRangeTimer) {
+          clearTimeout(outOfRangeTimer);
+          setOutOfRangeTimer(null);
+        }
+        
+        if (showAngles && !hideTimer) {
+          const timer = setTimeout(() => {
+            setShowAngles(false);
+          }, 3000);
+          setHideTimer(timer);
+        }
+      }
     }
-  }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur])
+  }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, hideTimer, showAngles]);
 
   // 방향 감지 이벤트 리스너 등록
   useEffect(() => {
-    console.log('Orientation enabled:', isOrientationEnabled) // 디버깅용 로그
-    
     let orientationHandler = null;
     
     if (window.DeviceOrientationEvent && isOrientationEnabled) {
-      console.log('Adding orientation listener') // 디버깅용 로그
       orientationHandler = handleOrientation;
       window.addEventListener('deviceorientation', orientationHandler)
     }
 
     return () => {
       if (orientationHandler) {
-        console.log('Removing orientation listener') // 디버깅용 로그
         window.removeEventListener('deviceorientation', orientationHandler)
       }
     }
   }, [isOrientationEnabled, handleOrientation])
 
+  // cleanup effect 추가
   useEffect(() => {
-    if (!isPlaying) {
-      return
-    }
-
-    const isInTargetAngle = maxAngleDiff <= tolerance
-    setDebugInfo(`각도차: ${maxAngleDiff.toFixed(1)}, 목표도달: ${isInTargetAngle ? 'Y' : 'N'}`)
-  }, [isPlaying, maxAngleDiff, tolerance])
+    return () => {
+      if (outOfRangeTimer) {
+        clearTimeout(outOfRangeTimer);
+      }
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+      }
+    };
+  }, [outOfRangeTimer, hideTimer]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -149,12 +173,39 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     return Math.min(8, (maxAngleDiff / maxDistance) * 8)
   }
 
+  // 페이지 전환 핸들러 추가
+  const handleNextClick = () => {
+    setCurrentPage(2);
+    setShowHeader(false);
+  };
+
+  const handlePrevClick = () => {
+    setCurrentPage(1);
+    setShowHeader(true);
+  };
+
   return (
-    <div 
-      className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"
-    >
+    <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
+      {/* 각도 표시 추가 */}
+      {showAngles && (
+        <div className="fixed top-4 right-4 z-50">
+          <p className="text-2xl">
+            {Math.round(currentAngles.alpha)}° <br/>
+            {targetAlpha}°
+          </p>
+        </div>
+      )}
+
       <div className="w-full pt-[10px]">
-        <RotatedText text={originalText} title={title} blurAmount={getBlurAmount()} />
+        <RotatedText 
+          text={currentPage === 1 ? originalText : originalText2}
+          title={showHeader ? title : ""} 
+          artist={showHeader ? artist : ""}
+          caption={showHeader ? caption : ""}
+          blurAmount={getBlurAmount()}
+          onNextClick={handleNextClick}
+          onPrevClick={handlePrevClick}
+        />
       </div>
     </div>
   )
