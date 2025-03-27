@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import RotatedText from './RotatedText'
-import AudioController from './AudioController'
+import RotatedText from '../components/RotatedText'
+import AudioController from '../components/AudioController'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
