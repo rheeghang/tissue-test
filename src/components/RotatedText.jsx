@@ -1,6 +1,23 @@
 import React, { useEffect, useRef } from 'react'
 
-const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, onPrevClick }) => {
+const RotatedText = ({ 
+  text, 
+  title, 
+  artist, 
+  caption, 
+  blurAmount, 
+  onNextClick, 
+  onPrevClick,
+  rotationAngle = 45,
+  styles = {
+    titleMargin: '40px',
+    artistMargin: '30px',
+    lineSpacing: '15px',
+    textTop: '30px',
+    containerPadding: '10vh',
+    titleBlockMargin: '50px'
+  }
+}) => {
   const containerRef = useRef(null)
   
   const getWrappedLines = (text, container) => {
@@ -46,14 +63,18 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
     const createSpan = (text, className = '') => {
       const span = document.createElement('span')
       span.textContent = text
-      if (className) span.className = className
+      if (className) {
+        span.className = `${className} rotated-text`
+      } else {
+        span.className = 'rotated-text'
+      }
       span.style.display = 'block'
-      span.style.transform = 'rotate(45deg)'
+      span.style.transform = `rotate(${rotationAngle}deg)`
       span.style.transformOrigin = 'center center'
       span.style.whiteSpace = 'nowrap'
-      span.style.marginBottom = '15px'
+      span.style.marginBottom = styles.lineSpacing
       span.style.position = 'relative'
-      span.style.top = '30px'
+      span.style.top = styles.textTop
       return span
     }
 
@@ -92,7 +113,7 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
         tempDiv.innerHTML = part
         const spanElement = tempDiv.querySelector('span')
         const spanText = spanElement.textContent
-        const spanClasses = spanElement.getAttribute('class')
+        const spanClasses = spanElement.getAttribute('class') || ''
         
         // 스타일이 적용된 텍스트를 줄바꿈 처리
         const wrappedLines = wrapTextContent(spanText, spanClasses)
@@ -111,12 +132,12 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
         button.className = 'text-black hover:text-gray-600'
         span.appendChild(button)
         span.style.display = 'block'
-        span.style.transform = 'rotate(45deg)'
+        span.style.transform = `rotate(${rotationAngle}deg)`
         span.style.transformOrigin = 'center center'
         span.style.whiteSpace = 'nowrap'
-        span.style.marginBottom = '15px'
+        span.style.marginBottom = styles.lineSpacing
         span.style.position = 'relative'
-        span.style.top = '30px'
+        span.style.top = styles.textTop
         container.appendChild(span)
 
       } else {
@@ -134,17 +155,16 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
   }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full pt-[10vh] relative">
-        
-        <div className="text-block mb-[50px] text-black">
+    <div className="outer-container w-full relative" style={{ paddingTop: styles.containerPadding }}>
+        <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
           <h1 
-            className="text-lg text-center mb-8 title-span block text-black"
+            className="text-lg text-center title-span block text-black"
             tabIndex="0"
             style={{
-              transform: 'rotate(45deg)',
+              transform: `rotate(${rotationAngle}deg)`,
               transformOrigin: 'center center',
               position: 'relative',
-              marginBottom: '40px',
+              marginBottom: styles.titleMargin,
               whiteSpace: 'nowrap',
               filter: `blur(${blurAmount}px)`,
               transition: 'filter 0.3s ease'
@@ -156,10 +176,10 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
           <div 
             className="text-base text-center block text-black"
             style={{
-              transform: 'rotate(45deg)',
+              transform: `rotate(${rotationAngle}deg)`,
               transformOrigin: 'center center',
               position: 'relative',
-              marginBottom: '30px',
+              marginBottom: styles.artistMargin,
               whiteSpace: 'nowrap',
               filter: `blur(${blurAmount}px)`,
               transition: 'filter 0.3s ease'
@@ -171,7 +191,7 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
           <div 
             className="text-sm text-center block text-black"
             style={{
-              transform: 'rotate(45deg)',
+              transform: `rotate(${rotationAngle}deg)`,
               transformOrigin: 'center center',
               position: 'relative',
               whiteSpace: 'normal',
@@ -204,18 +224,26 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
         </div>
         
         <style jsx>{`
-          .container span {
+          .container span.rotated-text {
             display: block;
-            transform: rotate(45deg);
+            transform: rotate(${rotationAngle}deg);
             transform-origin: center center;
             white-space: nowrap;
-            margin-bottom: 15px;  // 20px에서 10px로 변경하여 줄간격 축소
+            margin-bottom: ${styles.lineSpacing};
             position: relative;
-            top: 30px;
+            top: ${styles.textTop};
+          }
+          
+          .container span.font-serif {
+            font-family: serif;
+          }
+          
+          .container span.italic {
+            font-style: italic;
           }
           .navigation-button {
             display: block;
-            transform: rotate(45deg);
+            transform: rotate(${rotationAngle}deg);
             transform-origin: center center;
             white-space: nowrap;
             margin-bottom: 20px;
