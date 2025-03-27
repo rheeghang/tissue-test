@@ -19,9 +19,11 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [isPlaying, setIsPlaying] = useState(false)
 
     // 목표 각도 및 허용 범위 설정
-    const targetAlpha = 45  // 알파 값만 사용
-    const tolerance = 25    // 완전히 선명해지는 범위
-    const clearThreshold = 35  // 읽을 수 있는 범위
+    const targetAlpha = 45;          // Z축 회전
+    const tolerance = 30;            // 완전히 선명해지는 범위
+    const clearThreshold = 45;       // 읽을 수 있는 범위
+    const maxDistance = 60;          // 최대 거리
+    const maxBlur = 10;             // 최대 블러값
 
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
@@ -67,10 +69,10 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const handleOrientation = useCallback((event) => {
         const { alpha } = event;
         if (alpha !== null) {
-            setCurrentAlpha(alpha);  // alpha 값만 저장
+            setCurrentAlpha(alpha);  // currentAlpha 사용 (currentAngles 대신)
 
             const alphaDiff = Math.abs(alpha - targetAlpha);
-            setMaxAngleDiff(alphaDiff);  // alpha 각도 차이만 사용
+            setMaxAngleDiff(alphaDiff);
 
             // 블러 계산
             let blur = 0;
