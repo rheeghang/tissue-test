@@ -94,31 +94,8 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         let blur;
         if (alphaDiff <= tolerance) {
             blur = 0;
-            // 목표 각도 범위 안에 있을 때
-            if (showAngles) {
-                if (hideTimer) {
-                    clearTimeout(hideTimer);
-                }
-                if (outOfRangeTimer) {
-                    clearTimeout(outOfRangeTimer);
-                    setOutOfRangeTimer(null);
-                }
-                // 3초 후에 숨기기
-                const timer = setTimeout(() => {
-                    setShowAngles(false);
-                }, 3000);
-                setHideTimer(timer);
-            }
+            // 타이머 로직을 별도의 useEffect로 이동
         } else {
-            // 목표 각도 범위 밖에 있을 때
-            if (!outOfRangeTimer && !showAngles) {
-                // 5초 후에 각도 표시
-                const timer = setTimeout(() => {
-                    setShowAngles(true);
-                }, 5000);
-                setOutOfRangeTimer(timer);
-            }
-
             if (alphaDiff <= clearThreshold) {
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
                 blur = 3 * normalizedDiff;
@@ -129,23 +106,38 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         }
         setBlurAmount(blur);
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, hideTimer, outOfRangeTimer]);
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur]);
 
-  // 이벤트 리스너 등록 단순화
+  // 타이머 로직을 별도의 useEffect로 분리
   useEffect(() => {
-    window.addEventListener('deviceorientation', handleOrientation);
-    return () => {
-        window.removeEventListener('deviceorientation', handleOrientation);
-    };
-  }, [handleOrientation]);
+    const alphaDiff = Math.abs(currentAlpha - targetAlpha);
+    
+    if (alphaDiff <= tolerance) {
+        if (showAngles) {
+            if (hideTimer) clearTimeout(hideTimer);
+            if (outOfRangeTimer) {
+                clearTimeout(outOfRangeTimer);
+                setOutOfRangeTimer(null);
+            }
+            const timer = setTimeout(() => {
+                setShowAngles(false);
+            }, 3000);
+            setHideTimer(timer);
+        }
+    } else {
+        if (!outOfRangeTimer && !showAngles) {
+            const timer = setTimeout(() => {
+                setShowAngles(true);
+            }, 5000);
+            setOutOfRangeTimer(timer);
+        }
+    }
 
-  // cleanup 추가
-  useEffect(() => {
     return () => {
-        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
         if (hideTimer) clearTimeout(hideTimer);
+        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
     };
-  }, [outOfRangeTimer, hideTimer]);
+  }, [currentAlpha, targetAlpha, tolerance, showAngles]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
