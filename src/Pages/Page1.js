@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
-import { useAngleMode } from '../contexts/AngleModeContext'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
-  const { isAngleMode, toggleAngleMode } = useAngleMode();
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
