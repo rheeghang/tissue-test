@@ -32,9 +32,9 @@ const Menu = ({ isOpen, onClose }) => {
             </button>
           </div>
           <nav>
-            <ul className="space-y-3 px-2">
+            <ul className="space-y-3 px-1">
               {menuItems.map((item) => (
-                <li key={item.id} className="px-5">
+                <li key={item.id} className="px-2">
                   <a
                     href={item.path}
                     className="block px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 border-2 border-black"
