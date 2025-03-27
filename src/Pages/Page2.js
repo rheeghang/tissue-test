@@ -17,7 +17,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 330  // 알파 값만 사용
-  const tolerance = 25    // 완전히 선명해지는 범위
+  const tolerance = 18    // 완전히 선명해지는 범위
   const clearThreshold = 35  // 읽을 수 있는 범위
   const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
@@ -84,10 +84,9 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
-        // 직접 alpha 값 업데이트
         setCurrentAlpha(event.alpha);
         
-        // 각도 차이 계산 단순화
+        // 각도 차이 계산
         const alphaDiff = Math.abs(event.alpha - targetAlpha);
         setMaxAngleDiff(alphaDiff);
         
@@ -95,33 +94,43 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         let blur;
         if (alphaDiff <= tolerance) {
             blur = 0;
-        } else if (alphaDiff <= clearThreshold) {
-            const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-            blur = 3 * normalizedDiff;
-        } else {
-            const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-            blur = 3 + (maxBlur - 3) * normalizedDiff;
-        }
-        setBlurAmount(blur);
-
-        // 각도 표시 타이머
-        if (alphaDiff > tolerance) {
-            if (!outOfRangeTimer) {
-                const timer = setTimeout(() => setShowAngles(true), 5000);
-                setOutOfRangeTimer(timer);
-            }
-        } else {
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
-            }
+            // 각도가 허용 범위 내로 들어왔을 때
             if (showAngles) {
-                const timer = setTimeout(() => setShowAngles(false), 3000);
+                // 기존 타이머들 정리
+                if (outOfRangeTimer) {
+                    clearTimeout(outOfRangeTimer);
+                    setOutOfRangeTimer(null);
+                }
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                }
+                // 3초 후에 숨기기
+                const timer = setTimeout(() => {
+                    setShowAngles(false);
+                }, 3000);
                 setHideTimer(timer);
             }
+        } else {
+            // 각도가 허용 범위를 벗어났을 때
+            if (!outOfRangeTimer) {
+                // 5초 후에 각도 표시
+                const timer = setTimeout(() => {
+                    setShowAngles(true);
+                }, 5000);
+                setOutOfRangeTimer(timer);
+            }
+            // 블러 계산 로직
+            if (alphaDiff <= clearThreshold) {
+                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+                blur = 3 * normalizedDiff;
+            } else {
+                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+                blur = 3 + (maxBlur - 3) * normalizedDiff;
+            }
         }
+        setBlurAmount(blur);
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur]);
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {
@@ -130,6 +139,14 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, [handleOrientation]);
+
+  // cleanup 추가
+  useEffect(() => {
+    return () => {
+        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
+        if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [outOfRangeTimer, hideTimer]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -157,7 +174,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
     artistMargin: '30px',     // 작가명 여백 증가
     lineSpacing: '10px',      // 행간 증가
     textTop: '30px',          // 텍스트 상단 여백 증가
-    containerPadding: '6vh', // 컨테이너 패딩 증가
+    containerPadding: '10vh', // 컨테이너 패딩 증가
     titleBlockMargin: '40px'  // 제목 블록 여백 증가
   }
 
