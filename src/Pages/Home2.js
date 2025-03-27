@@ -49,9 +49,7 @@ const Home = () => {
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
-  const roundTo15Degrees = (angle) => {
-    return Math.round(angle / 15) * 15;
-  };
+
 
   // 랜덤 색상 생성 함수
   const getRandomColor = () => {
@@ -173,28 +171,33 @@ const Home = () => {
       />
 
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-medium text-gray-800">{roundTo15Degrees(alpha)}°</p>
+        <p className="text-xl font-medium text-gray-800">{(alpha)}°</p>
         {/* <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
         <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p> */}
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
       <div className="fixed inset-0 flex flex-col -mt-16 items-center justify-center gap-12 z-0">
-        <p className="left-1 z-10 text-lg font-medium text-gray-800">0°</p>
+        <div className="absolute left-1 top-[30%] z-10">
+          <p className="text-lg font-medium text-gray-800">0°</p>
+        </div>
         <div
           style={{
             transform: 'rotate(0deg)',
             filter: `blur(${blurAmounts[0]}px)`,
             transition: 'filter 0.3s ease',
-            zIndex: 10  // 첫 번째 박스의 z-index 값을 높게 설정
+            zIndex: 10
           }}
-          className="w-80 p-4 bg-white shadow-lg relative"  // relative 추가
+          className="w-80 p-4 bg-white shadow-lg relative"
         >
           <p className="text-lg leading-relaxed text-gray-800 break-keep">
             국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.
           </p>
         </div>
-        <p className="left-1 z-10 text-lg font-medium text-gray-800">35°</p>
+
+        <div className="absolute left-1 top-[50%] z-10">
+          <p className="text-lg font-medium text-gray-800">35°</p>
+        </div>
         <div
           style={{
             transform: 'rotate(35deg)',
@@ -203,11 +206,14 @@ const Home = () => {
           }}
           className="w-80 p-4 bg-white shadow-lg"
         >
-          <p className="text-lg leading-relaxed text-gray-800 break-keep z-0">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만,
           </p>
         </div>
-        <p className="left-1 z-10 text-lg font-medium text-gray-800">330°</p>
+
+        <div className="absolute left-1 top-[70%] z-10">
+          <p className="text-lg font-medium text-gray-800">330°</p>
+        </div>
         <div
           style={{
             transform: 'rotate(-15deg)',
@@ -216,7 +222,7 @@ const Home = () => {
           }}
           className="w-80 p-4 bg-white shadow-lg"
         >
-          <p className="text-lg leading-relaxed text-gray-800 break-keepz-0">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             '각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.
           </p>
         </div>
