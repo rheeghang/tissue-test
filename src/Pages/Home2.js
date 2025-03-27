@@ -41,7 +41,7 @@ const Home = () => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [blurAmounts, setBlurAmounts] = useState([10, 10, 10]);
   
-  const boxAngles = [330, 15, 360]; // 각 박스의 회전 각도
+  const boxAngles = [0, 15, 350]; // 각 박스의 회전 각도
   const tolerance = 20; // 허용 범위 ±30도
   const maxBlur = 8; // 최대 블러값
 
@@ -171,7 +171,7 @@ const Home = () => {
       <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6 z-0">
         <div
           style={{
-            transform: 'rotate(-10deg)',
+            // transform: 'rotate(-10deg)',
             filter: `blur(${blurAmounts[0]}px)`,
             transition: 'filter 0.3s ease'
           }}
@@ -184,7 +184,7 @@ const Home = () => {
 
         <div
           style={{
-            transform: 'rotate(15deg)',
+            transform: 'rotate(20deg)',
             filter: `blur(${blurAmounts[1]}px)`,
             transition: 'filter 0.3s ease'
           }}
