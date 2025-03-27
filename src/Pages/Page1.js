@@ -88,8 +88,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         setCurrentAlpha(event.alpha);
         
         // targetAlpha ± 18도 범위 체크
-        const upperBound = (targetAlpha + 20) % 360;
-        const lowerBound = (targetAlpha - 20 + 360) % 360;
+        const upperBound = (targetAlpha + 18) % 360;
+        const lowerBound = (targetAlpha - 18 + 360) % 360;
         const currentAngle = event.alpha;
         
         // 목표 각도 범위 안에 있는지 확인
@@ -99,6 +99,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
         if (isInRange) {
             // 목표 각도 범위 안에 있을 때
+            setBlurAmount(0);  // 텍스트 선명하게
             if (showAngles) {
                 if (hideTimer) {
                     clearTimeout(hideTimer);
@@ -113,7 +114,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }, 3000);
                 setHideTimer(timer);
             }
-            setBlurAmount(0);
         } else {
             // 목표 각도 범위 밖에 있을 때
             if (!outOfRangeTimer && !showAngles) {
@@ -123,12 +123,24 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }, 5000);
                 setOutOfRangeTimer(timer);
             }
-            // 블러 계산
+            
+            // 블러 계산 - 각도 차이에 따라 블러 강도 조절
             const alphaDiff = Math.min(
                 Math.abs(currentAngle - targetAlpha),
                 Math.abs(currentAngle - (targetAlpha + 360))
             );
-            setBlurAmount(Math.min(30, alphaDiff / 2));
+            
+            // 블러 값 계산 개선
+            let blurValue;
+            if (alphaDiff <= 25) {  // 가까운 범위
+                blurValue = (alphaDiff / 25) * 10;
+            } else if (alphaDiff <= 45) {  // 중간 범위
+                blurValue = 10 + ((alphaDiff - 25) / 20) * 20;
+            } else {  // 먼 범위
+                blurValue = 30;
+            }
+            
+            setBlurAmount(blurValue);
         }
     }
   }, [targetAlpha, showAngles, outOfRangeTimer, hideTimer]);
