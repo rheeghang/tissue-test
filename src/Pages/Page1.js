@@ -3,7 +3,8 @@ import RotatedText from '../components/RotatedText'
 import AudioController from '../components/AudioController'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
-    const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
+    // 상태 변수들 정의
+    const [currentAngles, setCurrentAngles] = useState({ alpha: 0 });
     const [blurAmount, setBlurAmount] = useState(10);
     const [showAngles, setShowAngles] = useState(false);
     const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
@@ -11,19 +12,19 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [showHeader, setShowHeader] = useState(true);
     const [showAudioButton, setShowAudioButton] = useState(true);
-    const [debugInfo, setDebugInfo] = useState('')
-    const [maxAngleDiff, setMaxAngleDiff] = useState(0)
-    const [isIOS, setIsIOS] = useState(false)
-    const [showPermissionModal, setShowPermissionModal] = useState(false)
-    const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
-    const [isPlaying, setIsPlaying] = useState(false)
+    const [debugInfo, setDebugInfo] = useState('');
+    const [maxAngleDiff, setMaxAngleDiff] = useState(0);
+    const [isIOS, setIsIOS] = useState(false);
+    const [showPermissionModal, setShowPermissionModal] = useState(false);
+    const [isOrientationEnabled, setIsOrientationEnabled] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     // 목표 각도 및 허용 범위 설정
-    const targetAlpha = 45;          // Z축 회전
-    const tolerance = 30;            // 완전히 선명해지는 범위
-    const clearThreshold = 45;       // 읽을 수 있는 범위
-    const maxDistance = 60;          // 최대 거리
-    const maxBlur = 10;             // 최대 블러값
+    const targetAlpha = 45;  // 알파 값만 사용
+    const tolerance = 25;    // 완전히 선명해지는 범위
+    const clearThreshold = 35;  // 읽을 수 있는 범위
+    const maxBlur = 30;
+    const maxDistance = 45; // 최대 거리 (각도 차이)
 
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
@@ -65,27 +66,30 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
     };
   
-    // handleOrientation 수정
+    // 방향 감지 이벤트 핸들러
     const handleOrientation = useCallback((event) => {
+        if (!isOrientationEnabled) {
+            setDebugInfo('Orientation disabled');
+            return;
+        }
+
         const { alpha } = event;
         if (alpha !== null) {
-            setCurrentAlpha(alpha);  // currentAlpha 사용 (currentAngles 대신)
-
+            setCurrentAngles({ alpha });  // alpha 값만 저장
+            
             const alphaDiff = Math.abs(alpha - targetAlpha);
-            setMaxAngleDiff(alphaDiff);
-
+            setMaxAngleDiff(alphaDiff);  // alpha 각도 차이만 사용
+            
             // 블러 계산
-            let blur = 0;
+            let blur;
             if (alphaDiff <= tolerance) {
-                blur = 0;  // 완전히 선명
+                blur = 0;
             } else if (alphaDiff <= clearThreshold) {
-                // tolerance ~ clearThreshold 사이에서 부분적으로 블러
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-                blur = normalizedDiff * maxBlur;
+                blur = 3 * normalizedDiff;
             } else {
-                // clearThreshold를 넘어서면 더 강한 블러
                 const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-                blur = Math.min(maxBlur, maxBlur * normalizedDiff);
+                blur = 3 + (maxBlur - 3) * normalizedDiff;
             }
             
             setBlurAmount(blur);
@@ -111,7 +115,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }
             }
         }
-    }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, showAngles]);
+    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, showAngles]);
 
     // 이벤트 리스너 설정 단순화
     useEffect(() => {
@@ -132,19 +136,30 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   
     // 각도에 따른 텍스트 블러 효과
     const getBlurAmount = () => {
-      if (maxAngleDiff <= tolerance) {
-        return 0 // 목표 각도에 도달하면 블러 없음
-      }
-      // 각도 차이가 클수록 블러가 강해짐
-      return Math.min(8, (maxAngleDiff / 60) * 8)
-    }
-  
+        if (maxAngleDiff <= tolerance) {
+            return 0; // 목표 각도에 도달하면 블러 없음
+        }
+        // 각도 차이가 클수록 블러가 강해짐
+        return Math.min(8, (maxAngleDiff / maxDistance) * 8);
+    };
+
+    // 디버깅용 로그
+    useEffect(() => {
+        console.log('\n=== 각도 상태 ===');
+        console.log('🎯 각도차이:', maxAngleDiff.toFixed(2));
+        console.log('🎯 허용오차:', tolerance);
+        console.log('🎯 최대거리:', maxDistance);
+        console.log('================\n');
+    }, [maxAngleDiff, tolerance, maxDistance]);
+
     return (
         <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
+            {/* 각도 표시 */}
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
-                    <p className="text-2xl text-right">
-                        {Math.round(currentAlpha)}° <br/> {targetAlpha}°
+                    <p className="text-2xl">
+                        {Math.round(currentAngles.alpha)}° <br/>
+                        45°
                     </p>
                 </div>
             )}
@@ -155,7 +170,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                     title={showHeader ? title : ""} 
                     artist={showHeader ? artist : ""}
                     caption={showHeader ? caption : ""}
-                    blurAmount={blurAmount}
+                    blurAmount={getBlurAmount()}
                     onNextClick={() => setCurrentPage(2)}
                     onPrevClick={() => setCurrentPage(1)}
                 />
@@ -170,7 +185,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 originalText={originalText}
                 maxAngleDiff={maxAngleDiff} 
                 tolerance={tolerance}
-                maxDistance={60}
+                maxDistance={maxDistance}
             />
         </div>
     );
