@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
 import ToggleSwitch from '../components/ToggleSwitch'
+import { useAngleMode } from '../contexts/AngleModeContext'
 
 const Page2 = ({ onMotionPermissionGranted }) => {
+  const { isAngleMode, toggleAngleMode } = useAngleMode()
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -15,7 +17,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [hideTimer, setHideTimer] = useState(null);
   const [showHeader, setShowHeader] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isAngleMode, setIsAngleMode] = useState(true);
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 330  // 알파 값만 사용
@@ -172,8 +173,11 @@ const Page2 = ({ onMotionPermissionGranted }) => {
 
   // 토글 스위치 핸들러
   const handleAngleModeToggle = () => {
-    setIsAngleMode(!isAngleMode);
-    if (!isAngleMode) {
+    toggleAngleMode();
+    if (isAngleMode) {
+      // 각도 모드를 끌 때는 블러 0으로 설정
+      setBlurAmount(0);
+    } else {
       // 각도 모드를 켤 때는 현재 각도에 따라 블러 다시 계산
       const alphaDiff = Math.abs(currentAlpha - targetAlpha);
       let blur;
@@ -187,9 +191,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         blur = 3 + (maxBlur - 3) * normalizedDiff;
       }
       setBlurAmount(blur);
-    } else {
-      // 각도 모드를 끌 때는 블러 0으로 설정
-      setBlurAmount(0);
     }
   };
 

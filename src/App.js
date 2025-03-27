@@ -4,19 +4,22 @@ import Intro from './Pages/Intro'
 import Page1 from './Pages/Page1'
 import Home2 from './Pages/Home2'
 import Page2 from './Pages/Page2'
+import { AngleModeProvider } from './contexts/AngleModeContext'
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home2 />} />
-          <Route path="/1" element={<Page1 />} />
-          <Route path="/2" element={<Page2 />} />
-          <Route path="/intro" element={<Intro />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <AngleModeProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home2 />} />
+            <Route path="/1" element={<Page1 />} />
+            <Route path="/2" element={<Page2 />} />
+            <Route path="/intro" element={<Intro />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </AngleModeProvider>
   )
 }
 
