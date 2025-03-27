@@ -21,7 +21,10 @@ module.exports = {
           bg: '#FFFFFF', // 배경색
           text: '#000000', // 텍스트 색상
         }
-      }
+      },
+      lineHeight: {
+        'base': '170%',  // 기본 행간을 170%로 설정
+      },
     },
   },
   plugins: [],

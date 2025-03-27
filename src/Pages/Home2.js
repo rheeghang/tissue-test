@@ -13,7 +13,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       ></div>
       
       {/* 모달 컨텐츠 */}
-      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl">
+      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl text-center">
         <h3 className="mb-4 text-xl font-bold text-gray-900">센서 권한 요청</h3>
         <p className="mb-6 text-gray-600">
           기기 방향 감지 센서 권한이 필요합니다.
@@ -88,8 +88,19 @@ const Home = () => {
       setCurrentAlpha(event.alpha);
       
       // 각 박스별로 블러 계산
-      const newBlurAmounts = boxAngles.map(targetAngle => {
-        const angleDiff = Math.abs(event.alpha - targetAngle);
+      const newBlurAmounts = boxAngles.map((targetAngle, index) => {
+        let angleDiff;
+        
+        if (index === 0) {
+          // 첫 번째 박스는 0도와 360도 모두 체크
+          const diff1 = Math.abs(event.alpha - 0);   // 0도와의 차이
+          const diff2 = Math.abs(event.alpha - 360); // 360도와의 차이
+          angleDiff = Math.min(diff1, diff2);        // 더 작은 차이 선택
+        } else {
+          // 나머지 박스들은 기존 방식대로
+          angleDiff = Math.abs(event.alpha - targetAngle);
+        }
+
         if (angleDiff <= tolerance) {
           return 0; // 허용 범위 내면 선명하게
         }
@@ -162,9 +173,9 @@ const Home = () => {
       />
 
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xs font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
-        <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
-        <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
+        <p className="text-xl font-medium text-gray-800">{roundTo15Degrees(alpha)}°</p>
+        {/* <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
+        <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p> */}
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
@@ -213,7 +224,7 @@ const Home = () => {
       {/* 시작하기 버튼 */}
       <div className="fixed bottom-3 left-0 right-0 flex justify-center">
         <button 
-          onClick={() => navigate('/exhibition')}
+          onClick={() => navigate('/intro')}
           className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
         >
           시작하기

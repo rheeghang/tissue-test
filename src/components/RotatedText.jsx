@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 
-const RotatedText = ({ text, title, blurAmount }) => {
+const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, onPrevClick }) => {
   const containerRef = useRef(null)
   
   const getWrappedLines = (text, container) => {
@@ -40,13 +40,43 @@ const RotatedText = ({ text, title, blurAmount }) => {
     const spans = container.querySelectorAll('span')
     spans.forEach(span => span.remove())
 
-    const lines = getWrappedLines(text, container)
-    
-    lines.forEach((line) => {
-      const span = document.createElement('span')
-      span.textContent = line
-      span.setAttribute('aria-hidden', 'true') // 스크린 리더가 개별 회전된 줄을 읽지 않도록 함
-      container.appendChild(span)
+    // HTML 태그와 네비게이션 버튼을 고려한 텍스트 분할
+    const parts = text.split('<br>')
+    parts.forEach((part, index) => {
+      const lines = getWrappedLines(part.replace('[다음]', '').replace('[이전]', ''), container)
+      
+      lines.forEach((line) => {
+        const span = document.createElement('span')
+        span.textContent = line
+        span.setAttribute('aria-hidden', 'true')
+        container.appendChild(span)
+      })
+
+      // 네비게이션 버튼 처리
+      if (part.includes('[다음]') || part.includes('[이전]')) {
+        const navSpan = document.createElement('span');
+        const button = document.createElement('button');
+        
+        if (part.includes('[다음]')) {
+          button.textContent = '[다음]';
+          button.onclick = onNextClick;
+        } else {
+          button.textContent = '[이전]';
+          button.onclick = onPrevClick;
+        }
+        
+        // 버튼 스타일 변경
+        button.className = 'text-black hover:text-gray-600';  // 파란색 제거, 검은색으로 변경
+        navSpan.appendChild(button);
+        container.appendChild(navSpan);
+      }
+
+      // 줄바꿈 처리
+      if (index < parts.length - 1) {
+        const breakSpan = document.createElement('span');
+        breakSpan.style.height = '1.2em';  // 1.5em에서 0.8em으로 줄바꿈 간격 축소
+        container.appendChild(breakSpan);
+      }
     })
   }
 
@@ -54,10 +84,10 @@ const RotatedText = ({ text, title, blurAmount }) => {
     wrapText()
     window.addEventListener('resize', wrapText)
     return () => window.removeEventListener('resize', wrapText)
-  }, [text])
+  }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full pt-[10vh] relative">
+    <div className="outer-container w-full pt-[15vh] relative">
         
         <div className="text-block mb-[50px] text-black">
           <h1 
@@ -88,7 +118,7 @@ const RotatedText = ({ text, title, blurAmount }) => {
               transition: 'filter 0.3s ease'
             }}
           >
-            송예슬
+            {artist}
           </div>
 
           <div 
@@ -97,15 +127,13 @@ const RotatedText = ({ text, title, blurAmount }) => {
               transform: 'rotate(45deg)',
               transformOrigin: 'center center',
               position: 'relative',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'normal',
               lineHeight: '1.5',
               filter: `blur(${blurAmount}px)`,
               transition: 'filter 0.3s ease'
             }}
-          >
-            2025, 설치, 초음파 파장, 커스텀 소프트웨어, 가변 크기.<br/>
-            국립아시아문화전당 재제작 지원, 작가 제공.
-          </div>
+            dangerouslySetInnerHTML={{ __html: caption }}
+          />
         </div>
 
         <div 
@@ -123,7 +151,6 @@ const RotatedText = ({ text, title, blurAmount }) => {
         role="article"
         aria-label="전시회 설명 텍스트"
       >
-        
         {/* 스크린 리더용 숨겨진 텍스트 */}
         <div className="sr-only" tabIndex="0">
           {text}
@@ -131,6 +158,15 @@ const RotatedText = ({ text, title, blurAmount }) => {
         
         <style jsx>{`
           .container span {
+            display: block;
+            transform: rotate(45deg);
+            transform-origin: center center;
+            white-space: nowrap;
+            margin-bottom: 15px;  // 20px에서 10px로 변경하여 줄간격 축소
+            position: relative;
+            top: 30px;
+          }
+          .navigation-button {
             display: block;
             transform: rotate(45deg);
             transform-origin: center center;
