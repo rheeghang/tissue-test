@@ -180,7 +180,7 @@ const Home = () => {
 
       {/* 3개의 고정 회전 텍스트 박스 */}
       <div className="fixed inset-0 flex flex-col -mt-16 items-center justify-center gap-12 z-0">
-        <p className="left-3 z-10 text-lg font-medium text-gray-800">0°</p>
+        <p className="left-1 z-10 text-lg font-medium text-gray-800">0°</p>
         <div
           style={{
             transform: 'rotate(0deg)',
@@ -194,7 +194,7 @@ const Home = () => {
             국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.
           </p>
         </div>
-        <p className="left-3 z-10 text-lg font-medium text-gray-800">35°</p>
+        <p className="left-1 z-10 text-lg font-medium text-gray-800">35°</p>
         <div
           style={{
             transform: 'rotate(35deg)',
@@ -207,7 +207,7 @@ const Home = () => {
             큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만,
           </p>
         </div>
-        <p className="left-3 z-10 text-lg font-medium text-gray-800">330°</p>
+        <p className="left-1 z-10 text-lg font-medium text-gray-800">330°</p>
         <div
           style={{
             transform: 'rotate(-15deg)',

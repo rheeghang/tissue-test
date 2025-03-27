@@ -225,48 +225,42 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const displayText = currentPage === 1 ? originalText : originalText2;
 
     return (
-      <div 
-        className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"
-      >
-        <div className="w-full pt-[10px]">
-          <RotatedText 
-            text={displayText}
-            title={showHeader ? title : ""} 
-            artist={showHeader ? artist : ""}
-            caption={showHeader ? caption : ""}
-            blurAmount={getBlurAmount()}
-            onNextClick={handleNextClick}
-            onPrevClick={handlePrevClick}
-          />
-        </div>
-        
-  
-        {/* AudioController 컴포넌트 */}
-        <AudioController
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-          showAudioButton={showAudioButton}
-          setShowAudioButton={setShowAudioButton}
-          setDebugInfo={setDebugInfo}
-          originalText={originalText}
-          maxAngleDiff={maxAngleDiff} 
-          tolerance={tolerance}
-          maxDistance={maxDistance}
-        />
-  
-        {/* 각도 표시 */}
-        {showAngles && (
-            <div className="fixed top-4 right-4 z-50">
-                <p className="text-2xl">
-                    {roundTo15Degrees(currentAngles.alpha)}° </p>
-                    <p className="text-lg">45°</p>
-                </p>
-            </div>
-        )}
-  
-      </div>
-    )
+        <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
+            {/* 각도 표시 */}
+            {showAngles && (
+                <div className="fixed top-4 right-4 z-50 bg-white/80 px-4 py-2 rounded-lg shadow-lg">
+                    <p className="text-sm">
+                        디바이스: {currentAngles.alpha.toFixed(1)}° <br/>
+                        텍스트: 45°
+                    </p>
+                </div>
+            )}
 
+            <div className="w-full pt-[10px]">
+                <RotatedText 
+                    text={displayText}
+                    title={showHeader ? title : ""} 
+                    artist={showHeader ? artist : ""}
+                    caption={showHeader ? caption : ""}
+                    blurAmount={getBlurAmount()}
+                    onNextClick={handleNextClick}
+                    onPrevClick={handlePrevClick}
+                />
+            </div>
+            
+            <AudioController
+                isPlaying={isPlaying}
+                setIsPlaying={setIsPlaying}
+                showAudioButton={showAudioButton}
+                setShowAudioButton={setShowAudioButton}
+                setDebugInfo={setDebugInfo}
+                originalText={originalText}
+                maxAngleDiff={maxAngleDiff} 
+                tolerance={tolerance}
+                maxDistance={maxDistance}
+            />
+        </div>
+    );
 }
 
 export default Page1; 
