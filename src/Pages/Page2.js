@@ -16,11 +16,11 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // 목표 각도 및 허용 범위 설정
-  const targetAlpha = 330;
-  const tolerance = 18;
-  const clearThreshold = 35;  // 읽을 수 있는 범위
-  const maxBlur = 30;
-  const maxDistance = 45; // 최대 거리 (각도 차이)
+  const targetAlpha = 330  // 알파 값만 사용
+  const tolerance = 18    // 완전히 선명해지는 범위
+  const clearThreshold = 35  // 읽을 수 있는 범위
+  const maxBlur = 30
+  const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "코 없는 코끼리 no.2"
   const artist = "엄정순"
@@ -84,46 +84,69 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
-      setCurrentAlpha(event.alpha);
-      
-      // 각도 차이 계산 (0도와 360도 모두 고려)
-      const alphaDiff = Math.abs(event.alpha - targetAlpha);
-      
-      // 블러 계산 (단순화)
-      let blur = 0;
-      if (alphaDiff > tolerance) {
-        blur = Math.min(30, alphaDiff / 2);  // 더 단순한 블러 계산
-
-        // 블러가 있을 때 5초 후 각도 표시
-        if (!outOfRangeTimer && !showAngles) {
-          const timer = setTimeout(() => setShowAngles(true), 5000);
-          setOutOfRangeTimer(timer);
+        setCurrentAlpha(event.alpha);
+        
+        // 각도 차이 계산
+        const alphaDiff = Math.abs(event.alpha - targetAlpha);
+        setMaxAngleDiff(alphaDiff);
+        
+        // 블러 계산
+        let blur;
+        if (alphaDiff <= tolerance) {
+            blur = 0;
+            // 각도가 허용 범위 내로 들어왔을 때
+            if (showAngles) {
+                // 기존 타이머들 정리
+                if (outOfRangeTimer) {
+                    clearTimeout(outOfRangeTimer);
+                    setOutOfRangeTimer(null);
+                }
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                }
+                // 3초 후에 숨기기
+                const timer = setTimeout(() => {
+                    setShowAngles(false);
+                }, 3000);
+                setHideTimer(timer);
+            }
+        } else {
+            // 각도가 허용 범위를 벗어났을 때
+            if (!outOfRangeTimer) {
+                // 5초 후에 각도 표시
+                const timer = setTimeout(() => {
+                    setShowAngles(true);
+                }, 5000);
+                setOutOfRangeTimer(timer);
+            }
+            // 블러 계산 로직
+            if (alphaDiff <= clearThreshold) {
+                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+                blur = 3 * normalizedDiff;
+            } else {
+                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+                blur = 3 + (maxBlur - 3) * normalizedDiff;
+            }
         }
-      } else {
-        // 블러가 0이 되면 3초 후 각도 표시 숨김
-        if (showAngles) {
-          if (hideTimer) clearTimeout(hideTimer);
-          const timer = setTimeout(() => setShowAngles(false), 3000);
-          setHideTimer(timer);
-        }
-        if (outOfRangeTimer) {
-          clearTimeout(outOfRangeTimer);
-          setOutOfRangeTimer(null);
-        }
-      }
-      setBlurAmount(blur);
+        setBlurAmount(blur);
     }
-  }, [targetAlpha, tolerance, showAngles, outOfRangeTimer, hideTimer]);
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer]);
 
-  // 이벤트 리스너 등록
+  // 이벤트 리스너 등록 단순화
   useEffect(() => {
     window.addEventListener('deviceorientation', handleOrientation);
     return () => {
-      window.removeEventListener('deviceorientation', handleOrientation);
-      if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
-      if (hideTimer) clearTimeout(hideTimer);
+        window.removeEventListener('deviceorientation', handleOrientation);
     };
-  }, [handleOrientation, outOfRangeTimer, hideTimer]);
+  }, [handleOrientation]);
+
+  // cleanup 추가
+  useEffect(() => {
+    return () => {
+        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
+        if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [outOfRangeTimer, hideTimer]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -158,9 +181,9 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
       {/* 현재 알파값 항상 표시 */}
-      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
+      {/* <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
-      </div>
+      </div> */}
 
       {/* 목표각도와 현재각도 차이 표시 */}
       {showAngles && (
