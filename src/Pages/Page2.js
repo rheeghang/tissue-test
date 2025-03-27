@@ -16,11 +16,11 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // 목표 각도 및 허용 범위 설정
-  const targetAlpha = 330  // 알파 값만 사용
-  const tolerance = 18    // 완전히 선명해지는 범위
-  const clearThreshold = 35  // 읽을 수 있는 범위
-  const maxBlur = 30
-  const maxDistance = 45 // 최대 거리 (각도 차이)
+  const targetAlpha = 330;
+  const tolerance = 18;
+  const clearThreshold = 35;  // 읽을 수 있는 범위
+  const maxBlur = 30;
+  const maxDistance = 45; // 최대 거리 (각도 차이)
 
   const title = "코 없는 코끼리 no.2"
   const artist = "엄정순"
@@ -84,65 +84,46 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
-        setCurrentAlpha(event.alpha);
-        const alphaDiff = Math.abs(event.alpha - targetAlpha);
-        setMaxAngleDiff(alphaDiff);
-        
-        // 블러 계산
-        let blur;
-        if (alphaDiff <= tolerance) {
-            blur = 0;
-            // 블러가 0이 되면 타이머 정리 및 각도 표시 숨기기
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
-            }
-            if (showAngles) {
-                if (hideTimer) {
-                    clearTimeout(hideTimer);
-                }
-                const timer = setTimeout(() => {
-                    setShowAngles(false);
-                }, 3000);
-                setHideTimer(timer);
-            }
-        } else {
-            // 블러가 있을 때만(각도가 벗어났을 때) 타이머 설정
-            if (!outOfRangeTimer && !showAngles) {  // showAngles가 false일 때만 새 타이머 설정
-                const timer = setTimeout(() => {
-                    setShowAngles(true);
-                }, 5000);
-                setOutOfRangeTimer(timer);
-            }
-            
-            // 기존 블러 계산 로직
-            if (alphaDiff <= clearThreshold) {
-                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-                blur = 3 * normalizedDiff;
-            } else {
-                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-                blur = 3 + (maxBlur - 3) * normalizedDiff;
-            }
-        }
-        setBlurAmount(blur);
-    }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer]);
+      setCurrentAlpha(event.alpha);
+      
+      // 각도 차이 계산 (0도와 360도 모두 고려)
+      const alphaDiff = Math.abs(event.alpha - targetAlpha);
+      
+      // 블러 계산 (단순화)
+      let blur = 0;
+      if (alphaDiff > tolerance) {
+        blur = Math.min(30, alphaDiff / 2);  // 더 단순한 블러 계산
 
-  // 이벤트 리스너 등록 단순화
+        // 블러가 있을 때 5초 후 각도 표시
+        if (!outOfRangeTimer && !showAngles) {
+          const timer = setTimeout(() => setShowAngles(true), 5000);
+          setOutOfRangeTimer(timer);
+        }
+      } else {
+        // 블러가 0이 되면 3초 후 각도 표시 숨김
+        if (showAngles) {
+          if (hideTimer) clearTimeout(hideTimer);
+          const timer = setTimeout(() => setShowAngles(false), 3000);
+          setHideTimer(timer);
+        }
+        if (outOfRangeTimer) {
+          clearTimeout(outOfRangeTimer);
+          setOutOfRangeTimer(null);
+        }
+      }
+      setBlurAmount(blur);
+    }
+  }, [targetAlpha, tolerance, showAngles, outOfRangeTimer, hideTimer]);
+
+  // 이벤트 리스너 등록
   useEffect(() => {
     window.addEventListener('deviceorientation', handleOrientation);
     return () => {
-        window.removeEventListener('deviceorientation', handleOrientation);
+      window.removeEventListener('deviceorientation', handleOrientation);
+      if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
+      if (hideTimer) clearTimeout(hideTimer);
     };
-  }, [handleOrientation]);
-
-  // cleanup 추가
-  useEffect(() => {
-    return () => {
-        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
-        if (hideTimer) clearTimeout(hideTimer);
-    };
-  }, [outOfRangeTimer, hideTimer]);
+  }, [handleOrientation, outOfRangeTimer, hideTimer]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
