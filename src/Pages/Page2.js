@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
+import ToggleSwitch from '../components/ToggleSwitch'
 
 const Page2 = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
@@ -14,6 +15,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [hideTimer, setHideTimer] = useState(null);
   const [showHeader, setShowHeader] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAngleMode, setIsAngleMode] = useState(true);
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 330  // 알파 값만 사용
@@ -86,6 +88,12 @@ const Page2 = ({ onMotionPermissionGranted }) => {
     if (event.alpha !== null) {
         setCurrentAlpha(event.alpha);
         
+        // 각도 모드가 꺼져있으면 블러 0으로 설정
+        if (!isAngleMode) {
+            setBlurAmount(0);
+            return;
+        }
+        
         // 각도 차이 계산
         const alphaDiff = Math.abs(event.alpha - targetAlpha);
         setMaxAngleDiff(alphaDiff);
@@ -94,9 +102,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         let blur;
         if (alphaDiff <= tolerance) {
             blur = 0;
-            // 각도가 허용 범위 내로 들어왔을 때
             if (showAngles) {
-                // 기존 타이머들 정리
                 if (outOfRangeTimer) {
                     clearTimeout(outOfRangeTimer);
                     setOutOfRangeTimer(null);
@@ -104,22 +110,18 @@ const Page2 = ({ onMotionPermissionGranted }) => {
                 if (hideTimer) {
                     clearTimeout(hideTimer);
                 }
-                // 3초 후에 숨기기
                 const timer = setTimeout(() => {
                     setShowAngles(false);
                 }, 3000);
                 setHideTimer(timer);
             }
         } else {
-            // 각도가 허용 범위를 벗어났을 때
             if (!outOfRangeTimer) {
-                // 5초 후에 각도 표시
                 const timer = setTimeout(() => {
                     setShowAngles(true);
                 }, 5000);
                 setOutOfRangeTimer(timer);
             }
-            // 블러 계산 로직
             if (alphaDiff <= clearThreshold) {
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
                 blur = 3 * normalizedDiff;
@@ -130,7 +132,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         }
         setBlurAmount(blur);
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer]);
+  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, outOfRangeTimer, hideTimer, isAngleMode]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {
@@ -168,6 +170,29 @@ const Page2 = ({ onMotionPermissionGranted }) => {
     setShowHeader(true);
   };
 
+  // 토글 스위치 핸들러
+  const handleAngleModeToggle = () => {
+    setIsAngleMode(!isAngleMode);
+    if (!isAngleMode) {
+      // 각도 모드를 켤 때는 현재 각도에 따라 블러 다시 계산
+      const alphaDiff = Math.abs(currentAlpha - targetAlpha);
+      let blur;
+      if (alphaDiff <= tolerance) {
+        blur = 0;
+      } else if (alphaDiff <= clearThreshold) {
+        const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+        blur = 3 * normalizedDiff;
+      } else {
+        const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+        blur = 3 + (maxBlur - 3) * normalizedDiff;
+      }
+      setBlurAmount(blur);
+    } else {
+      // 각도 모드를 끌 때는 블러 0으로 설정
+      setBlurAmount(0);
+    }
+  };
+
   // 각도가 -30도인 경우의 스타일
   const page2Styles = {
     titleMargin: '10px',      // 제목 여백 증가
@@ -180,13 +205,23 @@ const Page2 = ({ onMotionPermissionGranted }) => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
-      {/* 현재 알파값 항상 표시 */}
-      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
+      {/* 토글 스위치 추가 */}
+      <div className="fixed top-2 left-4 z-50">
+        <ToggleSwitch 
+          isOn={isAngleMode} 
+          onToggle={handleAngleModeToggle} 
+        />
       </div>
 
+      {/* 현재 알파값 표시 */}
+      {isAngleMode && (
+        <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
+          <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
+        </div>
+      )}
+
       {/* 목표각도와 현재각도 차이 표시 */}
-      {showAngles && (
+      {isAngleMode && showAngles && (
         <div className="fixed top-4 right-4 z-50">
           <p className="text-2xl">
             {Math.round(currentAlpha)}° <br/>
