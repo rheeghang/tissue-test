@@ -5,7 +5,7 @@ const Menu = ({ isOpen, onClose }) => {
   const [isAngleMode, setIsAngleMode] = useState(false);
 
   const menuItems = [
-    { id: 1, label: '홈보이지 않는 조각들: 공기조각', path: '/1' },
+    { id: 1, label: '보이지 않는 조각들: 공기조각', path: '/1' },
     { id: 2, label: '코 없는 코끼리 no.2', path: '/2' },
     { id: 3, label: '들리지 않는 속삭임-33번의 흔들림', path: '/3' },
     { id: 4, label: '궤도(토토포노로지 #4)', path: '/4' },

@@ -15,6 +15,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [maxAngleDiff, setMaxAngleDiff] = useState(0)
     const [currentPage, setCurrentPage] = useState(1);
     const [showHeader, setShowHeader] = useState(true);
+    const [showAngles, setShowAngles] = useState(false);
+    const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
   
     // 목표 각도 및 허용 범위 설정
     const targetAlpha = 45  // 알파 값만 사용
@@ -83,35 +85,66 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
     };
   
-    // 방향 감지 이벤트 핸들러
+    // 15도 단위로 반올림하는 함수
+    const roundTo15Degrees = (angle) => {
+        return Math.round(angle / 15) * 15;
+    };
+
+    // 방향 감지 이벤트 핸들러 수정
     const handleOrientation = useCallback((event) => {
-      if (!isOrientationEnabled) {
-        setDebugInfo('Orientation disabled')
-        return
-      }
-  
-      const { alpha } = event
-      if (alpha !== null) {
-        setCurrentAngles({ alpha })  // alpha 값만 저장
-        
-        const alphaDiff = Math.abs(alpha - targetAlpha)
-        setMaxAngleDiff(alphaDiff)  // alpha 각도 차이만 사용
-        
-        // 블러 계산
-        let blur
-        if (alphaDiff <= tolerance) {
-          blur = 0
-        } else if (alphaDiff <= clearThreshold) {
-          const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance)
-          blur = 3 * normalizedDiff
-        } else {
-          const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold)
-          blur = 3 + (maxBlur - 3) * normalizedDiff
+        if (!isOrientationEnabled) {
+            setDebugInfo('Orientation disabled')
+            return
         }
-        
-        setBlurAmount(blur)
-      }
-    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur])
+
+        const { alpha } = event
+        if (alpha !== null) {
+            setCurrentAngles({ alpha })
+            
+            const alphaDiff = Math.abs(alpha - targetAlpha)
+            setMaxAngleDiff(alphaDiff)
+            
+            // tolerance 범위 밖에 있을 때 타이머 설정
+            if (alphaDiff > tolerance) {
+                if (!outOfRangeTimer) {
+                    const timer = setTimeout(() => {
+                        setShowAngles(true);
+                    }, 15000); // 15초
+                    setOutOfRangeTimer(timer);
+                }
+            } else {
+                // tolerance 범위 안에 들어오면 타이머 초기화
+                if (outOfRangeTimer) {
+                    clearTimeout(outOfRangeTimer);
+                    setOutOfRangeTimer(null);
+                }
+                setShowAngles(false);
+            }
+            
+            // 블러 계산
+            let blur
+            if (alphaDiff <= tolerance) {
+                blur = 0
+            } else if (alphaDiff <= clearThreshold) {
+                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance)
+                blur = 3 * normalizedDiff
+            } else {
+                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold)
+                blur = 3 + (maxBlur - 3) * normalizedDiff
+            }
+            
+            setBlurAmount(blur)
+        }
+    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer])
+
+    // cleanup effect 추가
+    useEffect(() => {
+        return () => {
+            if (outOfRangeTimer) {
+                clearTimeout(outOfRangeTimer);
+            }
+        };
+    }, [outOfRangeTimer]);
   
     // 방향 감지 이벤트 리스너 등록
     useEffect(() => {
@@ -160,14 +193,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       console.log('================\n')
     }, [maxAngleDiff, tolerance, maxDistance])
   
-    const handleNextClick = (e) => {
-      e.preventDefault();
+    const handleNextClick = () => {
       setCurrentPage(2);
       setShowHeader(false);
     };
 
-    const handlePrevClick = (e) => {
-      e.preventDefault();
+    const handlePrevClick = () => {
       setCurrentPage(1);
       setShowHeader(true);
     };
@@ -190,21 +221,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
           />
         </div>
         
-        {/* iOS 권한 요청 모달
-        {isIOS && showPermissionModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
-              <h2 className="text-xl font-bold mb-4">권한 필요</h2>
-              <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지와 모션 감지 권한이 필요합니다.</p>
-              <button
-                onClick={handlePermissionRequest}
-                className="w-full bg-blue-500 text-black py-2 px-4 rounded hover:bg-blue-600"
-              >
-                권한 허용하기
-              </button>
-            </div>
-          </div>
-        )} */}
   
         {/* AudioController 컴포넌트 */}
         <AudioController
@@ -219,23 +235,16 @@ const Page1 = ({ onMotionPermissionGranted }) => {
           maxDistance={maxDistance}
         />
   
-        {/* 각도 표시 footer */}
-        {/*
-        <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
-          <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
-            β01: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
-            γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
-          </div>
-        </div>
-        */}
+        {/* 각도 표시 */}
+        {showAngles && (
+            <div className="fixed top-4 right-4 z-50">
+                <p className="text-2xl">
+                    {roundTo15Degrees(currentAngles.alpha)}° <br/>
+                    45°
+                </p>
+            </div>
+        )}
   
-        {/* 디버그 정보 표시 */}
-        {/*
-        <div className="fixed top-4 left-4 z-50">
-          <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
-          </div>
-        </div>
-        */}
       </div>
     )
 
