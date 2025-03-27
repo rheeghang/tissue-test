@@ -171,7 +171,7 @@ const Home = () => {
       <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6 z-0">
         <div
           style={{
-            transform: 'rotate(-10deg)',
+            transform: 'rotate(0deg)',
             filter: `blur(${blurAmounts[0]}px)`,
             transition: 'filter 0.3s ease',
             zIndex: 10  // 첫 번째 박스의 z-index 값을 높게 설정
