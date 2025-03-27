@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useAngleMode } from '../contexts/AngleModeContext';
 import ToggleSwitch from './ToggleSwitch';
 
-const Menu = ({ isOpen, onClose }) => {
-  const [isAngleMode, setIsAngleMode] = useState(false);
+const Menu = ({ isVisible, onClose }) => {
+  const { isAngleMode, toggleAngleMode } = useAngleMode();
 
   const menuItems = [
     { id: 1, label: '보이지 않는 조각들: 공기조각', path: '/1' },
@@ -16,12 +17,9 @@ const Menu = ({ isOpen, onClose }) => {
   ];
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-[9999] ${
-      isOpen ? 'opacity-100 visible' : 'opacity-0 invisible hidden'
-    }`}>
-      <div className={`fixed top-5 left-5 right-5 bottom-5 max-w-[400px] mx-auto bg-white shadow-lg transform transition-transform duration-300 ${
-        isOpen ? 'translate-y-0' : '-translate-y-full'
-      }`}>
+    <div className={`fixed inset-0 z-50 ${isVisible ? 'block' : 'hidden'}`}>
+      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
+      <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-lg">
         <div className="max-w-3xl mx-auto p-2 text-center h-full overflow-y-auto">
           <div className="flex justify-center mb-2">
             <button
@@ -45,10 +43,10 @@ const Menu = ({ isOpen, onClose }) => {
               ))}
             </ul>
           </nav>
-          <div className="py-4">
+          <div className="px-4 py-3 border-b">
             <ToggleSwitch 
               isOn={isAngleMode} 
-              onToggle={() => setIsAngleMode(!isAngleMode)} 
+              onToggle={toggleAngleMode} 
             />
           </div>
         </div>
