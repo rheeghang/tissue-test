@@ -87,8 +87,8 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         setCurrentAlpha(event.alpha);
         
         // targetAlpha ± 18도 범위 체크
-        const upperBound = (targetAlpha + 18) % 360;
-        const lowerBound = (targetAlpha - 18 + 360) % 360;
+        const upperBound = (targetAlpha + 20) % 360;
+        const lowerBound = (targetAlpha - 20 + 360) % 360;
         const currentAngle = event.alpha;
         
         // 목표 각도 범위 안에 있는지 확인
@@ -112,6 +112,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
                 }, 3000);
                 setHideTimer(timer);
             }
+            setBlurAmount(0);
         } else {
             // 목표 각도 범위 밖에 있을 때
             if (!outOfRangeTimer && !showAngles) {
@@ -121,43 +122,14 @@ const Page2 = ({ onMotionPermissionGranted }) => {
                 }, 5000);
                 setOutOfRangeTimer(timer);
             }
+            // 블러 계산
+            const alphaDiff = Math.min(
+                Math.abs(currentAngle - targetAlpha),
+                Math.abs(currentAngle - (targetAlpha + 360))
+            );
+            const blurValue = Math.min(30, alphaDiff / 2);
+            setBlurAmount(blurValue);
         }
-
-        // 블러 계산 로직은 그대로 유지
-        // 각도가 허용 범위 내로 들어왔을 때
-        if (showAngles) {
-            // 기존 타이머들 정리
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
-            }
-            if (hideTimer) {
-                clearTimeout(hideTimer);
-            }
-            // 3초 후에 숨기기
-            const timer = setTimeout(() => {
-                setShowAngles(false);
-            }, 3000);
-            setHideTimer(timer);
-        } else {
-            // 각도가 허용 범위를 벗어났을 때
-            if (!outOfRangeTimer) {
-                // 5초 후에 각도 표시
-                const timer = setTimeout(() => {
-                    setShowAngles(true);
-                }, 5000);
-                setOutOfRangeTimer(timer);
-            }
-            // 블러 계산 로직
-            if (currentAngle <= clearThreshold) {
-                const normalizedDiff = (currentAngle - tolerance) / (clearThreshold - tolerance);
-                blur = 3 * normalizedDiff;
-            } else {
-                const normalizedDiff = (currentAngle - clearThreshold) / (maxDistance - clearThreshold);
-                blur = 3 + (maxBlur - 3) * normalizedDiff;
-            }
-        }
-        setBlurAmount(blur);
     }
   }, [targetAlpha, showAngles, outOfRangeTimer, hideTimer]);
 
