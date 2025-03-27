@@ -102,56 +102,58 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         if (alpha !== null) {
             setCurrentAngles({ alpha })
             
-            const alphaDiff = Math.abs(alpha - targetAlpha)
-            setMaxAngleDiff(alphaDiff)
+            // Home2.js 방식으로 각도 차이 계산
+            let angleDiff;
+            if (targetAlpha === 0) {
+                // 0도일 때는 360도와도 비교
+                const diff1 = Math.abs(alpha - 0);   // 0도와의 차이
+                const diff2 = Math.abs(alpha - 360); // 360도와의 차이
+                angleDiff = Math.min(diff1, diff2);  // 더 작은 차이 선택
+            } else {
+                angleDiff = Math.abs(alpha - targetAlpha);
+            }
+            
+            setMaxAngleDiff(angleDiff)
             
             // tolerance 범위 밖에 있을 때
-            if (alphaDiff > tolerance) {
-                // 숨김 타이머가 있다면 제거
+            if (angleDiff > tolerance) {
                 if (hideTimer) {
                     clearTimeout(hideTimer);
                     setHideTimer(null);
                 }
                 
-                // 표시 타이머 설정 (아직 없는 경우에만)
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
-                    }, 5000); // 5초로 변경
+                    }, 5000);
                     setOutOfRangeTimer(timer);
                 }
             } else {
-                // tolerance 범위 안에 들어왔을 때
-                // 표시 타이머가 있다면 제거
                 if (outOfRangeTimer) {
                     clearTimeout(outOfRangeTimer);
                     setOutOfRangeTimer(null);
                 }
                 
-                // 이미 각도가 표시되어 있는 경우에만 숨김 타이머 설정
                 if (showAngles && !hideTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(false);
-                    }, 3000); // 3초 후 숨김
+                    }, 3000);
                     setHideTimer(timer);
                 }
             }
             
-            // 블러 계산
-            let blur
-            if (alphaDiff <= tolerance) {
-                blur = 0
-            } else if (alphaDiff <= clearThreshold) {
-                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance)
-                blur = 3 * normalizedDiff
+            // 블러 계산도 수정
+            let blur;
+            if (angleDiff <= tolerance) {
+                blur = 0;
             } else {
-                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold)
-                blur = 3 + (maxBlur - 3) * normalizedDiff
+                // Home2.js 방식으로 블러 계산
+                blur = Math.min(maxBlur, (angleDiff / 60) * maxBlur);
             }
             
             setBlurAmount(blur)
         }
-    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, hideTimer, showAngles])
+    }, [isOrientationEnabled, targetAlpha, tolerance, maxBlur, outOfRangeTimer, hideTimer, showAngles])
 
     // cleanup effect 수정
     useEffect(() => {
@@ -223,7 +225,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
                     <p className="text-2xl">
-                        {currentAngles.alpha.toFixed(1)}° <br/>
+                        {Math.round(currentAngles.alpha)}° <br/>
                         45°
                     </p>
                 </div>
