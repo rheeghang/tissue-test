@@ -128,16 +128,22 @@ const RotatedText = ({
         const span = document.createElement('span')
         const button = document.createElement('button')
         button.textContent = part
-        button.onclick = part === '[다음]' ? onNextClick : onPrevClick
+        button.onclick = () => {
+          if (part === '[다음]') {
+            onNextClick();
+          } else {
+            onPrevClick();
+          }
+        }
         button.className = 'text-black hover:text-gray-600'
         span.appendChild(button)
         span.style.display = 'block'
         span.style.transform = `rotate(${rotationAngle}deg)`
         span.style.transformOrigin = 'center center'
         span.style.whiteSpace = 'nowrap'
-        span.style.marginBottom = styles.lineSpacing
+        span.style.marginBottom = '15px'
         span.style.position = 'relative'
-        span.style.top = styles.textTop
+        span.style.top = '30px'
         container.appendChild(span)
 
       } else {

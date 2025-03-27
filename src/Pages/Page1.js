@@ -85,44 +85,53 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
-        // 직접 alpha 값 업데이트
         setCurrentAlpha(event.alpha);
         
-        // 각도 차이 계산 단순화
-        const alphaDiff = Math.abs(event.alpha - targetAlpha);
-        setMaxAngleDiff(alphaDiff);
+        // targetAlpha ± 18도 범위 체크
+        const upperBound = (targetAlpha + 20) % 360;
+        const lowerBound = (targetAlpha - 20 + 360) % 360;
+        const currentAngle = event.alpha;
         
-        // 블러 계산
-        let blur;
-        if (alphaDiff <= tolerance) {
-            blur = 0;
-        } else if (alphaDiff <= clearThreshold) {
-            const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-            blur = 3 * normalizedDiff;
-        } else {
-            const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-            blur = 3 + (maxBlur - 3) * normalizedDiff;
-        }
-        setBlurAmount(blur);
+        // 목표 각도 범위 안에 있는지 확인
+        const isInRange = lowerBound <= upperBound 
+            ? (currentAngle >= lowerBound && currentAngle <= upperBound)
+            : (currentAngle >= lowerBound || currentAngle <= upperBound);
 
-        // 각도 표시 타이머
-        if (alphaDiff > tolerance) {
-            if (!outOfRangeTimer) {
-                const timer = setTimeout(() => setShowAngles(true), 5000);
-                setOutOfRangeTimer(timer);
-            }
-        } else {
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
-            }
+        if (isInRange) {
+            // 목표 각도 범위 안에 있을 때
             if (showAngles) {
-                const timer = setTimeout(() => setShowAngles(false), 3000);
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                }
+                if (outOfRangeTimer) {
+                    clearTimeout(outOfRangeTimer);
+                    setOutOfRangeTimer(null);
+                }
+                // 3초 후에 숨기기
+                const timer = setTimeout(() => {
+                    setShowAngles(false);
+                }, 3000);
                 setHideTimer(timer);
             }
+            setBlurAmount(0);
+        } else {
+            // 목표 각도 범위 밖에 있을 때
+            if (!outOfRangeTimer && !showAngles) {
+                // 5초 후에 각도 표시
+                const timer = setTimeout(() => {
+                    setShowAngles(true);
+                }, 5000);
+                setOutOfRangeTimer(timer);
+            }
+            // 블러 계산
+            const alphaDiff = Math.min(
+                Math.abs(currentAngle - targetAlpha),
+                Math.abs(currentAngle - (targetAlpha + 360))
+            );
+            setBlurAmount(Math.min(30, alphaDiff / 2));
         }
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur]);
+  }, [targetAlpha, showAngles, outOfRangeTimer, hideTimer]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {
@@ -141,7 +150,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     return Math.min(8, (maxAngleDiff / maxDistance) * 8)
   }
 
-  // 페이지 전환 핸들러 추가
+  // 페이지 전환 핸들러 수정
   const handleNextClick = () => {
     setCurrentPage(2);
     setShowHeader(false);

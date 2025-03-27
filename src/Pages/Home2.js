@@ -36,7 +36,7 @@ const Home = () => {
   const [gamma, setGamma] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState("cyan"); // 기본 배경색
+  const [backgroundColor, setBackgroundColor] = useState('#FACFBA');
   const [showModal, setShowModal] = useState(true);
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [blurAmounts, setBlurAmounts] = useState([10, 10, 10]);
@@ -49,16 +49,32 @@ const Home = () => {
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
+  // 색상 보간 함수 추가
+  const interpolateColor = (gamma) => {
+    // gamma 값은 -90에서 90 사이
+    // 중간값(0도)을 기준으로 색상 변경
+    const normalizedGamma = (gamma + 90) / 180; // 0~1 사이 값으로 정규화
+    
+    // 시작색(#FACFBA)과 끝색(#FFE97B)의 RGB 값
+    const startColor = {
+      r: 0xFA,
+      g: 0xCF,
+      b: 0xBA
+    };
+    
+    const endColor = {
+      r: 0xFF,
+      g: 0xE9,
+      b: 0x7B
+    };
 
+    // RGB 값 보간
+    const r = Math.round(startColor.r + (endColor.r - startColor.r) * normalizedGamma);
+    const g = Math.round(startColor.g + (endColor.g - startColor.g) * normalizedGamma);
+    const b = Math.round(startColor.b + (endColor.b - startColor.b) * normalizedGamma);
 
-  // 랜덤 색상 생성 함수
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    // RGB를 16진수 색상 코드로 변환
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
 
   const requestPermission = () => {
@@ -85,6 +101,12 @@ const Home = () => {
     if (event.alpha !== null) {
       setCurrentAlpha(event.alpha);
       
+      // 감마값에 따른 배경색 변경
+      if (event.gamma !== null) {
+        const newColor = interpolateColor(event.gamma);
+        setBackgroundColor(newColor);
+      }
+
       // 각 박스별로 블러 계산
       const newBlurAmounts = boxAngles.map((targetAngle, index) => {
         let angleDiff;
@@ -139,7 +161,7 @@ const Home = () => {
 
       // 뒤집힌 경우 (베타가 +90도 또는 -90도에 가까운 경우) - 색상 변경
       if (Math.abs(event.beta) > 80) {
-        setBackgroundColor(getRandomColor());
+        setBackgroundColor(interpolateColor(event.gamma));
       }
     };
 
@@ -162,7 +184,13 @@ const Home = () => {
   }, [handleOrientation]);
 
   return (
-    <div className="relative min-h-screen bg-gray-100">
+    <div 
+      className="relative min-h-screen overflow-hidden"
+      style={{ 
+        backgroundColor: backgroundColor,
+        transition: 'background-color 0.3s ease'  // 부드러운 전환 효과
+      }}
+    >
       <Modal 
         isOpen={!permissionGranted && showModal}
         onClose={() => setShowModal(false)}
