@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from './RotatedText'
 import AudioController from './AudioController'
 
-const ExhibitionText = ({ onMotionPermissionGranted }) => {
+const Page1 = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -212,4 +212,4 @@ const ExhibitionText = ({ onMotionPermissionGranted }) => {
   )
 }
 
-export default ExhibitionText
+export default Page1;
