@@ -85,8 +85,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const handleOrientation = useCallback((event) => {
     if (event.alpha !== null) {
         setCurrentAlpha(event.alpha);
-        
-        // 각도 차이 계산
         const alphaDiff = Math.abs(event.alpha - targetAlpha);
         setMaxAngleDiff(alphaDiff);
         
@@ -94,32 +92,30 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         let blur;
         if (alphaDiff <= tolerance) {
             blur = 0;
-            // 각도가 허용 범위 내로 들어왔을 때
+            // 블러가 0이 되면 타이머 정리 및 각도 표시 숨기기
+            if (outOfRangeTimer) {
+                clearTimeout(outOfRangeTimer);
+                setOutOfRangeTimer(null);
+            }
             if (showAngles) {
-                // 기존 타이머들 정리
-                if (outOfRangeTimer) {
-                    clearTimeout(outOfRangeTimer);
-                    setOutOfRangeTimer(null);
-                }
                 if (hideTimer) {
                     clearTimeout(hideTimer);
                 }
-                // 3초 후에 숨기기
                 const timer = setTimeout(() => {
                     setShowAngles(false);
                 }, 3000);
                 setHideTimer(timer);
             }
         } else {
-            // 각도가 허용 범위를 벗어났을 때
-            if (!outOfRangeTimer) {
-                // 5초 후에 각도 표시
+            // 블러가 있을 때만(각도가 벗어났을 때) 타이머 설정
+            if (!outOfRangeTimer && !showAngles) {  // showAngles가 false일 때만 새 타이머 설정
                 const timer = setTimeout(() => {
                     setShowAngles(true);
                 }, 5000);
                 setOutOfRangeTimer(timer);
             }
-            // 블러 계산 로직
+            
+            // 기존 블러 계산 로직
             if (alphaDiff <= clearThreshold) {
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
                 blur = 3 * normalizedDiff;
