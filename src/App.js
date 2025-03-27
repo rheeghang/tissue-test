@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Menu from './components/Menu'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ExhibitionText from './components/ExhibitionText'
-import Home from './Pages/Home'
+import Home from './Pages/Home2'
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
