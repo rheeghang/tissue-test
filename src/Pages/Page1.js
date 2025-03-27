@@ -21,8 +21,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const maxBlur = 30
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
-  const title = "보이지 않는 조각들: 공기조각"
-  const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다. [다음]`
+  const title = "코 없는 코끼리 no.2"
+    const artist = "엄정순"
+    const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm. 국립아시아문화전당 제작 지원, 작가 제공."
+    const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br>[다음]`
+  
+    const originalText2 = `하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 ‘이방인’, ‘타자’, 그리고 ‘보이지 않는 것’의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. <span class="font-serif italic">코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?</span>`
 
   // iOS 디바이스 체크
   useEffect(() => {
@@ -145,15 +149,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     return Math.min(8, (maxAngleDiff / maxDistance) * 8)
   }
 
-  useEffect(() => {
-    // 디버깅용 로그
-    console.log('\n=== 각도 상태 ===')
-    console.log('🎯 각도차이:', maxAngleDiff.toFixed(2))
-    console.log('🎯 허용오차:', tolerance)
-    console.log('🎯 최대거리:', maxDistance)
-    console.log('================\n')
-  }, [maxAngleDiff, tolerance, maxDistance])
-
   return (
     <div 
       className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative"
@@ -161,53 +156,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       <div className="w-full pt-[10px]">
         <RotatedText text={originalText} title={title} blurAmount={getBlurAmount()} />
       </div>
-      
-      {/* iOS 권한 요청 모달 */}
-      {isIOS && showPermissionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-sm mx-4">
-            <h2 className="text-xl font-bold mb-4">권한 필요</h2>
-            <p className="mb-4">이 기능을 사용하기 위해서는 기기의 방향 감지와 모션 감지 권한이 필요합니다.</p>
-            <button
-              onClick={handlePermissionRequest}
-              className="w-full bg-blue-500 text-black py-2 px-4 rounded hover:bg-blue-600"
-            >
-              권한 허용하기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* AudioController 컴포넌트 */}
-      <AudioController
-        isPlaying={isPlaying}
-        setIsPlaying={setIsPlaying}
-        showAudioButton={showAudioButton}
-        setShowAudioButton={setShowAudioButton}
-        setDebugInfo={setDebugInfo}
-        originalText={originalText}
-        maxAngleDiff={maxAngleDiff} 
-        tolerance={tolerance}
-        maxDistance={maxDistance}
-      />
-
-      {/* 각도 표시 footer */}
-      {/*
-      <div className="fixed bottom-4 left-0 right-0 text-center text-black text-xs z-50">
-        <div className="bg-white/80 inline-block px-4 py-2 rounded-full shadow-lg border border-gray-200">
-          β01: {currentAngles.beta?.toFixed(1) || 0}° (목표: {targetBeta}°) | 
-          γ: {currentAngles.gamma?.toFixed(1) || 0}° (목표: {targetGamma}°)
-        </div>
-      </div>
-      */}
-
-      {/* 디버그 정보 표시 */}
-      {/*
-      <div className="fixed top-4 left-4 z-50">
-        <div className="bg-white/80 px-4 py-2 rounded-full shadow-lg border border-gray-200 text-black text-xs">
-        </div>
-      </div>
-      */}
     </div>
   )
 }
