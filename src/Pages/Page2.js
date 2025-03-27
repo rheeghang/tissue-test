@@ -176,16 +176,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
       </div>
 
-      {/* 목표각도와 현재각도 차이 표시 */}
-      {showAngles && (
-        <div className="fixed top-4 right-4 z-50">
-          <p className="text-2xl">
-            {Math.round(currentAlpha)}° <br/>
-            {targetAlpha}°
-          </p>
-        </div>
-      )}
-
       <div className="w-full pt-[10px]">
         <RotatedText 
           text={currentPage === 1 ? originalText : originalText2}
@@ -195,8 +185,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
-          rotationAngle={-30}
-          styles={page2Styles}
         />
       </div>
     </div>

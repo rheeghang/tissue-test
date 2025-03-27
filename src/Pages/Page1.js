@@ -96,30 +96,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         if (alphaDiff <= tolerance) {
             blur = 0;
             // 목표 각도 범위 안에 있을 때
-            if (showAngles) {
-                if (hideTimer) {
-                    clearTimeout(hideTimer);
-                }
-                if (outOfRangeTimer) {
-                    clearTimeout(outOfRangeTimer);
-                    setOutOfRangeTimer(null);
-                }
-                // 3초 후에 숨기기
-                const timer = setTimeout(() => {
-                    setShowAngles(false);
-                }, 3000);
-                setHideTimer(timer);
-            }
-        } else {
-            // 목표 각도 범위 밖에 있을 때
-            if (!outOfRangeTimer && !showAngles) {
-                // 5초 후에 각도 표시
-                const timer = setTimeout(() => {
-                    setShowAngles(true);
-                }, 5000);
-                setOutOfRangeTimer(timer);
-            }
-
+            
             if (alphaDiff <= clearThreshold) {
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
                 blur = 3 * normalizedDiff;
@@ -166,16 +143,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
       </div>
-
-      {/* 목표각도와 현재각도 차이 표시 */}
-      {showAngles && (
-        <div className="fixed top-4 right-4 z-50">
-          <p className="text-2xl">
-            {Math.round(currentAlpha)}° <br/>
-            {targetAlpha}°
-          </p>
-        </div>
-      )}
 
       <div className="w-full pt-[10px]">
         <RotatedText 
