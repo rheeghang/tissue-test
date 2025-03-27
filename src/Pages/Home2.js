@@ -49,33 +49,38 @@ const Home = () => {
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
-  // 색상 보간 함수 추가
-  const interpolateColor = (gamma) => {
-    // gamma 값은 -90에서 90 사이
-    // 중간값(0도)을 기준으로 색상 변경
-    const normalizedGamma = (gamma + 90) / 180; // 0~1 사이 값으로 정규화
+  // 16진수 색상값을 안전하게 처리하는 함수
+  const toHex = (n) => {
+    const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  // 색상 보간 함수 수정
+  const interpolateColor = useCallback((gamma) => {
+    // 감마값을 0~1 사이로 안전하게 정규화
+    const normalizedGamma = Math.max(0, Math.min(1, (gamma + 90) / 180));
     
-    // 시작색(#FACFBA)과 끝색(#FFE97B)의 RGB 값
-    const startColor = {
+    // 시작색과 끝색 정의
+    const start = {
       r: 0xFA,
       g: 0xCF,
       b: 0xBA
     };
     
-    const endColor = {
+    const end = {
       r: 0xFF,
       g: 0xE9,
       b: 0x7B
     };
 
     // RGB 값 보간
-    const r = Math.round(startColor.r + (endColor.r - startColor.r) * normalizedGamma);
-    const g = Math.round(startColor.g + (endColor.g - startColor.g) * normalizedGamma);
-    const b = Math.round(startColor.b + (endColor.b - startColor.b) * normalizedGamma);
+    const r = start.r + (end.r - start.r) * normalizedGamma;
+    const g = start.g + (end.g - start.g) * normalizedGamma;
+    const b = start.b + (end.b - start.b) * normalizedGamma;
 
-    // RGB를 16진수 색상 코드로 변환
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  };
+    // 안전한 16진수 변환
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }, []);
 
   const requestPermission = () => {
     if (
@@ -101,8 +106,8 @@ const Home = () => {
     if (event.alpha !== null) {
       setCurrentAlpha(event.alpha);
       
-      // 감마값에 따른 배경색 변경
-      if (event.gamma !== null) {
+      // 감마값이 존재할 때만 배경색 변경
+      if (event.gamma !== null && !isNaN(event.gamma)) {
         const newColor = interpolateColor(event.gamma);
         setBackgroundColor(newColor);
       }
@@ -129,7 +134,7 @@ const Home = () => {
       
       setBlurAmounts(newBlurAmounts);
     }
-  }, []);
+  }, [interpolateColor]);
 
   const handleMotion = (event) => {
     const now = Date.now();
@@ -187,8 +192,8 @@ const Home = () => {
     <div 
       className="relative min-h-screen overflow-hidden"
       style={{ 
-        backgroundColor: backgroundColor,
-        transition: 'background-color 0.3s ease'  // 부드러운 전환 효과
+        backgroundColor,
+        transition: 'background-color 0.3s ease'
       }}
     >
       <Modal 
