@@ -224,7 +224,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             {/* 각도 표시 */}
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
-                    <p className="text-2xl">
+                    <p className="text-2xl text-right">
                         {Math.round(currentAngles.alpha)}° <br/>
                         45°
                     </p>
