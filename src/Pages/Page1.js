@@ -66,27 +66,17 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     // Home2.js 스타일로 단순화된 handleOrientation
     const handleOrientation = useCallback((event) => {
         if (event.alpha !== null) {
-            const alpha = event.alpha;
-            setCurrentAlpha(alpha);
+            setCurrentAlpha(event.alpha);
             
-            // 각도 차이 계산 단순화
-            let angleDiff;
-            if (targetAlpha === 0) {
-                const diff1 = Math.abs(alpha - 0);
-                const diff2 = Math.abs(alpha - 360);
-                angleDiff = Math.min(diff1, diff2);
-            } else {
-                const diff1 = Math.abs(alpha - targetAlpha);
-                const diff2 = Math.abs(diff1 - 360);
-                angleDiff = Math.min(diff1, diff2);
-            }
+            // 단순하게 각도 차이 계산
+            let angleDiff = Math.abs(event.alpha - targetAlpha);
             
-            // 타이머 로직
+            // 블러 계산도 단순화
+            let blur = 0;
             if (angleDiff > tolerance) {
-                if (hideTimer) {
-                    clearTimeout(hideTimer);
-                    setHideTimer(null);
-                }
+                blur = Math.min(maxBlur, (angleDiff / 60) * maxBlur);
+                
+                // 각도 표시 타이머
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
@@ -98,7 +88,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                     clearTimeout(outOfRangeTimer);
                     setOutOfRangeTimer(null);
                 }
-                if (showAngles && !hideTimer) {
+                if (showAngles) {
                     const timer = setTimeout(() => {
                         setShowAngles(false);
                     }, 3000);
@@ -106,11 +96,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                 }
             }
             
-            // 블러 계산 단순화
-            const blur = angleDiff <= tolerance ? 0 : Math.min(maxBlur, (angleDiff / 60) * maxBlur);
             setBlurAmount(blur);
         }
-    }, [targetAlpha, tolerance, maxBlur, outOfRangeTimer, hideTimer, showAngles]);
+    }, [targetAlpha, tolerance, maxBlur, outOfRangeTimer, showAngles]);
 
     // 이벤트 리스너 설정 단순화
     useEffect(() => {

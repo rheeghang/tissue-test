@@ -91,18 +91,17 @@ const Home = () => {
         
         if (index === 0) {
           // 첫 번째 박스는 0도와 360도 모두 체크
-          const diff1 = Math.abs(event.alpha - 0);   // 0도와의 차이
-          const diff2 = Math.abs(event.alpha - 360); // 360도와의 차이
-          angleDiff = Math.min(diff1, diff2);        // 더 작은 차이 선택
+          const diff1 = Math.abs(event.alpha - 0);
+          const diff2 = Math.abs(event.alpha - 360);
+          angleDiff = Math.min(diff1, diff2);
         } else {
-          // 나머지 박스들은 기존 방식대로
+          // 나머지 박스들은 단순 차이 계산
           angleDiff = Math.abs(event.alpha - targetAngle);
         }
 
         if (angleDiff <= tolerance) {
-          return 0; // 허용 범위 내면 선명하게
+          return 0;
         }
-        // 허용 범위 밖이면 블러 처리
         return Math.min(maxBlur, (angleDiff / 60) * maxBlur);
       });
       

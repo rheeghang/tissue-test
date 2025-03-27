@@ -4,7 +4,7 @@ import Menu from './Menu';
 const Layout = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  const SHAKE_THRESHOLD = 15;
+  const SHAKE_THRESHOLD = 30;
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
 
