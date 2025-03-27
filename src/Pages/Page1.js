@@ -20,7 +20,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
     // 목표 각도 및 허용 범위 설정
     const targetAlpha = 45;  // Z축 회전만 사용
-    const tolerance = 10;    // 허용 범위
+    const tolerance = 30;    // 허용 범위
     const maxBlur = 10;      // 최대 블러값
 
     const title = "보이지 않는 조각들: 공기조각"
