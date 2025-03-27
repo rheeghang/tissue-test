@@ -168,7 +168,7 @@ const Home = () => {
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
-      <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6 z-0">
+      <div className="fixed inset-0 flex flex-col -mt-16 items-center justify-center gap-14 z-0">
         <div
           style={{
             transform: 'rotate(0deg)',
