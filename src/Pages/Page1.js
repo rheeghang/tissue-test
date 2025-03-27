@@ -18,10 +18,10 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [isOrientationEnabled, setIsOrientationEnabled] = useState(true)
     const [isPlaying, setIsPlaying] = useState(false)
 
-    // 설정값 단순화
-    const targetAlpha = 45;
-    const tolerance = 25;
-    const maxBlur = 8;
+    // 목표 각도 및 허용 범위 설정
+    const targetAlpha = 45;  // Z축 회전만 사용
+    const tolerance = 10;    // 허용 범위
+    const maxBlur = 10;      // 최대 블러값
 
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
@@ -63,20 +63,21 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       }
     };
   
-    // Home2.js 스타일로 단순화된 handleOrientation
+    // handleOrientation 수정
     const handleOrientation = useCallback((event) => {
         if (event.alpha !== null) {
-            setCurrentAlpha(event.alpha);
+            const { alpha } = event;
+            setCurrentAlpha(alpha);
             
-            // 단순하게 각도 차이 계산
-            let angleDiff = Math.abs(event.alpha - targetAlpha);
+            // alpha 각도 차이만 계산
+            const alphaDiff = Math.abs(alpha - targetAlpha);
+            setMaxAngleDiff(alphaDiff);
             
-            // 블러 계산도 단순화
+            // 블러 계산
             let blur = 0;
-            if (angleDiff > tolerance) {
-                blur = Math.min(maxBlur, (angleDiff / 60) * maxBlur);
+            if (alphaDiff > tolerance) {
+                blur = Math.min(maxBlur, (alphaDiff / 60) * maxBlur);
                 
-                // 각도 표시 타이머
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
@@ -131,8 +132,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
                     <p className="text-2xl text-right">
-                        {Math.round(currentAlpha)}° <br/>
-                        45°
+                        {Math.round(currentAlpha)}° / {targetAlpha}°
                     </p>
                 </div>
             )}
