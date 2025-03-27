@@ -17,6 +17,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [showHeader, setShowHeader] = useState(true);
     const [showAngles, setShowAngles] = useState(false);
     const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
+    const [hideTimer, setHideTimer] = useState(null);
   
     // 목표 각도 및 허용 범위 설정
     const targetAlpha = 45  // 알파 값만 사용
@@ -104,21 +105,36 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             const alphaDiff = Math.abs(alpha - targetAlpha)
             setMaxAngleDiff(alphaDiff)
             
-            // tolerance 범위 밖에 있을 때 타이머 설정
+            // tolerance 범위 밖에 있을 때
             if (alphaDiff > tolerance) {
+                // 숨김 타이머가 있다면 제거
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    setHideTimer(null);
+                }
+                
+                // 표시 타이머 설정 (아직 없는 경우에만)
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
-                    }, 15000); // 15초
+                    }, 5000); // 5초로 변경
                     setOutOfRangeTimer(timer);
                 }
             } else {
-                // tolerance 범위 안에 들어오면 타이머 초기화
+                // tolerance 범위 안에 들어왔을 때
+                // 표시 타이머가 있다면 제거
                 if (outOfRangeTimer) {
                     clearTimeout(outOfRangeTimer);
                     setOutOfRangeTimer(null);
                 }
-                setShowAngles(false);
+                
+                // 이미 각도가 표시되어 있는 경우에만 숨김 타이머 설정
+                if (showAngles && !hideTimer) {
+                    const timer = setTimeout(() => {
+                        setShowAngles(false);
+                    }, 3000); // 3초 후 숨김
+                    setHideTimer(timer);
+                }
             }
             
             // 블러 계산
@@ -135,16 +151,19 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             
             setBlurAmount(blur)
         }
-    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer])
+    }, [isOrientationEnabled, targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, hideTimer, showAngles])
 
-    // cleanup effect 추가
+    // cleanup effect 수정
     useEffect(() => {
         return () => {
             if (outOfRangeTimer) {
                 clearTimeout(outOfRangeTimer);
             }
+            if (hideTimer) {
+                clearTimeout(hideTimer);
+            }
         };
-    }, [outOfRangeTimer]);
+    }, [outOfRangeTimer, hideTimer]);
   
     // 방향 감지 이벤트 리스너 등록
     useEffect(() => {
@@ -239,8 +258,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         {showAngles && (
             <div className="fixed top-4 right-4 z-50">
                 <p className="text-2xl">
-                    {roundTo15Degrees(currentAngles.alpha)}° <br/>
-                    45°
+                    {roundTo15Degrees(currentAngles.alpha)}° </p>
+                    <p className="text-lg">45°</p>
                 </p>
             </div>
         )}
