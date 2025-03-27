@@ -168,16 +168,17 @@ const Home = () => {
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
-      <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6">
+      <div className="fixed inset-0 flex flex-col -mt-24 items-center justify-center gap-6 z-0">
         <div
           style={{
-            // transform: 'rotate(-10deg)',
+            transform: 'rotate(-10deg)',
             filter: `blur(${blurAmounts[0]}px)`,
-            transition: 'filter 0.3s ease'
+            transition: 'filter 0.3s ease',
+            zIndex: 10  // 첫 번째 박스의 z-index 값을 높게 설정
           }}
-          className="w-80 p-4 bg-white shadow-lg"
+          className="w-80 p-4 bg-white shadow-lg relative"  // relative 추가
         >
-          <p className="text-lg leading-relaxed text-gray-800 break-keep z-1">
+          <p className="text-lg leading-relaxed text-gray-800 break-keep">
             국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.
           </p>
         </div>
