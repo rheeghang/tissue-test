@@ -3,7 +3,7 @@ import RotatedText from '../components/RotatedText'
 import AudioController from '../components/AudioController'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
-    const [currentAlpha, setCurrentAlpha] = useState(0);
+    const [currentAngles, setCurrentAngles] = useState({ alpha: 0 })
     const [blurAmount, setBlurAmount] = useState(10);
     const [showAngles, setShowAngles] = useState(false);
     const [outOfRangeTimer, setOutOfRangeTimer] = useState(null);
@@ -19,9 +19,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const [isPlaying, setIsPlaying] = useState(false)
 
     // 목표 각도 및 허용 범위 설정
-    const targetAlpha = 45;  // Z축 회전만 사용
-    const tolerance = 30;    // 허용 범위
-    const maxBlur = 10;      // 최대 블러값
+    const targetAlpha = 45  // 알파 값만 사용
+    const tolerance = 25    // 완전히 선명해지는 범위
+    const clearThreshold = 35  // 읽을 수 있는 범위
 
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
@@ -65,19 +65,31 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   
     // handleOrientation 수정
     const handleOrientation = useCallback((event) => {
-        if (event.alpha !== null) {
-            const { alpha } = event;
-            setCurrentAlpha(alpha);
-            
-            // alpha 각도 차이만 계산
+        const { alpha } = event;
+        if (alpha !== null) {
+            setCurrentAlpha(alpha);  // alpha 값만 저장
+
             const alphaDiff = Math.abs(alpha - targetAlpha);
-            setMaxAngleDiff(alphaDiff);
-            
+            setMaxAngleDiff(alphaDiff);  // alpha 각도 차이만 사용
+
             // 블러 계산
             let blur = 0;
+            if (alphaDiff <= tolerance) {
+                blur = 0;  // 완전히 선명
+            } else if (alphaDiff <= clearThreshold) {
+                // tolerance ~ clearThreshold 사이에서 부분적으로 블러
+                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
+                blur = normalizedDiff * maxBlur;
+            } else {
+                // clearThreshold를 넘어서면 더 강한 블러
+                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
+                blur = Math.min(maxBlur, maxBlur * normalizedDiff);
+            }
+            
+            setBlurAmount(blur);
+
+            // 각도 표시 타이머 처리
             if (alphaDiff > tolerance) {
-                blur = Math.min(maxBlur, (alphaDiff / 60) * maxBlur);
-                
                 if (!outOfRangeTimer) {
                     const timer = setTimeout(() => {
                         setShowAngles(true);
@@ -96,10 +108,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
                     setHideTimer(timer);
                 }
             }
-            
-            setBlurAmount(blur);
         }
-    }, [targetAlpha, tolerance, maxBlur, outOfRangeTimer, showAngles]);
+    }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, outOfRangeTimer, showAngles]);
 
     // 이벤트 리스너 설정 단순화
     useEffect(() => {
@@ -132,7 +142,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
             {showAngles && (
                 <div className="fixed top-4 right-4 z-50">
                     <p className="text-2xl text-right">
-                        {Math.round(currentAlpha)}° / {targetAlpha}°
+                        {Math.round(currentAlpha)}° <br/> {targetAlpha}°
                     </p>
                 </div>
             )}
