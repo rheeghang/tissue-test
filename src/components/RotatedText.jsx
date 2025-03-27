@@ -36,46 +36,93 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
     const container = containerRef.current
     if (!container) return
 
-    // 기존 span 요소 제거
-    const spans = container.querySelectorAll('span')
-    spans.forEach(span => span.remove())
+    container.innerHTML = ''
 
-    // HTML 태그와 네비게이션 버튼을 고려한 텍스트 분할
-    const parts = text.split('<br>')
-    parts.forEach((part, index) => {
-      const lines = getWrappedLines(part.replace('[다음]', '').replace('[이전]', ''), container)
-      
-      lines.forEach((line) => {
-        const span = document.createElement('span')
-        span.textContent = line
-        span.setAttribute('aria-hidden', 'true')
-        container.appendChild(span)
+    const containerWidth = container.clientWidth
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    context.font = window.getComputedStyle(container).font
+
+    const createSpan = (text, className = '') => {
+      const span = document.createElement('span')
+      span.textContent = text
+      if (className) span.className = className
+      span.style.display = 'block'
+      span.style.transform = 'rotate(45deg)'
+      span.style.transformOrigin = 'center center'
+      span.style.whiteSpace = 'nowrap'
+      span.style.marginBottom = '15px'
+      span.style.position = 'relative'
+      span.style.top = '30px'
+      return span
+    }
+
+    const wrapTextContent = (text, className = '') => {
+      const words = text.split(' ')
+      let currentLine = ''
+      const lines = []
+
+      words.forEach((word) => {
+        const testLine = currentLine + (currentLine ? ' ' : '') + word
+        const metrics = context.measureText(testLine)
+        
+        if (metrics.width > containerWidth && currentLine) {
+          lines.push(createSpan(currentLine, className))
+          currentLine = word
+        } else {
+          currentLine = testLine
+        }
       })
 
-      // 네비게이션 버튼 처리
-      if (part.includes('[다음]') || part.includes('[이전]')) {
-        const navSpan = document.createElement('span');
-        const button = document.createElement('button');
-        
-        if (part.includes('[다음]')) {
-          button.textContent = '[다음]';
-          button.onclick = onNextClick;
-        } else {
-          button.textContent = '[이전]';
-          button.onclick = onPrevClick;
-        }
-        
-        // 버튼 스타일 변경
-        button.className = 'text-black hover:text-gray-600';  // 파란색 제거, 검은색으로 변경
-        navSpan.appendChild(button);
-        container.appendChild(navSpan);
+      if (currentLine) {
+        lines.push(createSpan(currentLine, className))
       }
 
-      // 줄바꿈 처리
-      if (index < parts.length - 1) {
-        const breakSpan = document.createElement('span');
-        breakSpan.style.height = '1.2em';  // 1.5em에서 0.8em으로 줄바꿈 간격 축소
-        container.appendChild(breakSpan);
+      return lines
+    }
+
+    const parts = text.split(/(<span.*?<\/span>|<br>|\[다음\]|\[이전\])/g)
+    
+    parts.forEach((part) => {
+      if (!part || part.trim() === '') return
+      
+      if (part.startsWith('<span')) {
+        // span 태그 내용 처리
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = part
+        const spanElement = tempDiv.querySelector('span')
+        const spanText = spanElement.textContent
+        const spanClasses = spanElement.getAttribute('class')
+        
+        // 스타일이 적용된 텍스트를 줄바꿈 처리
+        const wrappedLines = wrapTextContent(spanText, spanClasses)
+        wrappedLines.forEach(line => container.appendChild(line))
+
+      } else if (part === '<br>') {
+        const breakSpan = document.createElement('span')
+        breakSpan.style.height = '1.2em'
+        container.appendChild(breakSpan)
+
+      } else if (part === '[다음]' || part === '[이전]') {
+        const span = document.createElement('span')
+        const button = document.createElement('button')
+        button.textContent = part
+        button.onclick = part === '[다음]' ? onNextClick : onPrevClick
+        button.className = 'text-black hover:text-gray-600'
+        span.appendChild(button)
+        span.style.display = 'block'
+        span.style.transform = 'rotate(45deg)'
+        span.style.transformOrigin = 'center center'
+        span.style.whiteSpace = 'nowrap'
+        span.style.marginBottom = '15px'
+        span.style.position = 'relative'
+        span.style.top = '30px'
+        container.appendChild(span)
+
+      } else {
+        // 일반 텍스트 처리
+        const wrappedLines = wrapTextContent(part.trim())
+        wrappedLines.forEach(line => container.appendChild(line))
       }
     })
   }
@@ -87,7 +134,7 @@ const RotatedText = ({ text, title, artist, caption, blurAmount, onNextClick, on
   }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full pt-[15vh] relative">
+    <div className="outer-container w-full pt-[10vh] relative">
         
         <div className="text-block mb-[50px] text-black">
           <h1 

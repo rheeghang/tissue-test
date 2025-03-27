@@ -171,7 +171,7 @@ const Home = () => {
       />
 
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-medium text-gray-800">{(alpha)}°</p>
+        <p className="text-xl font-medium text-gray-800">{Math.round(alpha)}°</p>
         {/* <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
         <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p> */}
       </div>
@@ -179,7 +179,7 @@ const Home = () => {
       {/* 3개의 고정 회전 텍스트 박스 */}
       <div className="fixed inset-0 flex flex-col -mt-16 items-center justify-center gap-12 z-0">
         <div className="absolute left-1 top-[30%] z-10">
-          <p className="text-lg font-medium text-gray-800">0°</p>
+          <p className="text-sm text-gray-400 font-medium">0°</p>
         </div>
         <div
           style={{
@@ -196,7 +196,7 @@ const Home = () => {
         </div>
 
         <div className="absolute left-1 top-[50%] z-10">
-          <p className="text-lg font-medium text-gray-800">35°</p>
+          <p className="text-sm text-gray-400 font-medium">35°</p>
         </div>
         <div
           style={{
@@ -212,7 +212,7 @@ const Home = () => {
         </div>
 
         <div className="absolute left-1 top-[70%] z-10">
-          <p className="text-lg font-medium text-gray-800">330°</p>
+          <p className="text-sm text-gray-400 font-medium">330°</p>
         </div>
         <div
           style={{

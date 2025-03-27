@@ -29,9 +29,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const title = "보이지 않는 조각들: 공기조각"
     const artist = "송예슬"
     const caption = "2025, 설치, 초음파 파장, 커스텀 소프트웨어,<br>가변 크기. 국립아시아문화전당 재제작 지원, 작가 제공."
-    const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.<br>[다음]`
+    const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. <span class="font-serif italic">당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요?</span> 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.<br>[다음]`
   
-    const originalText2 = `[이전]<br>참여자는 좌대 위에 손을 올릴 수 있습니다. 그러면 손끝을 따라 공기 흐름이 위로 퍼지며 만지는 사람에 따라 그 모양과 감각은 조금씩 달라집니다. 그것은 눈에 보이지 않지만, 손끝으로는 분명히 '존재하는' 조각입니다. 정말 '보는 것'만이 예술을 감상하는 방식의 전부인가요? 손끝으로 만나는 이 조각은 당신에게 어떤 생각을 불러일으키나요?`
+    const originalText2 = `[이전]<br>참여자는 좌대 위에 손을 올릴 수 있습니다. 그러면 손끝을 따라 공기 흐름이 위로 퍼지며 만지는 사람에 따라 그 모양과 감각은 조금씩 달라집니다. 그것은 눈에 보이지 않지만, 손끝으로는 분명히 '존재하는' 조각입니다. <span class="font-serif italic">정말 '보는 것'만이 예술을 감상하는 방식의 전부인가요? 손끝으로 만나는 이 조각은 당신에게 어떤 생각을 불러일으키나요?</span>`
 
     // iOS 디바이스 체크
     useEffect(() => {
@@ -203,14 +203,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       return Math.min(8, (maxAngleDiff / maxDistance) * 8)
     }
   
-    useEffect(() => {
-      // 디버깅용 로그
-      console.log('\n=== 각도 상태 ===')
-      console.log('🎯 각도차이:', maxAngleDiff.toFixed(2))
-      console.log('🎯 허용오차:', tolerance)
-      console.log('🎯 최대거리:', maxDistance)
-      console.log('================\n')
-    }, [maxAngleDiff, tolerance, maxDistance])
+  
   
     const handleNextClick = () => {
       setCurrentPage(2);
@@ -228,10 +221,10 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
             {/* 각도 표시 */}
             {showAngles && (
-                <div className="fixed top-4 right-4 z-50 bg-white/80 px-4 py-2 rounded-lg shadow-lg">
-                    <p className="text-sm">
-                        디바이스: {currentAngles.alpha.toFixed(1)}° <br/>
-                        텍스트: 45°
+                <div className="fixed top-4 right-4 z-50">
+                    <p className="text-2xl">
+                        {currentAngles.alpha.toFixed(1)}° <br/>
+                        45°
                     </p>
                 </div>
             )}
