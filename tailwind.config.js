@@ -29,6 +29,15 @@ module.exports = {
       text: {
         'lg': '1.15rem',
       },
+      keyframes: {
+        'rotate-left': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(-360deg)' }
+        }
+      },
+      animation: {
+        'rotate-left': 'rotate-left 10s linear infinite'
+      }
     },
   },
   plugins: [],

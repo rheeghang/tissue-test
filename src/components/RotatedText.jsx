@@ -9,7 +9,7 @@ const RotatedText = ({
   onNextClick, 
   onPrevClick,
   rotationAngle = 45,
-  paddingTop = '12vh',
+  paddingTop = '10vh',
   styles = {
     titleMargin: '20px',
     artistMargin: '20px',
@@ -162,7 +162,12 @@ const RotatedText = ({
   }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full relative" style={{ paddingTop: paddingTop }}>
+    <div className="outer-container w-full min-h-screen overflow-y-auto relative" 
+         style={{ 
+           overflowY: 'auto',
+           paddingTop: paddingTop,
+           maxHeight: '100vh'  // 뷰포트 높이로 제한
+         }}>
         <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
           <h1 
             className="text-lg text-center title-span block text-black"

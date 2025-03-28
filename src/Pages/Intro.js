@@ -5,7 +5,7 @@ const Intro = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-black">
+    <div className="flex flex-col min-h-screen bg-white text-black items-center">
 
       <div className="mt-auto mb-[18vh] w-full max-w-2xl px-10 py-10 rotate-180">
         <h1 className="text-xl leading-base mb-6 text-center">2025 ACC 접근성 강화 주제전
@@ -25,7 +25,7 @@ const Intro = () => {
         </div>
 
       </div>
-      <div className="w-full fixed bottom-2 left-2 right-2 bg-black text-white p-2 text-center">
+      <div className="w-full fixed bottom-2 w-[90%] bg-black text-white p-2 text-center">
             휴대폰을 흔들면 메뉴가 열립니다.
         </div>
     </div>

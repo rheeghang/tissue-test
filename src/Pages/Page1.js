@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
+import { useGuide } from '../contexts/GuideContext'
 
 const Page1 = ({ onMotionPermissionGranted }) => {
   const [blurAmount, setBlurAmount] = useState(10)
@@ -16,6 +17,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAngleOverlay, setShowAngleOverlay] = useState(false);
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
+  const { showGuideMessage } = useGuide();
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 45  // 알파 값만 사용
@@ -25,11 +27,13 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const maxDistance = 45 // 최대 거리 (각도 차이)
 
   const title = "보이지 않는 조각들: 공기조각"
-    const artist = "송예슬"
-    const caption = "2025, 설치, 초음파 파장, 커스텀 소프트웨어,<br>가변 크기. 국립아시아문화전당 재제작 지원, 작가 제공."
-    const originalText = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. <span class="font-serif italic">당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요?</span> 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.<br>[다음]`
-  
-    const originalText2 = `[이전]<br>참여자는 좌대 위에 손을 올릴 수 있습니다. 그러면 손끝을 따라 공기 흐름이 위로 퍼지며 만지는 사람에 따라 그 모양과 감각은 조금씩 달라집니다. 그것은 눈에 보이지 않지만, 손끝으로는 분명히 '존재하는' 조각입니다. <span class="font-serif italic">정말 '보는 것'만이 예술을 감상하는 방식의 전부인가요? 손끝으로 만나는 이 조각은 당신에게 어떤 생각을 불러일으키나요?</span>`
+  const artist = "송예슬"
+  const caption = "2025, 설치, 초음파 파장, 커스텀 소프트웨어,<br>가변 크기. 국립아시아문화전당 재제작 지원, 작가 제공."
+
+  // 각 문단을 개별적으로 정의
+  const originalText1 = `로비 공간에 들어서면, 하나의 좌대가 놓여 있습니다. 당신은 무엇을 기대하고 계셨나요? 조각상이 보일 거로 생각하지 않으셨나요? 하지만 이 좌대 위에는 아무것도 보이지 않습니다. 송예슬 작가의 <보이지 않는 조각들: 공기조각>은 눈에 보이지 않는 감각 조각이며 예술적 실험입니다.<br>`
+
+  const originalText2 = `<br>참여자는 좌대 위에 손을 올릴 수 있습니다. 그러면 손끝을 따라 공기 흐름이 위로 퍼지며 만지는 사람에 따라 그 모양과 감각은 조금씩 달라집니다. 그것은 눈에 보이지 않지만, 손끝으로는 분명히 '존재하는' 조각입니다. 정말 '보는 것'만이 예술을 감상하는 방식의 전부인가요? 손끝으로 만나는 이 조각은 당신에게 어떤 생각을 불러일으키나요?`
 
   // iOS 디바이스 체크
   useEffect(() => {
@@ -128,15 +132,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       if (!outOfRangeStartTime) {
         setOutOfRangeStartTime(now);
       } else if (now - outOfRangeStartTime >= 4000) {
-        setShowAngleOverlay(true);
+        showGuideMessage();
       }
     } else {
       setOutOfRangeStartTime(null);
-      setTimeout(() => {
-        setShowAngleOverlay(false);
-      }, 3000);
     }
-  }, [currentAlpha, targetAlpha, tolerance, outOfRangeStartTime]);
+  }, [currentAlpha, targetAlpha, tolerance, outOfRangeStartTime, showGuideMessage]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -159,7 +160,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
+    <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-y-auto relative">
       {/* 현재 알파값 항상 표시
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
@@ -173,7 +174,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
       <div className="w-full pt-[10px]">
         <RotatedText 
-          text={currentPage === 1 ? originalText : originalText2}
+          text={`${originalText1} \n\n\n ${originalText2}`}
           title={showHeader ? title : ""} 
           artist={showHeader ? artist : ""}
           caption={showHeader ? caption : ""}
@@ -183,7 +184,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         />
       </div>
     </div>
+    
   )
 }
+
 
 export default Page1;

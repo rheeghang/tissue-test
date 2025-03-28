@@ -26,12 +26,17 @@ const Page2 = ({ onMotionPermissionGranted }) => {
 
   const title = "코 없는 코끼리 no.2"
   const artist = "엄정순"
-  const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm."
+  const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크,<br />금속, 230(h)X150(W)280(D)cm."
   
-  // 텍스트와 버튼을 문자열로 결합
-  const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br>[다음]`
-  const originalText2 = `[이전]<br>하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 '이방인', '타자', 그리고 '보이지 않는 것'의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. <span class="font-serif italic">코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?</span>`
+  // caption을 JSX로 변환
+  const formattedCaption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크,<br />금속, 230(h)X150(W)280(D)cm."
 
+  // newlines 배열 대신 직접 JSX 사용
+  const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다.
+\n\n
+하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 '이방인', '타자', 그리고 '보이지 않는 것'의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. 코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?`;
+  const originalText2 = "";
+  
   // iOS 디바이스 체크
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
@@ -40,26 +45,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
       setShowPermissionModal(true)
     }
   }, [])
-
-  // 키보드 이벤트 핸들러
-  const handleKeyPress = useCallback((event) => {
-    if (event.key.toLowerCase() === 'f') {
-      console.log('F key pressed') // 디버깅용 로그
-      setIsOrientationEnabled(false)
-      setBlurAmount(0)
-      // 방향 감지 이벤트 리스너 제거
-      if (window.DeviceOrientationEvent) {
-        window.removeEventListener('deviceorientation', handleOrientation)
-      }
-    }
-  }, [setBlurAmount, setIsOrientationEnabled])
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress)
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress)
-    }
-  }, [handleKeyPress])
 
   // iOS 권한 요청 처리
   const handlePermissionRequest = async () => {
@@ -171,30 +156,25 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   }
 
   return (
-    <div className="flex flex-col mb-[20px] items-center min-h-screen bg-exhibition-bg overflow-y-auto relative">
-      {/* 현재 알파값 항상 표시
-      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
-      </div> */}
-
-      {showAngleOverlay && ( // 알파값 표시 추가
+    // overflow-hidden 제거하고 height 설정
+    <div className="flex flex-col items-center h-full w-full bg-exhibition-bg">
+      {showAngleOverlay && (
         <div className="fixed top-3 right-3 text-lg">
           <p>{Math.round(currentAlpha)}°</p>
           <p>{targetAlpha}°</p>
         </div>
       )}
 
-      <div className="w-full pt-[2px]">
+      <div className="w-full pt-[10px]">
         <RotatedText 
           text={currentPage === 1 ? originalText : originalText2}
           title={showHeader ? title : ""} 
           artist={showHeader ? artist : ""}
-          caption={showHeader ? caption : ""}
+          caption={showHeader ? formattedCaption : ""}
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
           rotationAngle={-30}
-          paddingTop="8vh" // ← 여기 추가
         />
       </div>
     </div>

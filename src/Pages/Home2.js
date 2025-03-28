@@ -1,25 +1,31 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
+import Guide from '../components/Guide';
+import { useGuide } from '../contexts/GuideContext';
 
-const Modal = ({ isOpen, onClose, onConfirm }) => {
+const Modal = ({ isOpen, onClose, onConfirm, showGuideMessage }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 배경 오버레이 */}
       <div 
-        className="fixed inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-black/50 transition-opacity duration-300"
         onClick={onClose}
       ></div>
       
       {/* 모달 컨텐츠 */}
-      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl text-center">
+      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl text-center transition-all duration-300">
         <h3 className="mb-4 text-xl font-bold text-gray-900">센서 권한 요청</h3>
         <p className="mb-6 text-gray-600">
           기기 방향 감지 센서 권한이 필요합니다.
         </p>
         <button
-          onClick={onConfirm}
+          onClick={() => {
+            onConfirm();
+            onClose();
+            showGuideMessage();
+          }}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
         >
           허용
@@ -31,6 +37,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
 const Home = () => {
   const navigate = useNavigate();
+  const { showGuideMessage } = useGuide();
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
@@ -58,8 +65,8 @@ const Home = () => {
           if (permissionState === "granted") {
             console.log("Permission granted!");
             setPermissionGranted(true);
-            setShowModal(false);
           }
+          setShowModal(false); // 권한 여부와 관계 없이 팝업 제거
         })
         .catch(console.error);
     } else {
@@ -116,6 +123,30 @@ const Home = () => {
     }
   };
 
+  const handlePermissionRequest = async () => {
+    try {
+      console.log("📲 허용 버튼 클릭됨");
+
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const orientationPermission = await DeviceOrientationEvent.requestPermission();
+        console.log("🎯 orientationPermission:", orientationPermission);
+        if (orientationPermission === 'granted') {
+          setPermissionGranted(true);
+        }
+      } else {
+        console.log("✅ requestPermission 사용 불가 - 자동 승인");
+        setPermissionGranted(true);
+      }
+
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        const motionPermission = await DeviceMotionEvent.requestPermission();
+        console.log("🌀 motionPermission:", motionPermission);
+      }
+    } catch (error) {
+      console.error('❌ 권한 요청 실패:', error);
+    }
+  };
+
   useEffect(() => {
     const handleOrientation = (event) => {
       setAlpha(event.alpha); // Z축 회전 (Yaw)
@@ -144,20 +175,18 @@ const Home = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       <Modal 
-        isOpen={!permissionGranted && showModal}
+        isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onConfirm={requestPermission}
+        onConfirm={handlePermissionRequest}
+        showGuideMessage={showGuideMessage}
       />
-
+      
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(alpha)}°</p>
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
       <div className="fixed inset-0 flex flex-col -mt-16 items-center justify-center gap-12 z-0">
-        <div className="absolute left-1 top-[30%] z-10">
-          <p className="text-sm text-gray-400 font-medium">0°</p>
-        </div>
         <div
           style={{
             transform: 'rotate(0deg)',
@@ -172,9 +201,12 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="absolute left-1 top-[50%] z-10">
-          <p className="text-sm text-gray-400 font-medium">35°</p>
-        </div>
+        {/* <div className="absolute top-[35%] right-10 z-10 rotate-[30deg]">
+            <p className="text-2xl text-gray-600">
+                ↓
+            </p>
+        </div> */}
+
         <div
           style={{
             transform: 'rotate(35deg)',
@@ -184,13 +216,17 @@ const Home = () => {
           className="w-80 p-4 bg-white shadow-lg"
         >
           <p className="text-lg leading-relaxed text-gray-800 break-keep">
-            큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거럽고 비생산적이며 낯설지만,
+            큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거롭고 비생산적이며 낯설지만,
           </p>
         </div>
 
-        <div className="absolute left-1 top-[70%] z-10">
-          <p className="text-sm text-gray-400 font-medium">330°</p>
-        </div>
+        {/* <div className="absolute top-[60%] left-10 z-10 rotate-[-30deg]">
+            <p className="text-2xl text-gray-600">
+                ↓
+            </p>
+        </div> */}
+
+
         <div
           style={{
             transform: 'rotate(-15deg)',
@@ -209,7 +245,7 @@ const Home = () => {
       <div className="fixed bottom-3 left-0 right-0 flex justify-center">
         <button 
           onClick={() => navigate('/intro')}
-          className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
+          className="w-48 bg-black px-5 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
         >
           시작하기
         </button>
