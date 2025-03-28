@@ -19,7 +19,7 @@ const Intro = () => {
           text={`${text1}\n\n${text2}`}
           title={title}
           subtitle={subtitle}
-          rotationAngle={-30}
+          rotationAngle={-20}
           useGuideMessage={false}
           styles={{
             titleMargin: '20px',
