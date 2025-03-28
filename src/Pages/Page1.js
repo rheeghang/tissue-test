@@ -131,14 +131,14 @@ const Page1 = ({ onMotionPermissionGranted }) => {
     const alphaDiff = Math.abs(currentAlpha - targetAlpha);
     const now = Date.now();
   
-    if (alphaDiff > tolerance) {
+    if (alphaDiff > tolerance) {  // 지정한 각도 범위(tolerance) 밖에 있을 때
       if (!outOfRangeStartTime) {
-        setOutOfRangeStartTime(now);
-      } else if (now - outOfRangeStartTime >= 4000) {
-        showGuideMessage();
+        setOutOfRangeStartTime(now);  // 범위 밖에 있기 시작한 시간 기록
+      } else if (now - outOfRangeStartTime >= 4000) {  // 4초(4000ms) 이상 범위 밖에 있으면
+        showGuideMessage();  // 가이드 메시지 표시
       }
     } else {
-      setOutOfRangeStartTime(null);
+      setOutOfRangeStartTime(null);  // 범위 안으로 들어오면 타이머 리셋
     }
   }, [currentAlpha, targetAlpha, tolerance, outOfRangeStartTime, showGuideMessage]);
 
@@ -184,8 +184,6 @@ const Page1 = ({ onMotionPermissionGranted }) => {
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
-          showGuideMessage={showGuideMessage}
-          useGuideMessage={true}
         />
       </div>
     </div>

@@ -6,7 +6,7 @@ const Guide = ({ show }) => {
       <div className="relative z-50 text-center bg-white/80 shadow-xl p-4 pt-12">
         {/* 회전하는 사각형 */}
         <div className="flex justify-center mb-4 ">
-          <div className="w-[100px] h-[60px] border-2 bg-gray-300 border-gray-900 animate-rotate-left"></div>
+          <div className="w-[100px] h-[60px] border-2 border-gray-900 animate-rotate-left"></div>
         </div>
         <p className="mb-6 p-4 pb-2 text-black">
           기기를 회전하며 방향을 찾아보세요.
