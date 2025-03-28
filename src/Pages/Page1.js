@@ -72,6 +72,9 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         if (orientationPermission === 'granted') {
           setPermissionGranted(true);
           setIsOrientationEnabled(true);
+          if (typeof showGuideMessage === 'function') {
+            showGuideMessage();
+          }
         }
       }
 
@@ -181,6 +184,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
+          showGuideMessage={showGuideMessage}
+          useGuideMessage={true}
         />
       </div>
     </div>

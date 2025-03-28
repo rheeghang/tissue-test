@@ -132,10 +132,13 @@ const Home = () => {
         console.log("🎯 orientationPermission:", orientationPermission);
         if (orientationPermission === 'granted') {
           setPermissionGranted(true);
+          // 가이드 메시지 바로 표시
+          showGuideMessage();
         }
       } else {
         console.log("✅ requestPermission 사용 불가 - 자동 승인");
         setPermissionGranted(true);
+        showGuideMessage();
       }
 
       if (typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -178,7 +181,6 @@ const Home = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onConfirm={handlePermissionRequest}
-        showGuideMessage={showGuideMessage}
       />
       
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">

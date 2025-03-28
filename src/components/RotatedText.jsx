@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react'
 const RotatedText = ({ 
   text, 
   title, 
+  subtitle,
   artist, 
   caption, 
   blurAmount, 
@@ -10,6 +11,8 @@ const RotatedText = ({
   onPrevClick,
   rotationAngle = 45,
   paddingTop = '10vh',
+  showGuideMessage,
+  useGuideMessage = false,
   styles = {
     titleMargin: '20px',
     artistMargin: '20px',
@@ -153,6 +156,11 @@ const RotatedText = ({
         wrappedLines.forEach(line => container.appendChild(line))
       }
     })
+
+    // 가이드 메시지 조건부 실행
+    if (useGuideMessage && typeof showGuideMessage === 'function') {
+      showGuideMessage();
+    }
   }
 
   useEffect(() => {
@@ -166,11 +174,13 @@ const RotatedText = ({
          style={{ 
            overflowY: 'auto',
            paddingTop: paddingTop,
+           paddingBottom: '120px',
+           height: '150vh',
            maxHeight: '100vh'  // 뷰포트 높이로 제한
          }}>
         <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
           <h1 
-            className="text-lg text-center title-span block text-black"
+            className="text-lg text-center title-span block text-black pt-[1vh]"
             tabIndex="0"
             style={{
               transform: `rotate(${rotationAngle}deg)`,
@@ -198,6 +208,21 @@ const RotatedText = ({
             }}
           >
             {artist}
+          </div>
+
+          <div 
+            className="text-base text-center block text-black"
+            style={{
+              transform: `rotate(${rotationAngle}deg)`,
+              transformOrigin: 'center center',
+              position: 'relative',
+              marginBottom: styles.artistMargin,
+              whiteSpace: 'nowrap',
+              filter: `blur(${blurAmount}px)`,
+              transition: 'filter 0.3s ease'
+            }}
+          >
+            {subtitle}
           </div>
 
           <div 
