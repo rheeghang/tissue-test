@@ -10,8 +10,8 @@ const RotatedText = ({
   onPrevClick,
   rotationAngle = 45,
   styles = {
-    titleMargin: '40px',
-    artistMargin: '30px',
+    titleMargin: '20px',
+    artistMargin: '20px',
     lineSpacing: '15px',
     textTop: '30px',
     containerPadding: '10vh',

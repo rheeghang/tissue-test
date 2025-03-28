@@ -15,6 +15,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [showHeader, setShowHeader] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAngleOverlay, setShowAngleOverlay] = useState(false); // 상태 추가
+  const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null); // 추가된 상태
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 330  // 알파 값만 사용
@@ -25,7 +26,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
 
   const title = "코 없는 코끼리 no.2"
   const artist = "엄정순"
-  const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm. 국립아시아문화전당 제작 지원, 작가 제공."
+  const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm."
   
   // 텍스트와 버튼을 문자열로 결합
   const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br>[다음]`
@@ -121,59 +122,24 @@ const Page2 = ({ onMotionPermissionGranted }) => {
     }
   }, [handleOrientation, isOrientationEnabled]);
 
-  // 타이머 로직을 별도의 useEffect로 분리
-  useEffect(() => {
-    const alphaDiff = Math.abs(currentAlpha - targetAlpha);
-    
-    if (alphaDiff <= tolerance) {
-        if (showAngles) {
-            if (hideTimer) clearTimeout(hideTimer);
-            if (outOfRangeTimer) {
-                clearTimeout(outOfRangeTimer);
-                setOutOfRangeTimer(null);
-            }
-            const timer = setTimeout(() => {
-                setShowAngles(false);
-            }, 3000);
-            setHideTimer(timer);
-        }
-    } else {
-        if (!outOfRangeTimer && !showAngles) {
-            const timer = setTimeout(() => {
-                setShowAngles(true);
-            }, 5000);
-            setOutOfRangeTimer(timer);
-        }
-    }
-
-    return () => {
-        if (hideTimer) clearTimeout(hideTimer);
-        if (outOfRangeTimer) clearTimeout(outOfRangeTimer);
-    };
-  }, [currentAlpha, targetAlpha, tolerance, showAngles]);
-
   // 사용자 알파값과 targetAlpha 표시 조건 구현
   useEffect(() => {
     const alphaDiff = Math.abs(currentAlpha - targetAlpha);
-
-    let showTimer = null;
-    let hideTimer = null;
+    const now = Date.now();
 
     if (alphaDiff > tolerance) {
-      showTimer = setTimeout(() => {
+      if (!outOfRangeStartTime) {
+        setOutOfRangeStartTime(now);
+      } else if (now - outOfRangeStartTime >= 4000) {
         setShowAngleOverlay(true);
-      }, 4000);
+      }
     } else {
-      hideTimer = setTimeout(() => {
+      setOutOfRangeStartTime(null);
+      setTimeout(() => {
         setShowAngleOverlay(false);
       }, 3000);
     }
-
-    return () => {
-      if (showTimer) clearTimeout(showTimer);
-      if (hideTimer) clearTimeout(hideTimer);
-    };
-  }, [currentAlpha, targetAlpha, tolerance]);
+  }, [currentAlpha, targetAlpha, tolerance, outOfRangeStartTime]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -205,14 +171,14 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-y-auto relative">
+    <div className="flex flex-col mb-[20px] items-center min-h-screen bg-exhibition-bg overflow-y-auto relative">
       {/* 현재 알파값 항상 표시
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
       </div> */}
 
       {showAngleOverlay && ( // 알파값 표시 추가
-        <div className="fixed top-3 right-3 text-sm">
+        <div className="fixed top-3 right-3 text-lg">
           <p>{Math.round(currentAlpha)}°</p>
           <p>{targetAlpha}°</p>
         </div>
