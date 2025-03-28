@@ -62,15 +62,15 @@ const Home = () => {
     
     // 시작색과 끝색 정의
     const start = {
-      r: 0xFA,
-      g: 0xCF,
-      b: 0xBA
+    //   r: 0xFA,
+    //   g: 0xCF,
+    //   b: 0xBA
     };
     
     const end = {
-      r: 0xFF,
-      g: 0xE9,
-      b: 0x7B
+    //   r: 0xFF,
+    //   g: 0xE9,
+    //   b: 0x7B
     };
 
     // RGB 값 보간
