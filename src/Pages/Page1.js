@@ -14,6 +14,8 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const [hideTimer, setHideTimer] = useState(null);
   const [showHeader, setShowHeader] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAngleOverlay, setShowAngleOverlay] = useState(false);
+  const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 45  // 알파 값만 사용
@@ -116,6 +118,25 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, [handleOrientation]);
+  
+  // 알파값 오버레이 관련 효과
+  useEffect(() => {
+    const alphaDiff = Math.abs(currentAlpha - targetAlpha);
+    const now = Date.now();
+  
+    if (alphaDiff > tolerance) {
+      if (!outOfRangeStartTime) {
+        setOutOfRangeStartTime(now);
+      } else if (now - outOfRangeStartTime >= 4000) {
+        setShowAngleOverlay(true);
+      }
+    } else {
+      setOutOfRangeStartTime(null);
+      setTimeout(() => {
+        setShowAngleOverlay(false);
+      }, 3000);
+    }
+  }, [currentAlpha, targetAlpha, tolerance, outOfRangeStartTime]);
 
   // 각도에 따른 텍스트 블러 효과
   const getBlurAmount = () => {
@@ -143,6 +164,12 @@ const Page1 = ({ onMotionPermissionGranted }) => {
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
       </div> */}
+      {showAngleOverlay && (
+        <div className="fixed top-3 right-3 text-sm z-50">
+          <p>{Math.round(currentAlpha)}°</p>
+          <p>{targetAlpha}°</p>
+        </div>
+      )}
 
       <div className="w-full pt-[10px]">
         <RotatedText 

@@ -9,13 +9,14 @@ const RotatedText = ({
   onNextClick, 
   onPrevClick,
   rotationAngle = 45,
+  paddingTop = '10vh',
   styles = {
     titleMargin: '20px',
     artistMargin: '20px',
     lineSpacing: '15px',
     textTop: '30px',
     containerPadding: '10vh',
-    titleBlockMargin: '50px'
+    titleBlockMargin: '20px'
   }
 }) => {
   const containerRef = useRef(null)
@@ -161,7 +162,7 @@ const RotatedText = ({
   }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full relative" style={{ paddingTop: styles.containerPadding }}>
+    <div className="outer-container w-full relative" style={{ paddingTop: paddingTop }}>
         <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
           <h1 
             className="text-lg text-center title-span block text-black"
