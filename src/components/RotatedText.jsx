@@ -178,6 +178,7 @@ const RotatedText = ({
            height: '150vh',
            maxHeight: '100vh'  // 뷰포트 높이로 제한
          }}>
+      <div>  {/* 메인 콘텐츠를 감싸는 div */}
         <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
           <h1 
             className="text-lg text-center title-span block text-black pt-[1vh]"
@@ -241,64 +242,72 @@ const RotatedText = ({
         </div>
 
         <div 
-        ref={containerRef}
-        className="container w-full relative inline-block text-base leading-[1.5rem] text-left text-black"
-        style={{
-          wordWrap: 'break-word',
-          overflow: 'visible',
-          filter: `blur(${blurAmount}px)`,
-          transition: 'filter 0.3s ease',
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          display: 'block'
-        }}
-        role="article"
-        aria-label="전시회 설명 텍스트"
-      >
-        {/* 스크린 리더용 숨겨진 텍스트 */}
-        <div className="sr-only" tabIndex="0">
-          {text}
+          ref={containerRef}
+          className="container w-full relative inline-block text-base leading-[1.5rem] text-left text-black"
+          style={{
+            wordWrap: 'break-word',
+            overflow: 'visible',
+            filter: `blur(${blurAmount}px)`,
+            transition: 'filter 0.3s ease',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            display: 'block'
+          }}
+          role="article"
+          aria-label="전시회 설명 텍스트"
+        >
+          {/* 스크린 리더용 숨겨진 텍스트 */}
+          <div className="sr-only" tabIndex="0">
+            {text}
+          </div>
+          
+          <style jsx>{`
+            .container span.rotated-text {
+              display: block;
+              transform: rotate(${rotationAngle}deg);
+              transform-origin: center center;
+              white-space: nowrap;
+              margin-bottom: ${styles.lineSpacing};
+              position: relative;
+              top: ${styles.textTop};
+            }
+            
+            .container span.font-serif {
+              font-family: serif;
+            }
+            
+            .container span.italic {
+              font-style: italic;
+            }
+            .navigation-button {
+              display: block;
+              transform: rotate(${rotationAngle}deg);
+              transform-origin: center center;
+              white-space: nowrap;
+              margin-bottom: 20px;
+              position: relative;
+              top: 60px;
+            }
+            .sr-only {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              padding: 0;
+              margin: -1px;
+              overflow: hidden;
+              clip: rect(0, 0, 0, 0);
+              white-space: nowrap;
+              border-width: 0;
+            }
+          `}</style>
         </div>
-        
-        <style jsx>{`
-          .container span.rotated-text {
-            display: block;
-            transform: rotate(${rotationAngle}deg);
-            transform-origin: center center;
-            white-space: nowrap;
-            margin-bottom: ${styles.lineSpacing};
-            position: relative;
-            top: ${styles.textTop};
-          }
-          
-          .container span.font-serif {
-            font-family: serif;
-          }
-          
-          .container span.italic {
-            font-style: italic;
-          }
-          .navigation-button {
-            display: block;
-            transform: rotate(${rotationAngle}deg);
-            transform-origin: center center;
-            white-space: nowrap;
-            margin-bottom: 20px;
-            position: relative;
-            top: 60px;
-          }
-          .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-          }
-        `}</style>
+      </div>
+
+      {/* 하단 메시지 */}
+      <div className="w-full mt-[10vh] py-8">
+        <div className="w-[90%] mx-auto bg-black text-white p-2 text-center text-sm">
+          휴대폰을 흔들면 메뉴가 열립니다.
+        </div>
       </div>
     </div>
   )
