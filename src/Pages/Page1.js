@@ -165,7 +165,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
       </div> */}
       {showAngleOverlay && (
-        <div className="fixed top-3 right-3 text-sm z-50">
+        <div className="fixed top-3 right-3 text-lg z-50">
           <p>{Math.round(currentAlpha)}°</p>
           <p>{targetAlpha}°</p>
         </div>
