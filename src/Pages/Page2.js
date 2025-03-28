@@ -14,6 +14,9 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const [hideTimer, setHideTimer] = useState(null);
   const [showHeader, setShowHeader] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAlphaGuide, setShowAlphaGuide] = useState(false);
+  const [alphaGuideTimer, setAlphaGuideTimer] = useState(null);
+  const [hideAlphaGuideTimer, setHideAlphaGuideTimer] = useState(null);
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 330  // 알파 값만 사용
@@ -25,9 +28,9 @@ const Page2 = ({ onMotionPermissionGranted }) => {
   const title = "코 없는 코끼리 no.2"
   const artist = "엄정순"
   const caption = "2024~2025, 설치, 고밀도 스티로폼,재생 플라스틱 플레이크, <br>금속, 230(h)X150(W)280(D)cm. 국립아시아문화전당 제작 지원, 작가 제공."
-  const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br>[다음]`
+  const originalText = `이 설치작품은 엄정순 작가의 코 없는 코끼리 no.2입니다. 높이 2ｍ 30㎝, 너비 1m 50㎝, 길이 2ｍ 80㎝에 이르는 대형 작품은 철골 구조 위에 고밀도 스티로폼과 재생 플라스틱 플레이크를 덧붙여 제작되었고, 그 위를 투박한 질감의 도장으로 마감하여 표면은 매끄럽지 않습니다. 둥글고 묵직한 몸통은 실제 코끼리처럼 크고, 두툼한 다리로 땅을 단단히 딛고 있습니다. <br><span class="cursor-pointer" onClick={handleNextClick}>[다음]</span>`
 
-  const originalText2 = `[이전]<br>하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 '이방인', '타자', 그리고 '보이지 않는 것'의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. <span class="font-serif italic">코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?</span>`
+  const originalText2 = `<span class="cursor-pointer" onClick={handlePrevClick}>[이전]</span><br>하지만 그 중심에서 중요한 것이 사라졌습니다. 코입니다. 작가는 이 코끼리를 '이방인', '타자', 그리고 '보이지 않는 것'의 상징으로 제시합니다. 우리는 코가 없는 이 형상을 보며 익숙한 이미지와 다름을 느끼고, 자연스럽게 질문하게 됩니다. <span class="font-serif italic">코가 없으면 코끼리가 아닐까요? 보이지 않으면 존재하지 않는 걸까요? 당신이 알고 있던 코끼리의 모습은 정말 단 하나뿐인가요?</span>`
   // iOS 디바이스 체크
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
@@ -165,16 +168,53 @@ const Page2 = ({ onMotionPermissionGranted }) => {
     artistMargin: '30px',     // 작가명 여백 증가
     lineSpacing: '10px',      // 행간 증가
     textTop: '30px',          // 텍스트 상단 여백 증가
-    containerPadding: '10vh', // 컨테이너 패딩 증가
-    titleBlockMargin: '40px'  // 제목 블록 여백 증가
+    containerPadding: '5vh', // 컨테이너 패딩 증가
+    titleBlockMargin: '40px',  // 제목 블록 여백 증가
   }
+
+  // 타이머 로직을 수정
+  useEffect(() => {
+    const alphaDiff = Math.abs(currentAlpha - targetAlpha);
+    
+    if (alphaDiff <= tolerance) {
+        // 허용 범위 안에 들어왔을 때
+        if (showAlphaGuide) {
+            if (hideAlphaGuideTimer) clearTimeout(hideAlphaGuideTimer);
+            const timer = setTimeout(() => {
+                setShowAlphaGuide(false);
+            }, 3000);
+            setHideAlphaGuideTimer(timer);
+        }
+        
+        if (alphaGuideTimer) {
+            clearTimeout(alphaGuideTimer);
+            setAlphaGuideTimer(null);
+        }
+    } else {
+        // 허용 범위 밖에 있을 때
+        if (!alphaGuideTimer && !showAlphaGuide) {
+            const timer = setTimeout(() => {
+                setShowAlphaGuide(true);
+            }, 4000);
+            setAlphaGuideTimer(timer);
+        }
+    }
+
+    return () => {
+        if (alphaGuideTimer) clearTimeout(alphaGuideTimer);
+        if (hideAlphaGuideTimer) clearTimeout(hideAlphaGuideTimer);
+    };
+  }, [currentAlpha, targetAlpha, tolerance, showAlphaGuide]);
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
-      {/* 현재 알파값 항상 표시 */}
-      <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
-      </div>
+      {/* 알파값 가이드 표시 */}
+      {showAlphaGuide && (
+          <div className="fixed top-4 right-4">
+              <p className="text-lg">{Math.round(currentAlpha)}°</p>
+              <p className="text-lg">{targetAlpha}°</p>
+          </div>
+      )}
 
       <div className="w-full pt-[10px]">
         <RotatedText 
@@ -185,6 +225,7 @@ const Page2 = ({ onMotionPermissionGranted }) => {
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
+          rotationAngle={-30}
         />
       </div>
     </div>

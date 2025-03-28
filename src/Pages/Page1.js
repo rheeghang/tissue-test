@@ -139,10 +139,10 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-exhibition-bg overflow-hidden relative">
-      {/* 현재 알파값 항상 표시 */}
+      {/* 현재 알파값 항상 표시
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
-      </div>
+      </div> */}
 
       <div className="w-full pt-[10px]">
         <RotatedText 
