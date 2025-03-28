@@ -98,7 +98,6 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         let blur;
         if (alphaDiff <= tolerance) {
             blur = 0;
-            // 타이머 로직을 별도의 useEffect로 이동
         } else {
             if (alphaDiff <= clearThreshold) {
                 const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
@@ -111,6 +110,16 @@ const Page2 = ({ onMotionPermissionGranted }) => {
         setBlurAmount(blur);
     }
   }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur]);
+
+  // 이벤트 리스너 등록 추가 (Page1.js와 동일)
+  useEffect(() => {
+    if (isOrientationEnabled) {  // orientation이 활성화된 경우에만 이벤트 리스너 등록
+        window.addEventListener('deviceorientation', handleOrientation);
+        return () => {
+            window.removeEventListener('deviceorientation', handleOrientation);
+        };
+    }
+  }, [handleOrientation, isOrientationEnabled]);
 
   // 타이머 로직을 별도의 useEffect로 분리
   useEffect(() => {
