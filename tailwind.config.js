@@ -36,7 +36,7 @@ module.exports = {
         }
       },
       animation: {
-        'rotate-left': 'rotate-left 10s linear infinite'
+        'rotate-left': 'rotate-left 15s linear infinite'
       }
     },
   },
