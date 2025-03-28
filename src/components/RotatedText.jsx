@@ -306,7 +306,7 @@ const RotatedText = ({
 
       {/* 조건부로 하단 메시지 렌더링 */}
       {showShakeMessage && (
-        <div className="w-full mt-[12vh] py-8">
+        <div className="w-full mt-[10vh] py-8">
           <div className="w-[90%] mx-auto bg-black text-white p-2 text-center text-sm">
             휴대폰을 흔들면 메뉴가 열립니다.
           </div>
