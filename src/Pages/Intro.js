@@ -7,7 +7,7 @@ const Intro = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white text-black">
 
-      <div className="mt-auto mb-[10vh] w-full max-w-2xl px-10 py-10 rotate-180">
+      <div className="mt-auto mb-[8vh] w-full max-w-2xl px-10 py-10 rotate-180">
         <h1 className="text-xl leading-base mb-6 text-center">2025 ACC 접근성 강화 주제전
         <br></br>
         우리의 몸에는 타인이 깃든다

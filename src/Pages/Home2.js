@@ -36,7 +36,6 @@ const Home = () => {
   const [gamma, setGamma] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState('#FACFBA');
   const [showModal, setShowModal] = useState(true);
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [blurAmounts, setBlurAmounts] = useState([10, 10, 10]);
@@ -48,39 +47,6 @@ const Home = () => {
   const SHAKE_THRESHOLD = 30;
   const SHAKE_INTERVAL = 1000;
   let lastShakeTime = 0;
-
-  // 16진수 색상값을 안전하게 처리하는 함수
-  const toHex = (n) => {
-    const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  };
-
-  // 색상 보간 함수 수정
-  const interpolateColor = useCallback((gamma) => {
-    // 감마값을 0~1 사이로 안전하게 정규화
-    const normalizedGamma = Math.max(0, Math.min(1, (gamma + 90) / 180));
-    
-    // 시작색과 끝색 정의
-    const start = {
-    //   r: 0xFA,
-    //   g: 0xCF,
-    //   b: 0xBA
-    };
-    
-    const end = {
-    //   r: 0xFF,
-    //   g: 0xE9,
-    //   b: 0x7B
-    };
-
-    // RGB 값 보간
-    const r = start.r + (end.r - start.r) * normalizedGamma;
-    const g = start.g + (end.g - start.g) * normalizedGamma;
-    const b = start.b + (end.b - start.b) * normalizedGamma;
-
-    // 안전한 16진수 변환
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  }, []);
 
   const requestPermission = () => {
     if (
@@ -106,23 +72,15 @@ const Home = () => {
     if (event.alpha !== null) {
       setCurrentAlpha(event.alpha);
       
-      // 감마값이 존재할 때만 배경색 변경
-      if (event.gamma !== null && !isNaN(event.gamma)) {
-        const newColor = interpolateColor(event.gamma);
-        setBackgroundColor(newColor);
-      }
-
       // 각 박스별로 블러 계산
       const newBlurAmounts = boxAngles.map((targetAngle, index) => {
         let angleDiff;
         
         if (index === 0) {
-          // 첫 번째 박스는 0도와 360도 모두 체크
           const diff1 = Math.abs(event.alpha - 0);
           const diff2 = Math.abs(event.alpha - 360);
           angleDiff = Math.min(diff1, diff2);
         } else {
-          // 나머지 박스들은 단순 차이 계산
           angleDiff = Math.abs(event.alpha - targetAngle);
         }
 
@@ -134,7 +92,7 @@ const Home = () => {
       
       setBlurAmounts(newBlurAmounts);
     }
-  }, [interpolateColor]);
+  }, []);
 
   const handleMotion = (event) => {
     const now = Date.now();
@@ -163,11 +121,6 @@ const Home = () => {
       setAlpha(event.alpha); // Z축 회전 (Yaw)
       setBeta(event.beta);   // X축 기울기 (Pitch)
       setGamma(event.gamma); // Y축 기울기 (Roll)
-
-      // 뒤집힌 경우 (베타가 +90도 또는 -90도에 가까운 경우) - 색상 변경
-      if (Math.abs(event.beta) > 80) {
-        setBackgroundColor(interpolateColor(event.gamma));
-      }
     };
 
     if (permissionGranted) {
@@ -189,13 +142,7 @@ const Home = () => {
   }, [handleOrientation]);
 
   return (
-    <div 
-      className="relative min-h-screen overflow-hidden"
-      style={{ 
-        backgroundColor,
-        transition: 'background-color 0.3s ease'
-      }}
-    >
+    <div className="relative min-h-screen overflow-hidden bg-white">
       <Modal 
         isOpen={!permissionGranted && showModal}
         onClose={() => setShowModal(false)}
@@ -204,8 +151,6 @@ const Home = () => {
 
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
         <p className="text-xl font-medium text-gray-800">{Math.round(alpha)}°</p>
-        {/* <p className="text-xs font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
-        <p className="text-xs font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p> */}
       </div>
 
       {/* 3개의 고정 회전 텍스트 박스 */}
