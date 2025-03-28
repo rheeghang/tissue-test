@@ -13,6 +13,7 @@ const RotatedText = ({
   paddingTop = '10vh',
   showGuideMessage,
   useGuideMessage = false,
+  showShakeMessage = false,
   styles = {
     titleMargin: '20px',
     artistMargin: '20px',
@@ -170,13 +171,13 @@ const RotatedText = ({
   }, [text, onNextClick, onPrevClick])
 
   return (
-    <div className="outer-container w-full min-h-screen overflow-y-auto relative" 
+    <div className="outer-container w-full min-h-screen overflow-y-auto relative flex flex-col justify-between" 
          style={{ 
            overflowY: 'auto',
            paddingTop: paddingTop,
            paddingBottom: '120px',
-           height: '150vh',
-           maxHeight: '100vh'  // 뷰포트 높이로 제한
+           height: '100vh',
+           maxHeight: '100vh'
          }}>
       <div>  {/* 메인 콘텐츠를 감싸는 div */}
         <div className="text-block text-black" style={{ marginBottom: styles.titleBlockMargin }}>
@@ -303,12 +304,14 @@ const RotatedText = ({
         </div>
       </div>
 
-      {/* 하단 메시지 */}
-      <div className="w-full mt-[10vh] py-8">
-        <div className="w-[90%] mx-auto bg-black text-white p-2 text-center text-sm">
-          휴대폰을 흔들면 메뉴가 열립니다.
+      {/* 조건부로 하단 메시지 렌더링 */}
+      {showShakeMessage && (
+        <div className="w-full mt-[12vh] py-8">
+          <div className="w-[90%] mx-auto bg-black text-white p-2 text-center text-sm">
+            휴대폰을 흔들면 메뉴가 열립니다.
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

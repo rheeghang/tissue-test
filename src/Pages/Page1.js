@@ -180,6 +180,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
           blurAmount={getBlurAmount()}
           onNextClick={handleNextClick}
           onPrevClick={handlePrevClick}
+          showShakeMessage={true}
         />
       </div>
 
