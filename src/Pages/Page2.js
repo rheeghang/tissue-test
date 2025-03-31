@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
+import { useMode } from '../contexts/ModeContext';
 
 const Page2 = ({ onMotionPermissionGranted }) => {
-  const [blurAmount, setBlurAmount] = useState(10)
+  const [blurAmount, setBlurAmount] = useState(30)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)

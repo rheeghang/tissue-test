@@ -6,7 +6,6 @@ import Page1 from './Pages/Page1'
 import Home2 from './Pages/Home2'
 import Page2 from './Pages/Page2'
 import Page3 from './Pages/Page3'
-import { AngleModeProvider } from './contexts/AngleModeContext'
 import { GuideProvider } from './contexts/GuideContext'
 import { ModeProvider } from './contexts/ModeContext'
 
