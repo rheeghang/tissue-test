@@ -9,7 +9,7 @@ const Page3 = () => {
 
   return (
     <div className="min-h-screen bg-black fixed w-full">
-      <div className="outer-container rotate-[-45deg] text-black relative w-[90%] h-[130vh] items-center justify-center">
+      <div className="outer-container rotate-[45deg] text-black relative w-[90%] h-[130vh] items-center justify-center">
         <div 
           className="container h-[150vh] max-w-2xl overflow-y-auto overflow-x-hidden"
           style={{
