@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RotatedText from '../components/RotatedText'
 import { useGuide } from '../contexts/GuideContext'
+import { useMode } from '../contexts/ModeContext';
 
 const Page1 = ({ onMotionPermissionGranted }) => {
-  const [blurAmount, setBlurAmount] = useState(10)
+  const [blurAmount, setBlurAmount] = useState(30)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
@@ -18,6 +19,7 @@ const Page1 = ({ onMotionPermissionGranted }) => {
   const [showAngleOverlay, setShowAngleOverlay] = useState(false);
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
   const { showGuideMessage } = useGuide();
+  const { isOrientationMode } = useMode();
 
   // 목표 각도 및 허용 범위 설정
   const targetAlpha = 45  // 알파 값만 사용
@@ -93,30 +95,24 @@ const Page1 = ({ onMotionPermissionGranted }) => {
 
   // 방향 감지 이벤트 핸들러
   const handleOrientation = useCallback((event) => {
-    if (event.alpha !== null) {
-        setCurrentAlpha(event.alpha);
-        
-        // 각도 차이 계산 단순화
-        const alphaDiff = Math.abs(event.alpha - targetAlpha);
-        setMaxAngleDiff(alphaDiff);
-        
-        // 블러 계산
-        let blur;
-        if (alphaDiff <= tolerance) {
-            blur = 0;
-            // 목표 각도 범위 안에 있을 때
-            
-            if (alphaDiff <= clearThreshold) {
-                const normalizedDiff = (alphaDiff - tolerance) / (clearThreshold - tolerance);
-                blur = 3 * normalizedDiff;
-            } else {
-                const normalizedDiff = (alphaDiff - clearThreshold) / (maxDistance - clearThreshold);
-                blur = 3 + (maxBlur - 3) * normalizedDiff;
-            }
-        }
-        setBlurAmount(blur);
+    // 방향 모드가 꺼져있으면 블러 효과 제거
+    if (!isOrientationMode) {
+      setBlurAmount(0);
+      return;
     }
-  }, [targetAlpha, tolerance, clearThreshold, maxDistance, maxBlur, showAngles, hideTimer, outOfRangeTimer]);
+
+    const alpha = event.alpha || 0;
+    const distance = Math.abs(alpha - targetAlpha);
+    
+    let blur = maxBlur;
+    if (distance <= tolerance) {
+      blur = 0;
+    } else if (distance <= clearThreshold) {
+      blur = (distance - tolerance) * (maxBlur / (clearThreshold - tolerance));
+    }
+    
+    setBlurAmount(blur);
+  }, [isOrientationMode, targetAlpha, tolerance, clearThreshold, maxBlur]);
 
   // 이벤트 리스너 등록 단순화
   useEffect(() => {

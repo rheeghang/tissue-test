@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import ToggleSwitch from './ToggleSwitch';
+import { useMode } from '../contexts/ModeContext';
 
 const Menu = ({ isOpen, onClose }) => {
+  const { isOrientationMode, setIsOrientationMode } = useMode();
   const [isAngleMode, setIsAngleMode] = useState(false);
 
   const menuItems = [
@@ -46,6 +48,10 @@ const Menu = ({ isOpen, onClose }) => {
             </ul>
           </nav>
           <div className="py-4">
+            <ToggleSwitch 
+              isOn={isOrientationMode} 
+              onToggle={() => setIsOrientationMode(!isOrientationMode)} 
+            />
             <ToggleSwitch 
               isOn={isAngleMode} 
               onToggle={() => setIsAngleMode(!isAngleMode)} 

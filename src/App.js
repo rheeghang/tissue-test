@@ -8,24 +8,26 @@ import Page2 from './Pages/Page2'
 import Page3 from './Pages/Page3'
 import { AngleModeProvider } from './contexts/AngleModeContext'
 import { GuideProvider } from './contexts/GuideContext'
+import { ModeProvider } from './contexts/ModeContext'
 
 function App() {
   return (
-    <GuideProvider>
-      <AngleModeProvider>
-        <Layout>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Home2 />} />
-              <Route path="/1" element={<Page1 />} />
-              <Route path="/2" element={<Page2 />} />
-              <Route path="/3" element={<Page3 />} />
-              <Route path="/intro" element={<Intro />} />
-            </Routes>
-          </Router>
-        </Layout>
-      </AngleModeProvider>
-    </GuideProvider>
+    <ModeProvider>
+      <GuideProvider>
+          <Layout>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Home2 />} />
+                <Route path="/1" element={<Page1 />} />
+                <Route path="/2" element={<Page2 />} />
+                <Route path="/3" element={<Page3 />} />
+                <Route path="/intro" element={<Intro />} />
+              </Routes>
+            </Router>
+          </Layout>
+
+      </GuideProvider>
+    </ModeProvider>
   )
 }
 
