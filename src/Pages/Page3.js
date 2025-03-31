@@ -11,7 +11,7 @@ const Page3 = () => {
   const targetAlpha = 45;  // 목표 각도
   const tolerance = 25;    // 완전히 선명해지는 범위
   const clearThreshold = 35;  // 읽을 수 있는 범위
-  const maxBlur = 30;     // 최대 블러값
+  const maxBlur = 25;     // 최대 블러값
   const maxDistance = 45;  // 최대 거리
 
   useEffect(() => {
@@ -41,6 +41,7 @@ const Page3 = () => {
           className="container h-[150vh] max-w-2xl overflow-y-auto overflow-x-hidden"
           style={{
             filter: `blur(${blurAmount}px)`,
+            transition: 'filter 0.3s ease',
             transform: 'translateZ(0)',
             maxHeight: '120vh',
             overflowY: 'auto',
@@ -50,7 +51,7 @@ const Page3 = () => {
           }}
         >
           <div className='container p-10 mt-[55vh] bg-cyan-500 mb-[100vh] relative w-[100%]'>
-            <div className="text-center mb-8" style={{ filter: `blur(${blurAmount}px)`, transition: 'filter 0.3s ease' }}>
+            <div className="text-center mb-8">
               <h1 className="text-xl font-bold mb-4">{title}</h1>
               <p className="text-base mb-2">{artist}</p>
               <p className="text-xs" dangerouslySetInnerHTML={{ __html: caption }} />
@@ -58,7 +59,6 @@ const Page3 = () => {
             
             <div 
               className="text-base leading-relaxed break-keep"
-              style={{ filter: `blur(${blurAmount}px)`, transition: 'filter 0.3s ease' }}
             >
             작품은 하나의 원형 무대와도 같습니다. 바닥은 카펫으로 덮여 있고, 주변에는 앉거나 누울 수 있는 방석이 있습니다.
             천장을 올려다보면, 하나의 커다란 영상이 펼쳐집니다. 몸들이 구르고, 서로 기대고, 연결되며 만들어낸 영상 속 움직임은 별자리처럼 투영됩니다. 
