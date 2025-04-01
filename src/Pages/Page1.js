@@ -28,8 +28,8 @@ const Page1 = () => {
     <div className="min-h-screen bg-black fixed w-full">
       <div className="outer-container rotate-[105deg] top-[-20vh] relative w-[95%] h-[140vh] items-center justify-center"
         style={{
-          // filter: `blur(${blurAmount}px)`, 
-          // transition: 'filter 0.3s ease'
+          filter: `blur(${blurAmount}px)`, 
+          transition: 'filter 0.3s ease'
         }}
       >
         <div 

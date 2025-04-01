@@ -35,11 +35,11 @@ const Home1 = ({ onStartClick }) => {
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
+  const [boxColor, setBoxColor] = useState("#FF5218"); // 초기 박스 색상
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState("cyan"); // 기본 배경색
   const [showModal, setShowModal] = useState(true);
   const [showControls, setShowControls] = useState(false); // 추가: 컨트롤 표시 상태
-  const [showStartButton, setShowStartButton] = useState(false); // 수정: 시작하기 버튼 표시 상태
+  const [showStartButton, setShowStartButton] = useState(false);
   const { title, subtitle } = koData.home1;
   const navigate = useNavigate();
   const targetAlpha = 0;
@@ -49,7 +49,7 @@ const Home1 = ({ onStartClick }) => {
     return Math.round(angle / 15) * 15;
   };
 
-  // 랜덤 색상 생성 함수
+  // 완전 랜덤 색상 생성 함수
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -81,36 +81,47 @@ const Home1 = ({ onStartClick }) => {
 
   useEffect(() => {
     const handleOrientation = (event) => {
-      setAlpha(event.alpha); // Z축 회전 (Yaw)
-      setBeta(event.beta);   // X축 기울기 (Pitch)
-      setGamma(event.gamma); // Y축 기울기 (Roll)
+      setAlpha(prevAlpha => {
+        const newAlpha = event.alpha || 0;
+        return prevAlpha + (newAlpha - prevAlpha) * 0.1;
+      });
+      setBeta(prevBeta => {
+        const newBeta = event.beta || 0;
+        return prevBeta + (newBeta - prevBeta) * 0.1;
+      });
+      setGamma(prevGamma => {
+        const newGamma = event.gamma || 0;
+        return prevGamma + (newGamma - prevGamma) * 0.1;
+      });
 
-      // 뒤집힌 경우 (베타가 +90도 또는 -90도에 가까운 경우) - 색상 변경
-      if (Math.abs(event.beta) > 80) {
-        setBackgroundColor(getRandomColor());
+      // 180도 회전 감지 시 완전 랜덤 색상으로 변경
+      if (event.alpha > 170 && event.alpha < 190) {
+        setBoxColor(getRandomColor());
       }
     };
 
-    if (permissionGranted) {
+    if (typeof window !== 'undefined') {
       window.addEventListener("deviceorientation", handleOrientation);
     }
 
     return () => {
-      window.removeEventListener("deviceorientation", handleOrientation);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener("deviceorientation", handleOrientation);
+      }
     };
-  }, [permissionGranted]);
+  }, []);
 
-  // 수정: 시작하기 버튼만 3초 후 페이드 인
+  // 수정: 시작하기 버튼만 7초 후 페이드 인
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowStartButton(true);
-    }, 6000);
+    }, 7000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-gray-100 p-4">
       <Modal 
         isOpen={!permissionGranted && showModal}
         onClose={() => setShowModal(false)}
@@ -132,13 +143,14 @@ const Home1 = ({ onStartClick }) => {
       <div className="fixed inset-0 flex items-center justify-center z-0">
         <div
           style={{
-            backgroundColor: backgroundColor,
+            backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${alpha}deg)`,
+            transform: `rotate(${gamma}deg)`,
             width: '250px',
             height: '250px',
-            borderRadius: Math.abs(gamma) >= 90 ? '50%' : '0%'
+            borderRadius: Math.abs(gamma) >= 75 ? '50%' : '0%',
           }}
+          className="shadow-lg"
         />
       </div>
 

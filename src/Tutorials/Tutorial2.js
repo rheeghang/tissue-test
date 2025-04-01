@@ -1,16 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useBlurEffect } from '../hooks/useBlurEffect';
 
 const Tutorial2 = () => {
   const navigate = useNavigate();
-  const targetAlpha = 48; // 목표 각도
-  const { blurAmount, currentAlpha } = useBlurEffect(30);
+  const [alphaInit, setAlphaInit] = useState(null);
+  const rotateAngle = 48; // 텍스트 박스 회전 각도
+
+  useEffect(() => {
+    const handleOrientation = (event) => {
+      if (event.alpha == null) return;
+
+      if (alphaInit === null) {
+        setAlphaInit(event.alpha);
+      }
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, [alphaInit]);
+
+  const targetAlpha = alphaInit !== null ? (alphaInit + rotateAngle + 360) % 360 : rotateAngle;
+  const { blurAmount, currentAlpha } = useBlurEffect(targetAlpha);
+
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black">
       <div className="fixed top-2 left-0 right-0 space-y-1 text-center z-10">
-        <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+      <p className="text-xl font-bold text-white">init:{Math.round(alphaInit)}°</p>
+      <p className="text-xl font-bold text-white">target:{Math.round(targetAlpha)}°</p>
+      <p className="text-xl font-bold text-white">current:{Math.round(currentAlpha)}°</p>
       </div>
 
       {/* 회전 텍스트 박스 */}
