@@ -106,7 +106,7 @@ const Tutorial = () => {
       </div>
 
       {/* 회전 텍스트 박스 */}
-      <div className={`fixed left-1/2 top-[${step === 2 ? '30' : step === 3 ? '50' : '20'}vh] -translate-x-1/2 z-0 rotate-[${currentConfig.angle}deg]`}>
+      <div className={`fixed left-1/2 top-[${step === 2 ? '20vh' : step === 3 ? '50vh' : '20vh'}] -translate-x-1/2 z-0 rotate-[${currentConfig.angle}deg]`}>
         <div
           style={{
             filter: `blur(${blurAmount}px)`,
