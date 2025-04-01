@@ -6,10 +6,9 @@ export const useBlurEffect = (targetAlpha) => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const { isOrientationMode } = useMode();
 
+  // 고정된 기본값 사용
   const tolerance = 25;
-  const clearThreshold = 35;
   const maxBlur = 30;
-  const maxDistance = 45;
 
   useEffect(() => {
     const handleOrientation = (event) => {
@@ -22,14 +21,19 @@ export const useBlurEffect = (targetAlpha) => {
       setCurrentAlpha(alpha);
       const distance = Math.abs(alpha - targetAlpha);
       
-      let blur = maxBlur;
-      if (distance <= tolerance) {
-        blur = 0;
-      } else if (distance <= clearThreshold) {
-        blur = (distance - tolerance) * (maxBlur / (clearThreshold - tolerance));
+      // 360도 회전을 고려한 최단 거리 계산
+      const shortestDistance = Math.min(
+        distance,
+        Math.abs(distance - 360),
+        Math.abs(distance + 360)
+      );
+
+      // 단순화된 블러 계산
+      if (shortestDistance <= tolerance) {
+        setBlurAmount(0);
+      } else {
+        setBlurAmount(maxBlur);
       }
-      
-      setBlurAmount(blur);
     };
 
     window.addEventListener('deviceorientation', handleOrientation);

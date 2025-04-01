@@ -10,6 +10,11 @@ import Tutorial3 from './Tutorials/Tutorial3'
 import Page2 from './Pages/Page2'
 import Page3 from './Pages/Page3'
 import About from './Pages/About'
+import Page4 from './Pages/Page4'
+import Page5 from './Pages/Page5'
+import Page6 from './Pages/Page6'
+import Page7 from './Pages/Page7'
+import Page8 from './Pages/Page8'
 
 import { GuideProvider } from './contexts/GuideContext'
 import { ModeProvider } from './contexts/ModeContext'
@@ -38,6 +43,11 @@ function App() {
               <Route path="/2" element={<Page2 />} />
               <Route path="/3" element={<Page3 />} />
               <Route path="/about" element={<About />} />
+              <Route path="/4" element={<Page4 />} />
+              <Route path="/5" element={<Page5 />} />
+              <Route path="/6" element={<Page6 />} />
+              <Route path="/7" element={<Page7 />} />
+              <Route path="/8" element={<Page8 />} />
             </Route>
           </Routes>
         </GuideProvider>

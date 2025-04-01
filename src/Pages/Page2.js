@@ -5,19 +5,20 @@ import koData from '../i18n/ko.json';
 
 const Page2 = () => {
   const { title, artist, caption, body } = koData.page2;
-  const { blurAmount, currentAlpha, tolerance } = useBlurEffect(-45);
+  const targetAlpha = 315; // -45도를 315도로 변환
+  const { blurAmount, currentAlpha, tolerance } = useBlurEffect(targetAlpha);
   const { showGuideMessage } = useGuide();
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
 
   useEffect(() => {
     const now = Date.now();
-    const isOutOfRange = Math.abs(currentAlpha - -45) > tolerance;
+    const isOutOfRange = Math.abs(currentAlpha - targetAlpha) > tolerance;
     
     if (isOutOfRange) {
       if (!outOfRangeStartTime) {
         setOutOfRangeStartTime(now);
       } else if (now - outOfRangeStartTime >= 4000) {
-        // showGuideMessage();
+        showGuideMessage();
       }
     } else {
       setOutOfRangeStartTime(null);
@@ -44,7 +45,7 @@ const Page2 = () => {
           }}
         >
           <div 
-            className='container p-5 mt-[65vh] bg-page2-bg text-page2-text text-stroke-white-thin mb-[100vh] relative w-[100%]'
+            className='container p-8 mt-[65vh] bg-page2-bg text-page2-text text-stroke-white-thin mb-[100vh] relative w-[100%]'
           >
             <div className="text-center mb-8">
               <h1 className="text-xl font-bold mb-4">{title}</h1>

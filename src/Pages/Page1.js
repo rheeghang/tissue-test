@@ -17,7 +17,7 @@ const Page1 = () => {
       if (!outOfRangeStartTime) {
         setOutOfRangeStartTime(now);
       } else if (now - outOfRangeStartTime >= 4000) {
-        // showGuideMessage();
+        showGuideMessage();
       }
     } else {
       setOutOfRangeStartTime(null);
@@ -33,7 +33,7 @@ const Page1 = () => {
         }}
       >
         <div 
-          className="container h-[130vh] bg-white overflow-y-auto overflow-x-hidden"
+          className="container h-[130vh] overflow-y-auto overflow-x-hidden"
           style={{
             transform: 'translateZ(0)',
             maxHeight: '120vh',
@@ -44,7 +44,7 @@ const Page1 = () => {
           }}
         >
           <div 
-            className='container p-5 mt-[53vh] bg-page1-bg text-page1-text text-stroke-white-thin mb-[100vh] relative w-[100%]'
+            className='container p-8 mt-[53vh] bg-page1-bg text-page1-text text-stroke-white-thin mb-[100vh] relative w-[100%]'
           >
             <div className="text-center mb-8">
               <h1 className="text-xl font-bold mb-4">{title}</h1>

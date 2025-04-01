@@ -24,18 +24,35 @@ module.exports = {
         },
         'page1-bg': '#6BFFA2',  // 연두색
         'page1-text': '#FF38A7',  // 핑크
+
         'page2-bg': '#FFF100',  // 노란색
-        'page2-text': '#000000',  // 검정
+        'page2-text': '#0072BB',  
+
         'page3-bg': '#26277D',  // 진한 파란색
-        'page3-text': '#FFFFFF',  // 흰색
+        'page3-text': '#00EA67', 
+
+        'page4-bg': '#D0D0D0',  // 검정
+        'page4-text': '#FF5218',  // 흰색
+
+        'page5-bg': '#534546',  // 검정
+        'page5-text': '#FF93F5',  // 흰색
+
+        'page6-bg': '#A079DA',  // 검정
+        'page6-text': '#CCFF66',  // 흰색
+
+        'page7-bg': '#0F7CFF',  // 검정
+        'page7-text': '#E7FF00',  // 흰색
+
+        'page8-bg': '#FFCAE6',  // 검정
+        'page8-text': '#044E00',  // 흰색
+        
+        
 
         'key-color': '#FF5218',
       },
       lineHeight: {
         'base': '170%',  // 기본 행간을 170%로 설정
-      },
-      text: {
-        'lg': '1.15rem',
+        'relaxed': '175%',
       },
       keyframes: {
         'rotate-left': {
@@ -58,7 +75,7 @@ module.exports = {
     function({ addUtilities }) {
       const newUtilities = {
         '.text-stroke-thin': {
-          textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+          textShadow: '-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000',
         },
         '.text-stroke-medium': {
           textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
@@ -67,7 +84,7 @@ module.exports = {
           textShadow: '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000',
         },
         '.text-stroke-white-thin': {
-          textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff',
+          textShadow: '-0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff, 0.5px 0.5px 0 #fff',
         },
       }
       addUtilities(newUtilities, ['responsive', 'hover'])
