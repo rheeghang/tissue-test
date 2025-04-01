@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useBlurEffect } from '../hooks/useBlurEffect';
 import { useGuide } from '../contexts/GuideContext';
-import { useMenu } from '../contexts/MenuContext';
 
 const Tutorial = () => {
   const navigate = useNavigate();
@@ -13,7 +12,6 @@ const Tutorial = () => {
   const [currentGamma, setCurrentGamma] = useState(0);
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
   const { showGuideMessage } = useGuide();
-  const { setIsMenuOpen } = useMenu();
 
   // 각 단계별 설정
   const tutorialConfig = {
@@ -92,23 +90,26 @@ const Tutorial = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, [alphaInit]);
 
-  // shake 이벤트 처리를 위한 useEffect 추가
+  // shake 이벤트 관련 useEffect 수정
   useEffect(() => {
-    const handleShake = () => {
-      // 3단계에서만 메뉴 열기 허용
-      if (step === 3) {
-        setIsMenuOpen(true);
+    const originalShakeEvent = window.onshake;  // 기존 shake 이벤트 핸들러 저장
+
+    // shake 이벤트 핸들러 재정의
+    window.onshake = (e) => {
+      if (step !== 3) {
+        // 3단계가 아니면 shake 이벤트 무시
+        e.preventDefault();
+        return;
       }
+      // 3단계면 기존 shake 이벤트 핸들러 실행
+      originalShakeEvent?.(e);
     };
 
-    // shake 이벤트 리스너 등록
-    window.addEventListener('shake', handleShake);
-    
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    // cleanup
     return () => {
-      window.removeEventListener('shake', handleShake);
+      window.onshake = originalShakeEvent;  // 원래 이벤트 핸들러 복구
     };
-  }, [step, setIsMenuOpen]);
+  }, [step]);
 
   // 다음 단계로 이동
   const handleNext = () => {
