@@ -19,19 +19,36 @@ const Tutorial = () => {
       angle: 20,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
-      content: "국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다."
+      content: "국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.",
+      style: {
+        top: '30vh',
+        width: '320px'
+      },
+      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
     },
     2: {
       angle: 48,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
-      content: "큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거롭고 비생산적이며 낯설지만,"
+      content: "큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거롭고 비생산적이며 낯설지만,",
+      style: {
+        top: '40vh',
+        left: '40%',
+        width: '320px'
+      },
+      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
     },
     3: {
       angle: 120,
       bgColor: 'bg-key-color',
       textColor: 'text-white',
-      content: "'각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다."
+      content: "'각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.",
+      style: {
+        top: '70vh',
+        left: '-10%',
+        width: '320px'
+      },
+      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
     }
   };
 
@@ -106,13 +123,18 @@ const Tutorial = () => {
       </div>
 
       {/* 회전 텍스트 박스 */}
-      <div className={`fixed left-1/2 top-[${step === 2 ? '20vh' : step === 3 ? '50vh' : '20vh'}] -translate-x-1/2 z-0 rotate-[${currentConfig.angle}deg]`}>
+      <div 
+        className={currentConfig.containerClassName}
+        style={{
+          ...currentConfig.style,
+          transform: `rotate(${currentConfig.angle}deg) translateX(-50%)`,
+          transformOrigin: 'center center',
+          filter: `blur(${blurAmount}px)`,
+          transition: 'filter 0.3s ease, transform 0.3s ease, top 0.3s ease',
+        }}
+      >
         <div
-          style={{
-            filter: `blur(${blurAmount}px)`,
-            transition: 'filter 0.3s ease',
-          }}
-          className={`w-80 p-4 ${currentConfig.bgColor} shadow-lg relative`}
+          className={`p-4 ${currentConfig.bgColor} shadow-lg relative`}
         >
           <p className={`text-lg leading-relaxed ${currentConfig.textColor} break-keep mb-8`}>
             {currentConfig.content}
