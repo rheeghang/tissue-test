@@ -28,9 +28,9 @@ const LayoutWrapper = ({ children }) => (
 function App() {
   return (
     <LanguageProvider>
-      <Router>
-        <ModeProvider>
-          <GuideProvider>
+      <ModeProvider>
+        <GuideProvider>
+          <Router>
             <Routes>
               {/* Layout 없이 렌더링되는 라우트들 */}
               <Route path="/" element={<Home1 />} />
@@ -52,9 +52,9 @@ function App() {
                 <Route path="/8" element={<Page8 />} />
               </Route>
             </Routes>
-          </GuideProvider>
-        </ModeProvider>
-      </Router>
+          </Router>
+        </GuideProvider>
+      </ModeProvider>
     </LanguageProvider>
   );
 }
