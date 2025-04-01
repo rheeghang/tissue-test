@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ToggleSwitch from './ToggleSwitch';
 import { useMode } from '../contexts/ModeContext';
 
 const Menu = ({ isOpen, onClose }) => {
   const { isOrientationMode, setIsOrientationMode } = useMode();
-  const [isAngleMode, setIsAngleMode] = useState(false);
 
   const menuItems = [
+    { id: 0, label: 'Home', path: '/' },
+    { id: 'about', label: 'About', path: '/about' },
     { id: 1, label: '보이지 않는 조각들: 공기조각', path: '/1' },
     { id: 2, label: '코 없는 코끼리 no.2', path: '/2' },
     { id: 3, label: '들리지 않는 속삭임-33번의 흔들림', path: '/3' },
@@ -51,10 +52,6 @@ const Menu = ({ isOpen, onClose }) => {
             <ToggleSwitch 
               isOn={isOrientationMode} 
               onToggle={() => setIsOrientationMode(!isOrientationMode)} 
-            />
-            <ToggleSwitch 
-              isOn={isAngleMode} 
-              onToggle={() => setIsAngleMode(!isAngleMode)} 
             />
           </div>
         </div>

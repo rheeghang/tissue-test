@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useBlurEffect } from '../hooks/useBlurEffect';
 import { useGuide } from '../contexts/GuideContext';
 import koData from '../i18n/ko.json';
+import enData from '../i18n/en.json';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Page6 = () => {
-  const { title, artist, caption, body } = koData.page6;
+  const { language } = useLanguage();
+  const data = language === 'ko' ? koData : enData;
+  const { title, artist, caption, body } = data.page6;
   const targetAlpha = 190;  // 135도 회전
   const { blurAmount, currentAlpha, tolerance } = useBlurEffect(targetAlpha);
   const { showGuideMessage } = useGuide();
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
+
+  const guideMessage = language === 'ko' 
+  ? "다음 작품으로 이동하려면 흔들어주세요."
+  : "Shake it to move to the next part";
 
   useEffect(() => {
     const now = Date.now();
@@ -59,7 +67,7 @@ const Page6 = () => {
         </div>
       </div>
       <div className="fixed top-3 right-10 left-10 items-center justify-center p-1 bg-white/50 text-black text-center text-sm">
-        다음 작품으로 이동하려면 흔들어주세요.
+        {guideMessage}
       </div>
     </div>
   );

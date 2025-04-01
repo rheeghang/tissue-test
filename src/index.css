@@ -8,7 +8,8 @@
 
 @layer base {
   body {
-    @apply m-0 bg-vivid-blue min-h-screen font-sans font-semibold antialiased overflow-hidden;
+    @apply m-0 bg-vivid-blue min-h-screen font-sans font-semibold antialiased 
+    overflow-hidden leading-base;
   }
 }
 

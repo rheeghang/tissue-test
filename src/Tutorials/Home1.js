@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import koData from '../i18n/ko.json';
+import enData from '../i18n/en.json';  // 영문 데이터 import 추가
 import { useNavigate } from 'react-router-dom';
 import { useBlurEffect } from '../hooks/useBlurEffect';
 
@@ -40,10 +41,15 @@ const Home1 = ({ onStartClick }) => {
   const [showModal, setShowModal] = useState(true);
   const [showControls, setShowControls] = useState(false); // 추가: 컨트롤 표시 상태
   const [showStartButton, setShowStartButton] = useState(false);
-  const { title, subtitle } = koData.home1;
+  const [language, setLanguage] = useState('ko');  // 언어 상태 추가
   const navigate = useNavigate();
   const targetAlpha = 0;
   const { blurAmount, currentAlpha } = useBlurEffect(targetAlpha);
+
+  // 현재 선택된 언어에 따라 데이터 선택
+  const data = language === 'ko' ? koData : enData;
+  const { title, subtitle } = data.home1;
+  const startButtonText = language === 'ko' ? '시작하기' : 'Start';  // 시작하기 버튼 텍스트
 
   const roundTo15Degrees = (angle) => {
     return Math.round(angle / 15) * 15;
@@ -120,6 +126,20 @@ const Home1 = ({ onStartClick }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // 언어 변경 핸들러
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);  // 선택한 언어를 localStorage에 저장
+  };
+
+  // 컴포넌트 마운트 시 저장된 언어 설정 불러오기
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Modal 
@@ -130,12 +150,13 @@ const Home1 = ({ onStartClick }) => {
 
       <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
         <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium">
-            {title}</h1>
+          {title}
+        </h1>
         <div className="items-center space-y-2 text-center z-11 font-bold text-black">
-        <p className="text-xl font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
-        <p className="text-xl font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
-        <p className="text-xl font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
-      </div>
+          <p className="text-xl font-medium text-gray-800">Z(α): {roundTo15Degrees(alpha)}°</p>
+          <p className="text-xl font-medium text-gray-800">X(β): {roundTo15Degrees(beta)}°</p>
+          <p className="text-xl font-medium text-gray-800">Y(γ): {roundTo15Degrees(gamma)}°</p>
+        </div>
       </div>
       
 
@@ -154,12 +175,22 @@ const Home1 = ({ onStartClick }) => {
         />
       </div>
 
-      {/* 시작하기 버튼과 언어 선택 */}
+      {/* 시작하기 버튼과 언어 선택 수정 */}
       <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
         <div className="text-lg font-bold text-black">
-          <span className="cursor-pointer">Ko</span>
+          <span 
+            className={`cursor-pointer ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
+            onClick={() => handleLanguageChange('ko')}
+          >
+            Ko
+          </span>
           <span className="mx-2">|</span>
-          <span className="cursor-pointer">En</span>
+          <span 
+            className={`cursor-pointer ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
+            onClick={() => handleLanguageChange('en')}
+          >
+            En
+          </span>
         </div>
         <button 
           onClick={() => navigate('/tutorial1')}
@@ -167,7 +198,7 @@ const Home1 = ({ onStartClick }) => {
             showStartButton ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          시작하기
+          {startButtonText}
         </button>
       </div>
     </div>

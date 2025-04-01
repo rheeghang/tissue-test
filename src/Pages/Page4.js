@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useBlurEffect } from '../hooks/useBlurEffect';
 import { useGuide } from '../contexts/GuideContext';
 import koData from '../i18n/ko.json';
+import enData from '../i18n/en.json';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Page4 = () => {
-  const { title, artist, caption, body } = koData.page4;
+  const { language } = useLanguage();
+  const data = language === 'ko' ? koData : enData;
+  const { title, artist, caption, body } = data.page4;
   const targetAlpha = 255; // 각도만 지정
   const { blurAmount, currentAlpha, tolerance } = useBlurEffect(targetAlpha); // 기본 설정 사용
   const { showGuideMessage } = useGuide();
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
+
+  const guideMessage = language === 'ko' 
+  ? "다음 작품으로 이동하려면 흔들어주세요."
+  : "Shake it to move to the next part";
 
   useEffect(() => {
     const now = Date.now();
@@ -58,7 +66,9 @@ const Page4 = () => {
           </div>
         </div>
       </div>
-      <div className="fixed top-3 right-10 left-10 items-center justify-center p-1 bg-white/50 text-black text-center text-sm">다음 작품으로 이동하려면 흔들어주세요.</div>
+      <div className="fixed top-3 right-10 left-10 items-center justify-center p-1 bg-white/50 text-black text-center text-sm">
+        {guideMessage}
+      </div>
     </div>
   );
 };

@@ -5,15 +5,29 @@ import { useBlurEffect } from '../hooks/useBlurEffect';
 const Tutorial2 = () => {
   const navigate = useNavigate();
   const [alphaInit, setAlphaInit] = useState(null);
+  const [currentAlpha, setCurrentAlpha] = useState(0);
+  const [currentBeta, setCurrentBeta] = useState(0);
+  const [currentGamma, setCurrentGamma] = useState(0);
   const rotateAngle = 48; // 텍스트 박스 회전 각도
 
   useEffect(() => {
     const handleOrientation = (event) => {
-      if (event.alpha == null) return;
+      const alpha = event.alpha ?? 0;
+      const beta = event.beta ?? 0;
+      const gamma = event.gamma ?? 0;
+
+      setCurrentAlpha(alpha);
+      setCurrentBeta(beta);
+      setCurrentGamma(gamma);
 
       if (alphaInit === null) {
-        setAlphaInit(event.alpha);
+        setAlphaInit(alpha);
       }
+
+      console.log(`🔍 Orientation:
+        Alpha (Z/yaw): ${alpha.toFixed(1)}°
+        Beta  (X/pitch): ${beta.toFixed(1)}°
+        Gamma (Y/roll): ${gamma.toFixed(1)}°`);
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
@@ -21,8 +35,7 @@ const Tutorial2 = () => {
   }, [alphaInit]);
 
   const targetAlpha = alphaInit !== null ? (alphaInit + rotateAngle + 360) % 360 : rotateAngle;
-  const { blurAmount, currentAlpha } = useBlurEffect(targetAlpha);
-
+  const { blurAmount } = useBlurEffect(targetAlpha);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black">
@@ -30,6 +43,7 @@ const Tutorial2 = () => {
       <p className="text-xl font-bold text-white">init:{Math.round(alphaInit)}°</p>
       <p className="text-xl font-bold text-white">target:{Math.round(targetAlpha)}°</p>
       <p className="text-xl font-bold text-white">current:{Math.round(currentAlpha)}°</p>
+      <p className="text-sm text-gray-300">beta:{Math.round(currentBeta)}° / gamma:{Math.round(currentGamma)}°</p>
       </div>
 
       {/* 회전 텍스트 박스 */}
@@ -95,4 +109,4 @@ const Tutorial2 = () => {
   );
 };
 
-export default Tutorial2; 
+export default Tutorial2;

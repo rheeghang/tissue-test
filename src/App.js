@@ -18,6 +18,7 @@ import Page8 from './Pages/Page8'
 
 import { GuideProvider } from './contexts/GuideContext'
 import { ModeProvider } from './contexts/ModeContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 // Layout이 필요한 라우트들을 감싸는 컴포넌트
 const LayoutWrapper = ({ children }) => (
@@ -26,33 +27,35 @@ const LayoutWrapper = ({ children }) => (
 
 function App() {
   return (
-    <Router>
-      <ModeProvider>
-        <GuideProvider>
-          <Routes>
-            {/* Layout 없이 렌더링되는 라우트들 */}
-            <Route path="/" element={<Home1 />} />
-            <Route path="/tutorial1" element={<Tutorial1 />} />
-            <Route path="/tutorial2" element={<Tutorial2 />} />
+    <LanguageProvider>
+      <Router>
+        <ModeProvider>
+          <GuideProvider>
+            <Routes>
+              {/* Layout 없이 렌더링되는 라우트들 */}
+              <Route path="/" element={<Home1 />} />
+              <Route path="/tutorial1" element={<Tutorial1 />} />
+              <Route path="/tutorial2" element={<Tutorial2 />} />
 
-            {/* Layout과 함께 렌더링되는 라우트들 */}
-            <Route element={<LayoutWrapper />}>
-              <Route path="/tutorial3" element={<Tutorial3 />} />
-              <Route path="/intro" element={<Intro />} />
-              <Route path="/1" element={<Page1 />} />
-              <Route path="/2" element={<Page2 />} />
-              <Route path="/3" element={<Page3 />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/4" element={<Page4 />} />
-              <Route path="/5" element={<Page5 />} />
-              <Route path="/6" element={<Page6 />} />
-              <Route path="/7" element={<Page7 />} />
-              <Route path="/8" element={<Page8 />} />
-            </Route>
-          </Routes>
-        </GuideProvider>
-      </ModeProvider>
-    </Router>
+              {/* Layout과 함께 렌더링되는 라우트들 */}
+              <Route element={<LayoutWrapper />}>
+                <Route path="/tutorial3" element={<Tutorial3 />} />
+                <Route path="/intro" element={<Intro />} />
+                <Route path="/1" element={<Page1 />} />
+                <Route path="/2" element={<Page2 />} />
+                <Route path="/3" element={<Page3 />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/4" element={<Page4 />} />
+                <Route path="/5" element={<Page5 />} />
+                <Route path="/6" element={<Page6 />} />
+                <Route path="/7" element={<Page7 />} />
+                <Route path="/8" element={<Page8 />} />
+              </Route>
+            </Routes>
+          </GuideProvider>
+        </ModeProvider>
+      </Router>
+    </LanguageProvider>
   );
 }
 
