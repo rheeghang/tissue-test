@@ -44,7 +44,7 @@ const Page3 = () => {
           }}
         >
           <div 
-            className='container p-5 mt-[55vh] bg-cyan-500 mb-[100vh] relative w-[100%]'
+            className='container p-5 mt-[55vh] bg-page3-bg text-page3-text text-stroke-white-thin mb-[100vh] relative w-[100%]'
           >
             <div className="text-center mb-8">
               <h1 className="text-xl font-bold mb-4">{title}</h1>

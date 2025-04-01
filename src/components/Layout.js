@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Menu from './Menu';
+import { Outlet } from 'react-router-dom';
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const SHAKE_THRESHOLD = 30;
@@ -45,13 +46,13 @@ const Layout = ({ children }) => {
   }, []);
 
   return (
-    <>
-      {children}
+    <div>
+      <Outlet />
       <Menu 
         isOpen={isMenuOpen} 
         onClose={() => setIsMenuOpen(false)}
       />
-    </>
+    </div>
   );
 };
 
