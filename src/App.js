@@ -32,10 +32,11 @@ function App() {
             <Routes>
               {/* Layout 없이 렌더링되는 라우트들 */}
               <Route path="/" element={<Home1 />} />
-              <Route path="/tutorial" element={<Tutorial />} />
+              
 
               {/* Layout과 함께 렌더링되는 라우트들 */}
               <Route element={<LayoutWrapper />}>
+                <Route path="/tutorial" element={<Tutorial />} />
                 <Route path="/intro" element={<Intro />} />
                 <Route path="/1" element={<Page1 />} />
                 <Route path="/2" element={<Page2 />} />
