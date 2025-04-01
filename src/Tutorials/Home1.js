@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import koData from '../i18n/ko.json';
+import { useNavigate } from 'react-router-dom';
+import { useBlurEffect } from '../hooks/useBlurEffect';
 
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -39,6 +41,9 @@ const Home1 = ({ onStartClick }) => {
   const [showControls, setShowControls] = useState(false); // 추가: 컨트롤 표시 상태
   const [showStartButton, setShowStartButton] = useState(false); // 수정: 시작하기 버튼 표시 상태
   const { title, subtitle } = koData.home1;
+  const navigate = useNavigate();
+  const targetAlpha = 0;
+  const { blurAmount, currentAlpha } = useBlurEffect(targetAlpha);
 
   const roundTo15Degrees = (angle) => {
     return Math.round(angle / 15) * 15;
