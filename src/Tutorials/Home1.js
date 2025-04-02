@@ -168,7 +168,7 @@ const Home1 = ({ onStartClick }) => {
           style={{
             backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${alpha}deg)`,  // 회전은 알파값 기준
+            transform: `rotate(${gamma}deg)`,  // 회전은 알파값 기준
             width: '250px',
             height: '250px',
             borderRadius: (gamma >= 55 && gamma <= 65) || 
