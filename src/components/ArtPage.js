@@ -9,6 +9,33 @@ import { useMode } from '../contexts/ModeContext';
 import MenuIcon from './MenuIcon';
 import Menu from './Menu';
 
+// Modal 컴포넌트 추가
+const Modal = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div 
+        className="fixed inset-0 bg-black/50 transition-opacity"
+        onClick={onClose}
+      ></div>
+      
+      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-xl font-bold text-gray-900">센서 권한 요청</h3>
+        <p className="mb-6 text-gray-600">
+          기기 방향 감지 센서 권한이 필요합니다.
+        </p>
+        <button
+          onClick={onConfirm}
+          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
+        >
+          허용
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ArtPage = () => {
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
@@ -26,6 +53,10 @@ const ArtPage = () => {
   const [showMenu, setShowMenu] = useState(false);
   const { isOrientationMode } = useMode();
   const [pageNumber, setPageNumber] = useState(0);
+
+  // 권한 관련 상태 추가
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [showModal, setShowModal] = useState(true);
 
   // 첫 페이지일 때는 Home1의 로직 사용
   const isHomePage = pageNumber === 0;
@@ -272,6 +303,27 @@ const ArtPage = () => {
   // toggleMenu 함수 추가
   const toggleMenu = () => {
     setShowMenu(prev => !prev);
+  };
+
+  // 권한 요청 함수
+  const requestPermission = () => {
+    if (
+      typeof DeviceMotionEvent !== "undefined" &&
+      typeof DeviceMotionEvent.requestPermission === "function"
+    ) {
+      DeviceMotionEvent.requestPermission()
+        .then((permissionState) => {
+          if (permissionState === "granted") {
+            console.log("Permission granted!");
+            setPermissionGranted(true);
+            setShowModal(false);
+          }
+        })
+        .catch(console.error);
+    } else {
+      setPermissionGranted(true);
+      setShowModal(false);
+    }
   };
 
   // 작품 페이지 렌더링 함수 수정
