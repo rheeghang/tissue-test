@@ -168,11 +168,11 @@ const Home1 = ({ onStartClick }) => {
           style={{
             backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${alpha}deg)`,  // gamma 대신 alpha 사용
+            transform: `rotate(${gamma}deg)`,  // gamma 대신 alpha 사용
             width: '250px',
             height: '250px',
-            borderRadius: (Math.abs(alpha) >= 75 && Math.abs(alpha) <= 105) || 
-                         (Math.abs(alpha) >= 235 && Math.abs(alpha) <= 265) 
+            borderRadius: (Math.abs(alpha) >= 65 && Math.abs(alpha) <= 115) || 
+                         (Math.abs(alpha) >= 225 && Math.abs(alpha) <= 305) 
                          ? '50%' : '0%',  // 90도나 250도 근처에서 원으로 변경
           }}
           className="shadow-lg"
