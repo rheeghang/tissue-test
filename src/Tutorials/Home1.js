@@ -171,7 +171,7 @@ const Home1 = ({ onStartClick }) => {
             transform: `rotate(${gamma}deg)`,
             width: '250px',
             height: '250px',
-            borderRadius: (Math.abs(gamma) >= 55 && Math.abs(gamma) <= 65) || 
+            borderRadius: (Math.abs(gamma) >= 45 && Math.abs(gamma) <= 65) || 
                          (Math.abs(gamma) >= -65 && Math.abs(gamma) <= -55) 
                          ? '125px' : '0px',
           }}
