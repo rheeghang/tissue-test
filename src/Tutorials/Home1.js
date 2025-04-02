@@ -168,12 +168,12 @@ const Home1 = ({ onStartClick }) => {
           style={{
             backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${gamma}deg)`,  // gamma 대신 alpha 사용
+            transform: `rotate(${alpha}deg)`,  // 회전은 알파값 기준
             width: '250px',
             height: '250px',
-            borderRadius: (Math.abs(gamma) >= -60 && Math.abs(gamma) <= -50) || 
-                         (Math.abs(gamma) >= 60 && Math.abs(gamma) <= 50) 
-                         ? '50%' : '0%',  // 90도나 250도 근처에서 원으로 변경
+            borderRadius: (gamma >= 55 && gamma <= 65) || 
+                         (gamma >= -65 && gamma <= -55)
+                         ? '50%' : '0%',  // 감마값 ±60도 부근에서 원으로 변경
           }}
           className="shadow-lg"
         />
