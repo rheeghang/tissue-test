@@ -102,8 +102,8 @@ const Home1 = ({ onStartClick }) => {
 
       // 감마값이 ±60도 또는 ±120도 부근일 때 색상 변경
       const currentGamma = event.gamma || 0;
-      if ((Math.abs(currentGamma) >= 55 && Math.abs(currentGamma) <= 65) || 
-          (Math.abs(currentGamma) >= 115 && Math.abs(currentGamma) <= 125)) {
+      if ((Math.abs(currentGamma) >= 65 && Math.abs(currentGamma) <= 45) || 
+          (Math.abs(currentGamma) >= -45 && Math.abs(currentGamma) <= -65)) {
         setBoxColor(getRandomColor());
       }
     };
