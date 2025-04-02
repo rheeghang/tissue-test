@@ -168,7 +168,7 @@ const Home1 = ({ onStartClick }) => {
           style={{
             backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${alpha}deg)`,
+            transform: `rotate(${gamma}deg)`,
             width: '250px',
             height: '250px',
             borderRadius: (Math.abs(gamma) >= 55 && Math.abs(gamma) <= 65) || 
