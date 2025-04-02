@@ -1,7 +1,20 @@
 {
     "home1": {
-        "title": "Crossing the Line: Our Bodies, Embedded with Others",
-        "subtitle": "2025 ACC CONTACT"
+        "title": "Change the angle and twist the perspective to understand the work in your own way",
+        "startButton": "Start"
+    },
+    "tutorial": {
+        "step1": "The Asia Culture Center has developed a docenting mobile web with Tissue Office to appreciate exhibitions from various perspectives.",
+        "step2": "Moving away from the universal docent function that delivers curator's commentary clearly and smoothly, it may be inconvenient and unproductive, but strange,",
+        "step3": "We want to take time to understand the work in our own way by changing the 'angle' and twisting the 'perspective'.",
+        "shakeGuide": "Shake to show menu"
+    },
+    "guide": {
+        "message": "Shake to move to the next work"
+    },
+    "menu": {
+        "close": "Close",
+        "orientationMode": "Angle Mode"
     },
     "exhibition": {
         "title": "2025 ACC CONTACT",

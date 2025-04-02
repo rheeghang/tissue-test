@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -28,7 +29,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
   );
 };
 
-const Home = ({ onStartClick }) => {
+const Home = ({ onStart }) => {
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
@@ -36,6 +37,7 @@ const Home = ({ onStartClick }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState("cyan"); // 기본 배경색
   const [showModal, setShowModal] = useState(true);
+  const { language } = useLanguage();
 
   const SHAKE_THRESHOLD = 15;
   const SHAKE_INTERVAL = 1000;
@@ -155,10 +157,10 @@ const Home = ({ onStartClick }) => {
       {/* 시작하기 버튼 */}
       <div className="fixed bottom-3 left-0 right-0 flex justify-center">
         <button 
-          onClick={onStartClick}
-          className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-colors hover:bg-gray-800"
+          onClick={onStart}
+          className={`start-button ${showModal ? 'opacity-0' : 'opacity-100'}`}
         >
-          시작하기
+          {language === 'ko' ? '시작하기' : 'Start'}
         </button>
       </div>
     </div>

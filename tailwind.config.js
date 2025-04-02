@@ -45,6 +45,8 @@ module.exports = {
 
         'page8-bg': '#FFCAE6',  // 검정
         'page8-text': '#044E00',  // 흰색
+
+        'base-color': '#E4E4E4',
         
         
 
