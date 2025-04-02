@@ -171,8 +171,8 @@ const Home1 = ({ onStartClick }) => {
             transform: `rotate(${alpha}deg)`,  // gamma 대신 alpha 사용
             width: '250px',
             height: '250px',
-            borderRadius: (Math.abs(alpha) >= 85 && Math.abs(alpha) <= 95) || 
-                         (Math.abs(alpha) >= 245 && Math.abs(alpha) <= 255) 
+            borderRadius: (Math.abs(alpha) >= 75 && Math.abs(alpha) <= 105) || 
+                         (Math.abs(alpha) >= 235 && Math.abs(alpha) <= 265) 
                          ? '50%' : '0%',  // 90도나 250도 근처에서 원으로 변경
           }}
           className="shadow-lg"
