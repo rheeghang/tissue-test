@@ -100,8 +100,10 @@ const Home1 = ({ onStartClick }) => {
         return prevGamma + (newGamma - prevGamma) * 0.1;
       });
 
-      // 180도 회전 감지 시 완전 랜덤 색상으로 변경
-      if (event.alpha > 170 && event.alpha < 190) {
+      // 90도나 250도 회전 감지 시 완전 랜덤 색상으로 변경
+      const currentAlpha = event.alpha || 0;
+      if ((currentAlpha > 85 && currentAlpha < 95) || 
+          (currentAlpha > 245 && currentAlpha < 255)) {
         setBoxColor(getRandomColor());
       }
     };
@@ -166,10 +168,12 @@ const Home1 = ({ onStartClick }) => {
           style={{
             backgroundColor: boxColor,
             transition: "all 0.3s ease",
-            transform: `rotate(${gamma}deg)`,
+            transform: `rotate(${alpha}deg)`,  // gamma 대신 alpha 사용
             width: '250px',
             height: '250px',
-            borderRadius: Math.abs(gamma) >= 75 ? '50%' : '0%',
+            borderRadius: (Math.abs(alpha) >= 85 && Math.abs(alpha) <= 95) || 
+                         (Math.abs(alpha) >= 245 && Math.abs(alpha) <= 255) 
+                         ? '50%' : '0%',  // 90도나 250도 근처에서 원으로 변경
           }}
           className="shadow-lg"
         />

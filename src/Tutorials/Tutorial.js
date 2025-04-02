@@ -16,7 +16,7 @@ const Tutorial = () => {
   // 각 단계별 설정
   const tutorialConfig = {
     1: {
-      angle: 20,
+      angle: 30,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
       content: "국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.",
@@ -27,13 +27,13 @@ const Tutorial = () => {
       containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
     },
     2: {
-      angle: 48,
+      angle: 80,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
       content: "큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거롭고 비생산적이며 낯설지만,",
       style: {
-        top: '40vh',
-        left: '40%',
+        top: '50vh',
+        left: '20%',
         width: '320px'
       },
       containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
@@ -58,7 +58,7 @@ const Tutorial = () => {
   // 가이드 메시지 표시 로직
   useEffect(() => {
     const now = Date.now();
-    const isOutOfRange = Math.abs(deviceAlpha - currentConfig.angle) > 20;
+    const isOutOfRange = Math.abs(deviceAlpha - currentConfig.angle) > 17;
     
     if (isOutOfRange) {
       if (!outOfRangeStartTime) {
