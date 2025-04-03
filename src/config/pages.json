@@ -2,35 +2,43 @@
   "pages": {
     "1": {
       "targetAlpha": 105,
-      "className": "bg-page1-bg text-page1-text text-stroke-white-thin"
+      "className": "bg-page1-bg text-page1-text text-stroke-white-thin",
+      "marginTop": "63vh"
     },
     "2": {
       "targetAlpha": 315,
-      "className": "bg-page2-bg text-page2-text text-stroke-white-thin"
+      "className": "bg-page2-bg text-page2-text text-stroke-white-thin",
+      "marginTop": "65vh"
     },
     "3": {
       "targetAlpha": 45,
-      "className": "bg-page3-bg text-page3-text text-stroke-thin"
+      "className": "bg-page3-bg text-page3-text text-stroke-thin",
+      "marginTop": "55vh"
     },
     "4": {
       "targetAlpha": 90,
-      "className": "bg-page4-bg text-page4-text text-stroke-white-thin"
+      "className": "bg-page4-bg text-page4-text text-stroke-white-thin",
+      "marginTop": "65vh"
     },
     "5": {
       "targetAlpha": 270,
-      "className": "bg-page5-bg text-page5-text text-stroke-thin"
+      "className": "bg-page5-bg text-page5-text text-stroke-thin",
+      "marginTop": "65vh"
     },
     "6": {
-      "targetAlpha": 180,
-      "className": "bg-page6-bg text-page6-text text-stroke-thin"
+      "targetAlpha": 190,
+      "className": "bg-page6-bg text-page6-text text-stroke-thin",
+      "marginTop": "45vh"
     },
     "7": {
       "targetAlpha": 135,
-      "className": "bg-page7-bg text-page7-text text-stroke-thin"
+      "className": "bg-page7-bg text-page7-text text-stroke-thin",
+      "marginTop": "65vh"
     },
     "8": {
       "targetAlpha": 225,
-      "className": "bg-page8-bg text-page8-text text-stroke-white-thin"
+      "className": "bg-page8-bg text-page8-text text-stroke-white-thin",
+      "marginTop": "65vh"
     }
   }
 } 

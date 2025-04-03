@@ -168,10 +168,11 @@ const ArtPage = () => {
     return color;
   };
 
-  // Tutorial 설정
+  // tutorialConfig 수정
   const tutorialConfig = {
     1: {
       angle: 30,
+      targetAlpha: 30, // 명시적으로 targetAlpha 추가
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
       content: data.tutorial.step1,
@@ -183,6 +184,7 @@ const ArtPage = () => {
     },
     2: {
       angle: 80,
+      targetAlpha: 80, // 명시적으로 targetAlpha 추가
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
       content: data.tutorial.step2,
@@ -195,6 +197,7 @@ const ArtPage = () => {
     },
     3: {
       angle: 120,
+      targetAlpha: 120, // 명시적으로 targetAlpha 추가
       bgColor: 'bg-key-color',
       textColor: 'text-white',
       content: data.tutorial.step3,
@@ -207,28 +210,9 @@ const ArtPage = () => {
     }
   };
 
-  // 튜토리얼 모드일 때의 가이드 메시지
-  useEffect(() => {
-    if (tutorialStep > 0) {
-      const currentConfig = tutorialConfig[tutorialStep];
-      const now = Date.now();
-      const isOutOfRange = Math.abs(currentAlpha - currentConfig.angle) > 17;
-      
-      if (isOutOfRange) {
-        if (!outOfRangeStartTime) {
-          setOutOfRangeStartTime(now);
-        } else if (now - outOfRangeStartTime >= 4000) {
-          showGuideMessage();
-        }
-      } else {
-        setOutOfRangeStartTime(null);
-      }
-    }
-  }, [currentAlpha, tutorialStep, outOfRangeStartTime]);
 
   // Home1 페이지에서 시작하기 버튼 클릭 시
   const handleStartClick = () => {
-    console.log('Tutorial 시작'); // 디버깅용
     setTutorialStep(1);  // 튜토리얼 시작
   };
 
@@ -359,7 +343,17 @@ const ArtPage = () => {
     setShowMenu(prev => !prev);
   };
 
-  // 작품 페이지 렌더링 함수 수정
+  // 페이지 번호가 변경될 때마다 스크롤 위치 초기화
+  useEffect(() => {
+    const containers = document.querySelectorAll('.container');
+    containers.forEach(container => {
+      if (container) {
+        container.scrollTop = 0;
+      }
+    });
+  }, [pageNumber]);
+
+  // 작품 페이지 렌더링 함수
   const renderArtworkPage = () => {
     if (pageNumber === 0) return null;
 
@@ -372,7 +366,10 @@ const ArtPage = () => {
     const { title, artist, caption, body } = pageContent;
     
     return (
-      <div className="min-h-screen bg-base-color fixed w-full">
+      <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
+        <div className="fixed top-2 left-0 right-0 text-center z-10">
+          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+        </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-2 right-2 z-20">
           <button onClick={() => setShowMenu(true)} className="p-2">
@@ -387,10 +384,11 @@ const ArtPage = () => {
           </p>
         </div> */}
 
-        <div className="outer-container relative w-[120%] h-[150vh] flex items-center justify-center"
+        <div className="outer-container absolute w-[120%] h-[150vh] flex items-center justify-center"
           style={{
             transform: `rotate(${config.targetAlpha}deg)`,
-            top: pageNumber === 3 ? '0' : '-30vh',
+            top: pageNumber === 3 ? '40%' : '50%',  // percentage 기반으로 변경
+            marginTop: '-75vh',  // height의 절반만큼 위로 올림
             filter: isOrientationMode ? `blur(${blurAmount}px)` : 'none',
             transition: 'filter 0.5s ease, transform 0.5s ease'
           }}
@@ -407,11 +405,9 @@ const ArtPage = () => {
             }}
           >
             <div 
-              className={`container p-8 w-[80%] ${config.className} text-stroke-white-thin shadow-lg mt-[50vh] mb-[100vh]`}
+              className={`container p-8 w-[80%] ${config.className} text-stroke-white-thin shadow-lg mt-[50vh] mb-[80vh]`}
               style={{
-                marginTop: pageNumber === 1 ? '63vh' :
-                          pageNumber === 3 ? '55vh' :
-                          pageNumber === 6 ? '45vh' : '65vh'
+                marginTop: config.marginTop
               }}
             >
               <div className="text-center mb-8">
@@ -428,12 +424,99 @@ const ArtPage = () => {
           </div>
         </div>
 
-        {/* 가이드 메시지 */}
+        {/* 가이드 메시지
         <div className="fixed top-3 right-10 left-10 items-center justify-center p-1 bg-white/50 text-black text-center text-sm">
           {language === 'ko' 
             ? "다음 작품으로 이동하려면 흔들어주세요."
             : "Shake it to move to the next part"
           }
+        </div> */}
+
+        {/* 메뉴 오버레이 */}
+        {showMenu && <Menu {...menuProps} />}
+      </div>
+    );
+  };
+
+  // 튜토리얼 관련 블러 효과 설정
+  useEffect(() => {
+    if (tutorialStep > 0) {
+      const currentConfig = tutorialConfig[tutorialStep];
+      if (currentConfig && currentConfig.targetAlpha) {
+        setTargetAlpha(currentConfig.targetAlpha);
+      }
+    }
+  }, [tutorialStep, setTargetAlpha]);
+
+  // 더블 터치 방지
+  useEffect(() => {
+    const handleTouchStart = (event) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+
+    const handleGestureStart = (event) => {
+      event.preventDefault();
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
+  }, []);
+
+  // 튜토리얼 렌더링 함수 수정
+  const renderTutorial = () => {
+    const currentConfig = tutorialConfig[tutorialStep];
+    
+    return (
+      <div className="relative min-h-screen overflow-hidden bg-base-color">
+        <div className="fixed top-2 left-0 right-0 text-center z-10">
+          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+        </div>
+
+        <div 
+          className={currentConfig.containerClassName}
+          style={{
+            ...currentConfig.style,
+            transform: `rotate(${currentConfig.angle}deg) translateX(-50%)`,
+            filter: `blur(${blurAmount}px)`,
+            transition: 'filter 0.3s ease, transform 0.3s ease',
+          }}
+        >
+          <div 
+            className={`p-4 ${currentConfig.bgColor} shadow-2xl relative`}
+          >
+            <p className={`text-lg leading-relaxed ${currentConfig.textColor} break-keep mb-8`}>
+              {currentConfig.content}
+            </p>
+            
+            <div className="mt-14">
+              
+              {tutorialStep === 3 ? (
+                <div 
+                  className="absolute bottom-2 right-2 cursor-pointer"
+                  onClick={toggleMenu}
+                >
+                  <MenuIcon />
+                </div>
+              ) : (
+                <div 
+                  className="absolute bottom-2 right-2 cursor-pointer"
+                  onClick={handleTutorialNext}
+                >
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" 
+                      stroke="#FF5218" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 메뉴 오버레이 */}
@@ -445,7 +528,6 @@ const ArtPage = () => {
   // 렌더링 부분 수정
   return (
     <>
-      {/* 권한 요청 모달을 항상 최상단에 렌더링 */}
       <Modal 
         isOpen={showModal}
         onClose={() => setShowModal(false)}
@@ -499,66 +581,7 @@ const ArtPage = () => {
         </div>
       ) : tutorialStep > 0 ? (
         // 튜토리얼 렌더링
-        <div className="relative min-h-screen overflow-hidden bg-base-color">
-          <div className="fixed top-2 left-0 right-0 text-center z-10">
-            <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
-          </div>
-
-          <div 
-            className={tutorialConfig[tutorialStep].containerClassName }
-            style={{
-              ...tutorialConfig[tutorialStep].style,
-              transform: `rotate(${tutorialConfig[tutorialStep].angle}deg) translateX(-50%)`,
-              filter: `blur(${blurAmount}px)`,
-              transition: 'filter 0.3s ease, transform 0.3s ease',
-            }}
-          >
-            <div 
-              className={`p-4 ${tutorialConfig[tutorialStep].bgColor} shadow-2xl relative rounded-lg`}
-            >
-              <p className={`text-lg leading-relaxed ${tutorialConfig[tutorialStep].textColor} break-keep mb-8`}>
-                {tutorialConfig[tutorialStep].content}
-              </p>
-              
-              <div className="mt-14">
-                
-                {tutorialStep === 3 ? (
-                  <div 
-                    className="absolute bottom-2 right-2 cursor-pointer"
-                    onClick={toggleMenu}
-                  >
-                    <MenuIcon />
-                  </div>
-                ) : (
-                  <div 
-                    className="absolute bottom-2 right-2 cursor-pointer"
-                    onClick={handleTutorialNext}
-                  >
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" 
-                        stroke="#FF5218" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {tutorialStep === 3 && (
-            <div 
-              className="fixed top-[20vh] rotate-[120deg] right-10 left-10 items-center justify-center p-1 bg-white/80 text-black text-center text-sm font-medium"
-              style={{
-                filter: `blur(${blurAmount}px)`,
-                transition: 'filter 0.3s ease',
-              }}
-            >
-              메뉴 아이콘을 클릭하세요
-            </div>
-          )}
-
-          {/* 메뉴 오버레이 */}
-          {showMenu && <Menu {...menuProps} />}
-        </div>
+        renderTutorial()
       ) : (
         // 작품 페이지 렌더링
         renderArtworkPage()
