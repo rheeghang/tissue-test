@@ -13,7 +13,7 @@ export const BlurProvider = ({ children }) => {
       setCurrentAlpha(alpha);
 
       const tolerance = 17;
-      const easeStartDistance = tolerance + 20; // 블러 감소 시작 지점
+      const easeStartDistance = tolerance + 90; // 블러 감소 시작 지점
       const difference = Math.abs(alpha - targetAlpha);
       
       if (difference <= tolerance) {
