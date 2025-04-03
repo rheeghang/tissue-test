@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import koData from '../i18n/ko.json';
 import enData from '../i18n/en.json';
 
-const Menu = ({ isOpen, onClose, onPageSelect }) => {
+const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { language } = useLanguage();
   
@@ -29,37 +29,17 @@ const Menu = ({ isOpen, onClose, onPageSelect }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center text-center">
-      <div className="w-80 bg-white bg-opacity-80 shadow-lg mx-3 my-3 max-h-[calc(100vh-80px)] flex flex-col relative">
-        {/* X 버튼 */}
-        <button 
-          onClick={onClose}
-          className="absolute top-2 right-2 rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors"
-          aria-label="닫기"
-        >
-          <svg 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-
-        {/* 상단 여백 추가 */}
-        <div className="h-16"></div>
+    <div className="fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center text-center">
+      <div className="w-80 bg-white bg-opacity-80 shadow-lg mx-3 my-3 max-h-[calc(100vh-80px)] flex flex-col relative z-100">
 
         {/* 상단 제목과 모드 토글 */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <span className="text-sm">
-              {isOrientationMode ? '각도 모드' : '각도해제 모드'}
+              {language === 'ko' 
+                ? (isOrientationMode ? '각도 모드' : '각도해제 모드')
+                : (isOrientationMode ? 'Angle Mode' : 'Angle Off')
+              }
             </span>
             <button 
               onClick={handleModeToggle}
@@ -78,19 +58,22 @@ const Menu = ({ isOpen, onClose, onPageSelect }) => {
         </div>
 
         {/* 메뉴 아이템 목록 */}
-        <div className="flex-1 overflow-y-auto p-3">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                onPageSelect(item.pageNumber);
-                onClose();
-              }}
-              className={`w-full py-3 px-4 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center`}
-            >
-              <span className="text-center">{item.label}</span>
-            </button>
-          ))}
+        <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex flex-col items-center">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onPageSelect(item.pageNumber);
+                  onClose();
+                }}
+                className={`py-3 px-4 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center
+                  ${pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]'}`}
+              >
+                <span className="text-center">{item.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Home과 About 버튼 */}

@@ -134,24 +134,7 @@ const ArtPage = () => {
       const handleOrientation = (event) => {
         setAlpha(prevAlpha => {
           const newAlpha = event.alpha || 0;
-          // 10도 단위로 반올림
-          let roundedAlpha = Math.round(newAlpha / 10) * 10;
-          
-          // 360도 근처에서 0도로 넘어갈 때 보정
-          if (prevAlpha > 300 && roundedAlpha < 60) {
-            roundedAlpha = 360;
-          } else if (prevAlpha < 60 && roundedAlpha > 300) {
-            roundedAlpha = 0;
-          }
-          
-          // alpha 값이 ±30도 범위에 들어오면 색상 변경
-          if ((Math.abs(roundedAlpha - 0) <= 40) || 
-              (Math.abs(roundedAlpha - 180) <= 40) ||
-              (Math.abs(roundedAlpha - 360) <= 40)) {
-            setBoxColor(getRandomColor());
-          }
-
-          return roundedAlpha;
+          return Math.round(newAlpha / 10) * 10;  // 10도 단위로 반올림
         });
         
         setBeta(prevBeta => {
@@ -209,7 +192,7 @@ const ArtPage = () => {
 
   // 언어 선택 컴포넌트
   const LanguageSelector = () => (
-    <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
+    <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center touch-manipulation">
       <div className="text-lg font-bold text-black">
         <button 
           className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
@@ -243,13 +226,15 @@ const ArtPage = () => {
     setShowMenu(false);  // 메뉴 닫기
     
     if (newPage === 'home') {
-      // Home으로 돌아가기
+      console.log('홈으로 이동');
       setTutorialStep(0);
       setPageNumber(0);  // 홈 페이지는 0번으로 설정
     } else if (newPage === 'about') {
-      // About 페이지 처리
+      console.log('어바웃 페이지로 이동');
+      setTutorialStep(0);
+      setPageNumber('about');  // about 페이지로 설정
     } else {
-      // 작품 페이지로 이동
+      console.log('작품 페이지로 이동:', newPage);
       setTutorialStep(0);
       setPageNumber(Number(newPage));
     }
@@ -259,22 +244,10 @@ const ArtPage = () => {
   const menuProps = {
     isOpen: showMenu,
     onClose: () => setShowMenu(false),
-    onPageSelect: handlePageChange
+    onPageSelect: handlePageChange,
+    pageNumber: pageNumber
   };
 
-  // shake 이벤트 처리 수정 (pageNumber > 1일 때만 적용)
-  useEffect(() => {
-    if (pageNumber > 1) {
-      const handleShake = () => {
-        toggleMenu();
-      };
-
-      window.onshake = handleShake;
-      return () => {
-        window.onshake = null;
-      };
-    }
-  }, [pageNumber]);
 
   // blur 효과 관리
   useEffect(() => {
@@ -376,9 +349,29 @@ const ArtPage = () => {
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
         </div>
         {/* 메뉴 아이콘 */}
-        <div className="fixed top-2 right-2 z-20">
-          <button onClick={() => setShowMenu(true)} className="p-2">
-            <MenuIcon />
+        <div className="fixed top-3 right-3 z-50">
+          <button 
+            onClick={() => setShowMenu(!showMenu)} 
+            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors z-100"
+            aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
+          >
+            {showMenu ? (
+              <svg 
+                width="30" 
+                height="30" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+                <MenuIcon />
+            )}
           </button>
         </div>
 
@@ -506,8 +499,114 @@ const ArtPage = () => {
     );
   };
 
+  // renderAboutPage 함수 추가
+  const renderAboutPage = () => {
+    const { title, subtitle, body } = data.about;
 
-  // 렌더링 부분 수정
+    return (
+      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center">
+        <div className="w-[100vw] h-[100vh] flex items-center justify-center">
+          <div 
+            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-8 text-black leading-relaxed"
+            style={{
+              background: 'linear-gradient(to left, #FFEA7B, #FACFB9)'
+            }}
+          >
+            <div className="text-center mb-8 w-full max-w-2xl">
+              <p className="text-base mb-2">{subtitle}</p>
+              <h1 className="text-2xl font-bold mb-4">{title}</h1>
+            </div>
+            
+            <div 
+              className="text-base leading-relaxed break-keep w-full max-w-2xl"
+              dangerouslySetInnerHTML={{ __html: body }}
+            />
+          </div>
+        </div>
+
+        {/* 메뉴 아이콘 */}
+        <div className="fixed top-2 right-2 z-20">
+          <button 
+            onClick={() => setShowMenu(!showMenu)} 
+            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors"
+            aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
+          >
+            {showMenu ? (
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <MenuIcon />
+            )}
+          </button>
+        </div>
+
+        {/* 메뉴 오버레이 */}
+        {showMenu && <Menu {...menuProps} />}
+      </div>
+    );
+  };
+
+  // renderHomePage 함수 추가
+  const renderHomePage = () => {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4">
+        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
+          <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line">
+            {data.home1.title}
+          </h1>
+          <div className="items-center space-y-2 text-center z-11 font-bold text-black">
+            <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
+            <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
+            <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
+          </div>
+        </div>
+
+        {/* 회전하는 박스 */}
+        <div className="fixed inset-0 flex items-center justify-center z-0">
+          <div
+            style={{
+              backgroundColor: "#FF5218",
+              transition: "all 0.5s ease",
+              transform: `rotate(${gamma}deg)`,
+              width: '250px',
+              height: '250px',
+              borderRadius: (Math.abs(gamma) >= 40 && Math.abs(gamma) <= 70) || 
+                           (Math.abs(gamma) >= 290 && Math.abs(gamma) <= 320) 
+                           ? '125px' : '0px',
+            }}
+            className="shadow-lg"
+          />
+        </div>
+
+        {/* 하단 영역 */}
+        <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3 touch-manipulation">
+          {showStartButton && (
+            <button 
+              onClick={handleStartClick}
+              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms]"
+              style={{ touchAction: 'manipulation' }}
+            >
+              {data.home1.startButton}
+            </button>
+          )}
+          <LanguageSelector />
+        </div>
+      </div>
+    );
+  };
+
+  // 메인 렌더링 부분 수정
   return (
     <>
       <Modal 
@@ -516,57 +615,13 @@ const ArtPage = () => {
         onConfirm={requestPermission}
       />
 
-      {/* 메인 컨텐츠 */}
-      {pageNumber === 0 && tutorialStep === 0 ? (
-        // 홈 페이지 렌더링
-        <div className="min-h-screen bg-gray-100 p-4">
-          <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
-            <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line">
-              {data.home1.title}
-            </h1>
-            <div className="items-center space-y-2 text-center z-11 font-bold text-black">
-              <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
-              <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
-              <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
-            </div>
-          </div>
-
-          {/* 회전하는 박스 */}
-          <div className="fixed inset-0 flex items-center justify-center z-0">
-            <div
-              style={{
-                backgroundColor: boxColor,
-                transition: "all 0.5s ease",
-                transform: `rotate(${gamma}deg)`,  // alpha에서 gamma로 변경
-                width: '250px',
-                height: '250px',
-                borderRadius: (Math.abs(gamma) >= 15 && Math.abs(gamma) <= 70) || 
-                             (Math.abs(gamma) >= -70 && Math.abs(gamma) <= -15) 
-                             ? '125px' : '0px',
-              }}
-              className="shadow-lg"
-            />
-          </div>
-
-          {/* 하단 영역 수정 */}
-          <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
-            {showStartButton && (
-              <button 
-                onClick={handleStartClick}
-                className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms]"
-                style={{ touchAction: 'manipulation' }}  // 터치 동작 최적화
-              >
-                {data.home1.startButton}
-              </button>
-            )}
-            <LanguageSelector />
-          </div>
-        </div>
+      {pageNumber === 'about' ? (
+        renderAboutPage()
+      ) : pageNumber === 0 && tutorialStep === 0 ? (
+        renderHomePage()
       ) : tutorialStep > 0 ? (
-        // 튜토리얼 렌더링
         renderTutorial()
       ) : (
-        // 작품 페이지 렌더링
         renderArtworkPage()
       )}
     </>
