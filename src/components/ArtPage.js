@@ -520,8 +520,8 @@ const ArtPage = () => {
                 transform: `rotate(${alpha}deg)`,
                 width: '250px',
                 height: '250px',
-                borderRadius: (Math.abs(alpha) >= 45 && Math.abs(alpha) <= 65) || 
-                             (Math.abs(alpha) >= -65 && Math.abs(alpha) <= -45) 
+                borderRadius: (Math.abs(alpha) >= 30 && Math.abs(alpha) <= 60) || 
+                             (Math.abs(alpha) >= 320 && Math.abs(alpha) <= 280) 
                              ? '125px' : '0px',
               }}
               className="shadow-lg"
