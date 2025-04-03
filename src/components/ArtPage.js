@@ -145,8 +145,8 @@ const ArtPage = () => {
           const nextGamma = prevGamma + (newGamma - prevGamma) * 0.1;
 
           // 감마값에 따른 색상 변경
-          if ((Math.abs(nextAlpha) >= 45 && Math.abs(nextAlpha) <= 65) || 
-              (Math.abs(nextAlpha) >= -65 && Math.abs(nextAlpha) <= -45)) {
+          if ((Math.abs(nextGamma) >= 45 && Math.abs(nextGamma) <= 65) || 
+              (Math.abs(nextGamma) >= -65 && Math.abs(nextGamma) <= -45)) {
             setBoxColor(getRandomColor());
           }
 
