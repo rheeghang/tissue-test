@@ -134,24 +134,25 @@ const ArtPage = () => {
       const handleOrientation = (event) => {
         setAlpha(prevAlpha => {
           const newAlpha = event.alpha || 0;
-          const nextAlpha = prevAlpha + (newAlpha - prevAlpha) * 0.05;
-
+          // 10도 단위로 반올림
+          const roundedAlpha = Math.round(newAlpha / 10) * 10;
+          
           // alpha 값이 ±30도 범위에 들어오면 색상 변경
-          if ((Math.abs(nextAlpha - 0) <= 30) || 
-              (Math.abs(nextAlpha - 180) <= 30) ||
-              (Math.abs(nextAlpha - 360) <= 30)) {
+          if ((Math.abs(roundedAlpha - 0) <= 30) || 
+              (Math.abs(roundedAlpha - 180) <= 30) ||
+              (Math.abs(roundedAlpha - 360) <= 30)) {
             setBoxColor(getRandomColor());
           }
 
-          return nextAlpha;
+          return roundedAlpha;
         });
         setBeta(prevBeta => {
           const newBeta = event.beta || 0;
-          return prevBeta + (newBeta - prevBeta) * 0.05;
+          return Math.round(newBeta / 10) * 10;
         });
         setGamma(prevGamma => {
           const newGamma = event.gamma || 0;
-          return prevGamma + (newGamma - prevGamma) * 0.05;
+          return Math.round(newGamma / 10) * 10;
         });
       };
 
@@ -201,19 +202,19 @@ const ArtPage = () => {
   const LanguageSelector = () => (
     <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
       <div className="text-lg font-bold text-black">
-        <span 
-          className={`cursor-pointer ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
+        <button 
+          className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
           onClick={() => handleLanguageChange('ko')}
         >
           Ko
-        </span>
+        </button>
         <span className="mx-2">|</span>
-        <span 
-          className={`cursor-pointer ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
+        <button 
+          className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
           onClick={() => handleLanguageChange('en')}
         >
           En
-        </span>
+        </button>
       </div>
     </div>
   );
@@ -323,6 +324,36 @@ const ArtPage = () => {
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, [initialAlpha]);
+
+  // 터치 이벤트 관련 수정
+  useEffect(() => {
+    // viewport meta 태그 동적 추가/수정
+    let metaViewport = document.querySelector('meta[name="viewport"]');
+    if (!metaViewport) {
+      metaViewport = document.createElement('meta');
+      metaViewport.name = 'viewport';
+      document.head.appendChild(metaViewport);
+    }
+    metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+
+    // 더블 탭 줌 방지
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // 핀치 줌만 방지
+    const handleGestureStart = (e) => {
+      e.preventDefault();
+    };
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('gesturestart', handleGestureStart);
+      document.removeEventListener('touchstart', handleGestureStart);
+    };
+  }, []);
 
   // renderArtworkPage 함수 내의 rotation 계산 수정
   const renderArtworkPage = () => {
