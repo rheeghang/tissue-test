@@ -310,7 +310,19 @@ const ArtPage = () => {
     });
   }, [pageNumber]);
 
-  // 작품 페이지 렌더링 함수
+  // 초기 알파값 저장을 위한 state 추가 (이미 있는 alphaInit 사용)
+  useEffect(() => {
+    const handleOrientation = (event) => {
+      if (alphaInit === null) {
+        setAlphaInit(event.alpha || 0);
+      }
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, [alphaInit]);
+
+  // renderArtworkPage 함수 내의 rotation 계산 수정
   const renderArtworkPage = () => {
     if (pageNumber === 0) return null;
 
@@ -320,8 +332,9 @@ const ArtPage = () => {
     const pageContent = data[`page${pageNumber}`];
     if (!pageContent) return null;
 
-    const { title, artist, caption, body } = pageContent;
-    
+    // 디바이스 초기 알파값 기준으로 회전 각도 계산
+    const rotationAngle = (alphaInit || 0) + config.targetAlpha;
+
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
@@ -343,9 +356,9 @@ const ArtPage = () => {
 
         <div className="outer-container absolute w-[120%] h-[150vh] flex items-center justify-center"
           style={{
-            transform: `rotate(${config.targetAlpha}deg)`,
-            top: pageNumber === 3 ? '40%' : '50%',  // percentage 기반으로 변경
-            marginTop: '-75vh',  // height의 절반만큼 위로 올림
+            transform: `rotate(${rotationAngle}deg)`,
+            top: pageNumber === 3 ? '40%' : '50%',
+            marginTop: '-75vh',
             filter: isOrientationMode ? `blur(${blurAmount}px)` : 'none',
             transition: 'filter 0.5s ease, transform 0.5s ease'
           }}
@@ -368,14 +381,14 @@ const ArtPage = () => {
               }}
             >
               <div className="text-center mb-8">
-                <h1 className="text-xl font-bold mb-4">{title}</h1>
-                <p className="text-base mb-2">{artist}</p>
-                <p className="text-xs" dangerouslySetInnerHTML={{ __html: caption }} />
+                <h1 className="text-xl font-bold mb-4">{pageContent.title}</h1>
+                <p className="text-base mb-2">{pageContent.artist}</p>
+                <p className="text-xs" dangerouslySetInnerHTML={{ __html: pageContent.caption }} />
               </div>
               
               <div 
                 className="text-base leading-relaxed break-keep"
-                dangerouslySetInnerHTML={{ __html: body }}
+                dangerouslySetInnerHTML={{ __html: pageContent.body }}
               />  
             </div>
           </div>
