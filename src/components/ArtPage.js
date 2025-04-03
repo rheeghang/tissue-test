@@ -533,7 +533,7 @@ const ArtPage = () => {
             {showStartButton && (
               <button 
                 onClick={handleStartClick}
-                className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms] hover:bg-gray-800"
+                className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms]"
               >
                 {data.home1.startButton}
               </button>

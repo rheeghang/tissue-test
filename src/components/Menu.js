@@ -30,11 +30,9 @@ const Menu = ({ isOpen, onClose, onPageSelect }) => {
             <div className="flex items-center">
               <button 
                 onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-full"
+                className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                {language === 'ko' ? '닫기' : 'Close'}
               </button>
             </div>
           </div>
