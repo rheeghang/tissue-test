@@ -128,29 +128,30 @@ const ArtPage = () => {
     }
   }, [pageNumber, isHomePage]);
 
-  // Home1의 디바이스 방향 감지 로직
+  // Home1의 디바이스 방향 감지 로직 수정
   useEffect(() => {
     if (isHomePage) {
       const handleOrientation = (event) => {
         setAlpha(prevAlpha => {
           const newAlpha = event.alpha || 0;
-          return prevAlpha + (newAlpha - prevAlpha) * 0.1;
-        });
-        setBeta(prevBeta => {
-          const newBeta = event.beta || 0;
-          return prevBeta + (newBeta - prevBeta) * 0.1;
-        });
-        setGamma(prevGamma => {
-          const newGamma = event.gamma || 0;
-          const nextGamma = prevGamma + (newGamma - prevGamma) * 0.1;
+          const nextAlpha = prevAlpha + (newAlpha - prevAlpha) * 0.05;
 
-          // 감마값에 따른 색상 변경
-          if ((Math.abs(nextGamma) >= 45 && Math.abs(nextGamma) <= 65) || 
-              (Math.abs(nextGamma) >= -65 && Math.abs(nextGamma) <= -45)) {
+          // alpha 값이 ±30도 범위에 들어오면 색상 변경
+          if ((Math.abs(nextAlpha - 0) <= 30) || 
+              (Math.abs(nextAlpha - 180) <= 30) ||
+              (Math.abs(nextAlpha - 360) <= 30)) {
             setBoxColor(getRandomColor());
           }
 
-          return nextGamma;
+          return nextAlpha;
+        });
+        setBeta(prevBeta => {
+          const newBeta = event.beta || 0;
+          return prevBeta + (newBeta - prevBeta) * 0.05;
+        });
+        setGamma(prevGamma => {
+          const newGamma = event.gamma || 0;
+          return prevGamma + (newGamma - prevGamma) * 0.05;
         });
       };
 
@@ -516,12 +517,12 @@ const ArtPage = () => {
             <div
               style={{
                 backgroundColor: boxColor,
-                transition: "all 0.3s ease",
+                transition: "all 0.5s ease", // 트랜지션 시간을 0.3s에서 0.5s로 증가
                 transform: `rotate(${alpha}deg)`,
                 width: '250px',
                 height: '250px',
-                borderRadius: (Math.abs(alpha) >= 30 && Math.abs(alpha) <= 60) || 
-                             (Math.abs(alpha) >= 320 && Math.abs(alpha) <= 280) 
+                borderRadius: (Math.abs(alpha) >= 40 && Math.abs(alpha) <= 70) || 
+                             (Math.abs(alpha) >= 290 && Math.abs(alpha) <= 320) 
                              ? '125px' : '0px',
               }}
               className="shadow-lg"
