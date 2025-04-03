@@ -30,7 +30,7 @@ const Menu = ({ isOpen, onClose, onPageSelect }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center text-center">
-      <div className="w-80 bg-key-color bg-opacity-80 shadow-lg mx-3 my-3 max-h-[calc(100vh-24px)] flex flex-col relative">
+      <div className="w-80 bg-white bg-opacity-80 shadow-lg mx-3 my-3 max-h-[calc(100vh-80px)] flex flex-col relative">
         {/* X 버튼 */}
         <button 
           onClick={onClose}

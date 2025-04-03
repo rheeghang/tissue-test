@@ -22,11 +22,11 @@ export const BlurProvider = ({ children }) => {
       } else if (difference <= easeStartDistance) {
         // ease 구간: 부드러운 블러 증가
         const easeProgress = (difference - tolerance) / 20; // 0~1 사이 값
-        const blur = easeProgress * 30; // 최대 30까지 부드럽게 증가
+        const blur = easeProgress * 20; // 최대 30까지 부드럽게 증가
         setBlurAmount(blur);
       } else {
         // 최대 블러
-        setBlurAmount(30);
+        setBlurAmount(20);
       }
     };
 

@@ -506,20 +506,6 @@ const ArtPage = () => {
     );
   };
 
-  // 더블 터치 방지 useEffect 수정
-  useEffect(() => {
-    // pinch zoom만 방지하고 일반 터치는 허용
-    const handleGestureStart = (event) => {
-      event.preventDefault();
-    };
-
-    // touchstart 이벤트 리스너는 제거하고 gesturestart만 사용
-    document.addEventListener('gesturestart', handleGestureStart);
-
-    return () => {
-      document.removeEventListener('gesturestart', handleGestureStart);
-    };
-  }, []);
 
   // 렌더링 부분 수정
   return (
