@@ -145,8 +145,8 @@ const ArtPage = () => {
           const nextGamma = prevGamma + (newGamma - prevGamma) * 0.1;
 
           // 감마값에 따른 색상 변경
-          if ((Math.abs(nextGamma) >= 45 && Math.abs(nextGamma) <= 65) || 
-              (Math.abs(nextGamma) >= -65 && Math.abs(nextGamma) <= -45)) {
+          if ((Math.abs(nextAlpha) >= 45 && Math.abs(nextAlpha) <= 65) || 
+              (Math.abs(nextAlpha) >= -65 && Math.abs(nextAlpha) <= -45)) {
             setBoxColor(getRandomColor());
           }
 
@@ -376,12 +376,12 @@ const ArtPage = () => {
             }}
           >
             <div 
-              className={`container p-8 w-[80%] ${config.className} text-stroke-white-thin shadow-lg mt-[50vh] mb-[80vh]`}
+              className={`container p-6 w-[320px] ${config.className} shadow-xl mt-[50vh] mb-[80vh]`}
               style={{
                 marginTop: config.marginTop
               }}
             >
-              <div className="text-center mb-8">
+              <div className="text-center mb-8 break-keep">
                 <h1 className="text-xl font-bold mb-4">{pageContent.title}</h1>
                 <p className="text-base mb-2">{pageContent.artist}</p>
                 <p className="text-xs" dangerouslySetInnerHTML={{ __html: pageContent.caption }} />
@@ -472,13 +472,14 @@ const ArtPage = () => {
     );
   };
 
-  // 더블 터치 방지
+  // 더블 터치 방지 useEffect 수정
   useEffect(() => {
+    // pinch zoom만 방지하고 일반 터치는 허용
     const handleGestureStart = (event) => {
       event.preventDefault();
     };
 
-    // touchstart 이벤트 리스너 제거하고 viewport meta 태그로 대체
+    // touchstart 이벤트 리스너는 제거하고 gesturestart만 사용
     document.addEventListener('gesturestart', handleGestureStart);
 
     return () => {
@@ -516,11 +517,11 @@ const ArtPage = () => {
               style={{
                 backgroundColor: boxColor,
                 transition: "all 0.3s ease",
-                transform: `rotate(${gamma}deg)`,
+                transform: `rotate(${alpha}deg)`,
                 width: '250px',
                 height: '250px',
-                borderRadius: (Math.abs(gamma) >= 45 && Math.abs(gamma) <= 65) || 
-                             (Math.abs(gamma) >= -65 && Math.abs(gamma) <= -45) 
+                borderRadius: (Math.abs(alpha) >= 45 && Math.abs(alpha) <= 65) || 
+                             (Math.abs(alpha) >= -65 && Math.abs(alpha) <= -45) 
                              ? '125px' : '0px',
               }}
               className="shadow-lg"
