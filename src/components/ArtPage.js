@@ -261,7 +261,7 @@ const ArtPage = () => {
 
   // 가이드 메시지 관리
   useEffect(() => {
-    if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0) {
+    if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0 && !showMenu) {
       const now = Date.now();
       const config = pageConfig.pages[pageNumber];
       if (!config) return;
@@ -278,7 +278,7 @@ const ArtPage = () => {
         setOutOfRangeStartTime(null);
       }
     }
-  }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime]);
+  }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
 
   // toggleMenu 함수 추가
   const toggleMenu = () => {
@@ -349,7 +349,7 @@ const ArtPage = () => {
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
         </div>
         {/* 메뉴 아이콘 */}
-        <div className="fixed top-3 right-3 z-50">
+        <div className="fixed top-5 right-5 z-50">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
             className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors z-100"

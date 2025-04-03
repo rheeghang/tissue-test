@@ -29,11 +29,12 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center text-center">
-      <div className="w-80 bg-white bg-opacity-80 shadow-lg mx-3 my-3 max-h-[calc(100vh-80px)] flex flex-col relative z-100">
+    <div className="fixed inset-0 bg-black bg-opacity-20 z-51 flex items-center justify-center text-center">
+      <div className="w-[85%] bg-white bg-opacity-80 shadow-lg mx-3 my-3 flex flex-col relative">
 
-        {/* 상단 제목과 모드 토글 */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="h-8"></div>
+
+        <div className="px-4 py-2 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <span className="text-sm">
               {language === 'ko' 
@@ -57,8 +58,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
           </div>
         </div>
 
-        {/* 메뉴 아이템 목록 */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto py-2 px-3">
           <div className="flex flex-col items-center">
             {menuItems.map((item) => (
               <button
@@ -67,7 +67,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
                   onPageSelect(item.pageNumber);
                   onClose();
                 }}
-                className={`py-3 px-4 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center
+                className={`py-2 px-2 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center
                   ${pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]'}`}
               >
                 <span className="text-center">{item.label}</span>
@@ -76,8 +76,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
           </div>
         </div>
 
-        {/* Home과 About 버튼 */}
-        <div className="flex h-14">
+        <div className="flex h-12">
           <button
             onClick={() => {
               onPageSelect('home');
