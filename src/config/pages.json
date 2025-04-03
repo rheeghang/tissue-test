@@ -71,7 +71,7 @@
       "bgColor": "bg-key-color",
       "textColor": "text-white",
       "style": {
-        "top": "70vh",
+        "top": "60vh",
         "left": "-10%",
         "width": "320px"
       },

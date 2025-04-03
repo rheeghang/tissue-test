@@ -12,13 +12,21 @@ export const BlurProvider = ({ children }) => {
       const alpha = event.alpha || 0;
       setCurrentAlpha(alpha);
 
-      // 현재 각도와 목표 각도의 차이에 따른 블러 계산
+      const tolerance = 17;
+      const easeStartDistance = tolerance + 20; // 블러 감소 시작 지점
       const difference = Math.abs(alpha - targetAlpha);
-      if (difference <= 17) { // tolerance 값
+      
+      if (difference <= tolerance) {
+        // tolerance 내부: 블러 없음
         setBlurAmount(0);
-      } else {
-        const blur = Math.min(difference * 0.5, 30); // 최대 블러값 30
+      } else if (difference <= easeStartDistance) {
+        // ease 구간: 부드러운 블러 증가
+        const easeProgress = (difference - tolerance) / 20; // 0~1 사이 값
+        const blur = easeProgress * 30; // 최대 30까지 부드럽게 증가
         setBlurAmount(blur);
+      } else {
+        // 최대 블러
+        setBlurAmount(30);
       }
     };
 
