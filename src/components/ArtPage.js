@@ -395,7 +395,7 @@ const ArtPage = () => {
     );
   };
 
-  // 튜토리얼 관련 블러 효과 설정
+  // 튜토리얼 관련 useEffect를 컴포넌트 최상위 레벨로 이동
   useEffect(() => {
     if (tutorialStep > 0) {
       const currentConfig = pageConfig.tutorial[tutorialStep];
@@ -405,37 +405,10 @@ const ArtPage = () => {
     }
   }, [tutorialStep, setTargetAlpha]);
 
-  // 더블 터치 방지
-  useEffect(() => {
-    const handleTouchStart = (event) => {
-      if (event.touches.length > 1) {
-        event.preventDefault();
-      }
-    };
-
-    const handleGestureStart = (event) => {
-      event.preventDefault();
-    };
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('gesturestart', handleGestureStart);
-
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('gesturestart', handleGestureStart);
-    };
-  }, []);
-
-  // 튜토리얼 렌더링 함수 수정
+  // 튜토리얼 렌더링 함수에서는 useEffect 제거
   const renderTutorial = () => {
     const currentConfig = pageConfig.tutorial[tutorialStep];
     
-    useEffect(() => {
-      if (currentConfig && currentConfig.targetAlpha) {
-        setTargetAlpha(currentConfig.targetAlpha);
-      }
-    }, [tutorialStep, currentConfig]);
-
     return (
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
@@ -484,6 +457,20 @@ const ArtPage = () => {
       </div>
     );
   };
+
+  // 더블 터치 방지
+  useEffect(() => {
+    const handleGestureStart = (event) => {
+      event.preventDefault();
+    };
+
+    // touchstart 이벤트 리스너 제거하고 viewport meta 태그로 대체
+    document.addEventListener('gesturestart', handleGestureStart);
+
+    return () => {
+      document.removeEventListener('gesturestart', handleGestureStart);
+    };
+  }, []);
 
   // 렌더링 부분 수정
   return (
