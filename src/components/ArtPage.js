@@ -325,14 +325,14 @@ const ArtPage = () => {
   // 초기 알파값 저장을 위한 state 추가 (이미 있는 alphaInit 사용)
   useEffect(() => {
     const handleOrientation = (event) => {
-      if (initialAlpha === null && event.alpha !== null) {
-        setInitialAlpha(event.alpha);
+      if (alphaInit === null) {
+        setAlphaInit(event.alpha || 0);
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [initialAlpha]);
+  }, [alphaInit]);
 
   // 터치 이벤트 관련 수정
   useEffect(() => {
@@ -345,22 +345,15 @@ const ArtPage = () => {
     }
     metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
 
-    // 더블 탭 줌 방지
-    document.addEventListener('touchstart', (e) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
-    // 핀치 줌만 방지
+    // 핀치 줌만 방지하고 일반 터치는 허용
     const handleGestureStart = (e) => {
       e.preventDefault();
     };
+    
     document.addEventListener('gesturestart', handleGestureStart);
 
     return () => {
       document.removeEventListener('gesturestart', handleGestureStart);
-      document.removeEventListener('touchstart', handleGestureStart);
     };
   }, []);
 
@@ -374,8 +367,8 @@ const ArtPage = () => {
     const pageContent = data[`page${pageNumber}`];
     if (!pageContent) return null;
 
-    // 페이지 로드시의 방향을 기준으로 targetAlpha만큼 회전
-    const rotationAngle = config.targetAlpha - (initialAlpha || 0);
+    // 디바이스 초기 알파값 기준으로 회전 각도 계산
+    const rotationAngle = (alphaInit || 0) + config.targetAlpha;
 
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
@@ -557,12 +550,12 @@ const ArtPage = () => {
             <div
               style={{
                 backgroundColor: boxColor,
-                transition: "all 0.5s ease", // 트랜지션 시간을 0.3s에서 0.5s로 증가
-                transform: `rotate(${alpha}deg)`,
+                transition: "all 0.5s ease",
+                transform: `rotate(${gamma}deg)`,  // alpha에서 gamma로 변경
                 width: '250px',
                 height: '250px',
-                borderRadius: (Math.abs(alpha) >= 40 && Math.abs(alpha) <= 70) || 
-                             (Math.abs(alpha) >= 290 && Math.abs(alpha) <= 320) 
+                borderRadius: (Math.abs(gamma) >= 15 && Math.abs(gamma) <= 70) || 
+                             (Math.abs(gamma) >= -70 && Math.abs(gamma) <= -15) 
                              ? '125px' : '0px',
               }}
               className="shadow-lg"
@@ -575,6 +568,7 @@ const ArtPage = () => {
               <button 
                 onClick={handleStartClick}
                 className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms]"
+                style={{ touchAction: 'manipulation' }}  // 터치 동작 최적화
               >
                 {data.home1.startButton}
               </button>
