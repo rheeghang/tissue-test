@@ -59,6 +59,7 @@ const ArtPage = () => {
   const [showModal, setShowModal] = useState(true);
   const [pageNumber, setPageNumber] = useState(0);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const [initialAlpha, setInitialAlpha] = useState(null);  // 페이지 로드시의 알파값 저장
 
   // context hooks
   const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
@@ -313,14 +314,14 @@ const ArtPage = () => {
   // 초기 알파값 저장을 위한 state 추가 (이미 있는 alphaInit 사용)
   useEffect(() => {
     const handleOrientation = (event) => {
-      if (alphaInit === null) {
-        setAlphaInit(event.alpha || 0);
+      if (initialAlpha === null && event.alpha !== null) {
+        setInitialAlpha(event.alpha);
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [alphaInit]);
+  }, [initialAlpha]);
 
   // renderArtworkPage 함수 내의 rotation 계산 수정
   const renderArtworkPage = () => {
@@ -332,8 +333,8 @@ const ArtPage = () => {
     const pageContent = data[`page${pageNumber}`];
     if (!pageContent) return null;
 
-    // 디바이스 초기 알파값 기준으로 회전 각도 계산
-    const rotationAngle = (alphaInit || 0) + config.targetAlpha;
+    // 페이지 로드시의 방향을 기준으로 targetAlpha만큼 회전
+    const rotationAngle = config.targetAlpha - (initialAlpha || 0);
 
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
