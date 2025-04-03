@@ -135,21 +135,30 @@ const ArtPage = () => {
         setAlpha(prevAlpha => {
           const newAlpha = event.alpha || 0;
           // 10도 단위로 반올림
-          const roundedAlpha = Math.round(newAlpha / 10) * 10;
+          let roundedAlpha = Math.round(newAlpha / 10) * 10;
+          
+          // 360도 근처에서 0도로 넘어갈 때 보정
+          if (prevAlpha > 300 && roundedAlpha < 60) {
+            roundedAlpha = 360;
+          } else if (prevAlpha < 60 && roundedAlpha > 300) {
+            roundedAlpha = 0;
+          }
           
           // alpha 값이 ±30도 범위에 들어오면 색상 변경
           if ((Math.abs(roundedAlpha - 0) <= 40) || 
               (Math.abs(roundedAlpha - 180) <= 40) ||
               (Math.abs(roundedAlpha - 360) <= 40)) {
-            setBoxColor(getRandomColor());  // 회전할 때는 랜덤 색상으로
+            setBoxColor(getRandomColor());
           }
 
           return roundedAlpha;
         });
+        
         setBeta(prevBeta => {
           const newBeta = event.beta || 0;
           return Math.round(newBeta / 10) * 10;
         });
+        
         setGamma(prevGamma => {
           const newGamma = event.gamma || 0;
           return Math.round(newGamma / 10) * 10;
