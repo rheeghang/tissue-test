@@ -168,49 +168,6 @@ const ArtPage = () => {
     return color;
   };
 
-  // tutorialConfig 수정
-  const tutorialConfig = {
-    1: {
-      angle: 30,
-      targetAlpha: 30, // 명시적으로 targetAlpha 추가
-      bgColor: 'bg-gray-200',
-      textColor: 'text-gray-800',
-      content: data.tutorial.step1,
-      style: {
-        top: '30vh',
-        width: '320px'
-      },
-      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
-    },
-    2: {
-      angle: 80,
-      targetAlpha: 80, // 명시적으로 targetAlpha 추가
-      bgColor: 'bg-gray-200',
-      textColor: 'text-gray-800',
-      content: data.tutorial.step2,
-      style: {
-        top: '50vh',
-        left: '20%',
-        width: '320px'
-      },
-      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
-    },
-    3: {
-      angle: 120,
-      targetAlpha: 120, // 명시적으로 targetAlpha 추가
-      bgColor: 'bg-key-color',
-      textColor: 'text-white',
-      content: data.tutorial.step3,
-      style: {
-        top: '70vh',
-        left: '-10%',
-        width: '320px'
-      },
-      containerClassName: "fixed left-1/2 -translate-x-1/2 z-0"
-    }
-  };
-
-
   // Home1 페이지에서 시작하기 버튼 클릭 시
   const handleStartClick = () => {
     setTutorialStep(1);  // 튜토리얼 시작
@@ -441,7 +398,7 @@ const ArtPage = () => {
   // 튜토리얼 관련 블러 효과 설정
   useEffect(() => {
     if (tutorialStep > 0) {
-      const currentConfig = tutorialConfig[tutorialStep];
+      const currentConfig = pageConfig.tutorial[tutorialStep];
       if (currentConfig && currentConfig.targetAlpha) {
         setTargetAlpha(currentConfig.targetAlpha);
       }
@@ -471,8 +428,14 @@ const ArtPage = () => {
 
   // 튜토리얼 렌더링 함수 수정
   const renderTutorial = () => {
-    const currentConfig = tutorialConfig[tutorialStep];
+    const currentConfig = pageConfig.tutorial[tutorialStep];
     
+    useEffect(() => {
+      if (currentConfig && currentConfig.targetAlpha) {
+        setTargetAlpha(currentConfig.targetAlpha);
+      }
+    }, [tutorialStep, currentConfig]);
+
     return (
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
@@ -488,15 +451,12 @@ const ArtPage = () => {
             transition: 'filter 0.3s ease, transform 0.3s ease',
           }}
         >
-          <div 
-            className={`p-4 ${currentConfig.bgColor} shadow-2xl relative`}
-          >
+          <div className={`p-4 ${currentConfig.bgColor} shadow-2xl relative`}>
             <p className={`text-lg leading-relaxed ${currentConfig.textColor} break-keep mb-8`}>
-              {currentConfig.content}
+              {data.tutorial[`step${tutorialStep}`]}
             </p>
             
             <div className="mt-14">
-              
               {tutorialStep === 3 ? (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer"
