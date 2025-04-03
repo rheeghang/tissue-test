@@ -36,7 +36,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         </p>
         <button
           onClick={onConfirm}
-          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
+          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
         </button>
@@ -50,7 +50,7 @@ const ArtPage = () => {
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
-  const [boxColor, setBoxColor] = useState("#FF5218");
+  const [boxColor, setBoxColor] = useState("#FF5218");  // key-color로 초기값 설정
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('language') || 'ko';
   });
@@ -138,10 +138,10 @@ const ArtPage = () => {
           const roundedAlpha = Math.round(newAlpha / 10) * 10;
           
           // alpha 값이 ±30도 범위에 들어오면 색상 변경
-          if ((Math.abs(roundedAlpha - 0) <= 30) || 
-              (Math.abs(roundedAlpha - 180) <= 30) ||
-              (Math.abs(roundedAlpha - 360) <= 30)) {
-            setBoxColor(getRandomColor());
+          if ((Math.abs(roundedAlpha - 0) <= 40) || 
+              (Math.abs(roundedAlpha - 180) <= 40) ||
+              (Math.abs(roundedAlpha - 360) <= 40)) {
+            setBoxColor(getRandomColor());  // 회전할 때는 랜덤 색상으로
           }
 
           return roundedAlpha;
