@@ -55,6 +55,7 @@ const ArtPage = () => {
     return localStorage.getItem('language') || 'ko';
   });
   const [showStartButton, setShowStartButton] = useState(false);
+  const [startButtonOpacity, setStartButtonOpacity] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showModal, setShowModal] = useState(true);
   const [pageNumber, setPageNumber] = useState(0);
@@ -164,7 +165,10 @@ const ArtPage = () => {
   };
 
   // Home1 페이지에서 시작하기 버튼 클릭 시
-  const handleStartClick = () => {
+  const handleStartClick = (e) => {
+    if (e) {
+      e.stopPropagation();  // 이벤트 전파 중단
+    }
     setTutorialStep(1);  // 튜토리얼 시작
   };
 
@@ -214,10 +218,13 @@ const ArtPage = () => {
   // 시작하기 버튼 표시 타이머
   useEffect(() => {
     if (isHomePage) {
-      const timer = setTimeout(() => {
+      const showTimer = setTimeout(() => {
         setShowStartButton(true);
-      }, 7000);
-      return () => clearTimeout(timer);
+        setTimeout(() => {
+          setStartButtonOpacity(1);
+        }, 100);
+      }, 6000);
+      return () => clearTimeout(showTimer);
     }
   }, [isHomePage]);
 
@@ -403,7 +410,7 @@ const ArtPage = () => {
             }}
           >
             <div 
-              className={`container p-6 w-[320px] ${config.className} shadow-xl mt-[50vh] mb-[80vh]`}
+              className={`container p-6 w-[320px] ${config.className} shadow-2xl mt-[50vh] mb-[80vh]`}
               style={{
                 marginTop: config.marginTop
               }}
@@ -504,10 +511,10 @@ const ArtPage = () => {
     const { title, subtitle, body } = data.about;
 
     return (
-      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center">
+      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center ">
         <div className="w-[100vw] h-[100vh] flex items-center justify-center">
           <div 
-            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-8 text-black leading-relaxed"
+            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-14 text-black leading-relaxed"
             style={{
               background: 'linear-gradient(to left, #FFEA7B, #FACFB9)'
             }}
@@ -525,7 +532,7 @@ const ArtPage = () => {
         </div>
 
         {/* 메뉴 아이콘 */}
-        <div className="fixed top-2 right-2 z-20">
+        <div className="fixed top-5 right-5 z-20">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
             className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors"
@@ -594,8 +601,13 @@ const ArtPage = () => {
           {showStartButton && (
             <button 
               onClick={handleStartClick}
-              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms]"
-              style={{ touchAction: 'manipulation' }}
+              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl touch-none"
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+                opacity: startButtonOpacity,
+                transition: 'opacity 2000ms ease-in-out'
+              }}
             >
               {data.home1.startButton}
             </button>
