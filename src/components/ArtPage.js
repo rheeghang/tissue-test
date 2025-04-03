@@ -13,23 +13,32 @@ import Menu from './Menu';
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const modalMessage = isMobile
+    ? "작품 감상을 위해 기기 방향 감지 센서 권한이 필요합니다."
+    : "이 웹사이트는 모바일 기기에 최적화되어 있습니다. 모바일 기기로 접속해주세요.";
+
+  const buttonText = isMobile ? "권한 허용하기" : "확인";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div 
         className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       ></div>
       
-      <div className="relative z-50 w-80 rounded-lg bg-white p-6 shadow-xl">
-        <h3 className="mb-4 text-xl font-bold text-gray-900">센서 권한 요청</h3>
+      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-xl font-bold text-gray-900">
+          {isMobile ? "센서 권한 필요" : "알림"}
+        </h3>
         <p className="mb-6 text-gray-600">
-          기기 방향 감지 센서 권한이 필요합니다.
+          {modalMessage}
         </p>
         <button
           onClick={onConfirm}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
         >
-          허용
+          {buttonText}
         </button>
       </div>
     </div>
@@ -37,26 +46,74 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 };
 
 const ArtPage = () => {
+  // 상태 선언을 최상단으로 이동
   const [alpha, setAlpha] = useState(0);
   const [beta, setBeta] = useState(0);
   const [gamma, setGamma] = useState(0);
   const [boxColor, setBoxColor] = useState("#FF5218");
-  const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
-  const { showGuideMessage } = useGuide();
-  const [tutorialStep, setTutorialStep] = useState(0);
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('language') || 'ko';
   });
   const [showStartButton, setShowStartButton] = useState(false);
-  const [alphaInit, setAlphaInit] = useState(null);
-  const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const { isOrientationMode } = useMode();
-  const [pageNumber, setPageNumber] = useState(0);
-
-  // 권한 관련 상태 추가
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showModal, setShowModal] = useState(true);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  // context hooks
+  const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
+  const { showGuideMessage } = useGuide();
+  const { isOrientationMode } = useMode();
+
+  // 언어 데이터 선택을 상태 선언 후로 이동
+  const data = language === 'ko' ? koData : enData;
+  
+  // iOS 체크 함수
+  const isIOS = () => {
+    return (
+      ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) ||
+      (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+    );
+  };
+
+  // 권한 요청 함수
+  const requestPermission = async () => {
+    try {
+      if (isIOS() && typeof DeviceOrientationEvent !== 'undefined' && 
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          setPermissionGranted(true);
+        }
+      } else {
+        setPermissionGranted(true);
+      }
+    } catch (error) {
+      console.error('권한 요청 실패:', error);
+    }
+    setShowModal(false);
+  };
+
+  // 컴포넌트 마운트 시 권한 체크
+  useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      if (isIOS()) {
+        setShowModal(true);
+      } else {
+        setPermissionGranted(true);
+        setShowModal(false);
+      }
+    } else {
+      setShowModal(true);
+    }
+  }, []);
+
+  // 권한 관련 상태
+  const [showMenu, setShowMenu] = useState(false);
+  const [alphaInit, setAlphaInit] = useState(null);
+  const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
 
   // 첫 페이지일 때는 Home1의 로직 사용
   const isHomePage = pageNumber === 0;
@@ -117,7 +174,7 @@ const ArtPage = () => {
       angle: 30,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
-      content: "국립아시아문화전당은 티슈오피스와 함께 다양한 관점으로 전시를 감상하는 도슨팅 모바일 웹을 개발했습니다.",
+      content: data.tutorial.step1,
       style: {
         top: '30vh',
         width: '320px'
@@ -128,7 +185,7 @@ const ArtPage = () => {
       angle: 80,
       bgColor: 'bg-gray-200',
       textColor: 'text-gray-800',
-      content: "큐레이터의 해설을 명쾌하고 매끄럽고 깔끔하고 편리하게 전달하는 보편적인 도슨트 기능에서 벗어나 조금은 번거롭고 비생산적이며 낯설지만,",
+      content: data.tutorial.step2,
       style: {
         top: '50vh',
         left: '20%',
@@ -140,7 +197,7 @@ const ArtPage = () => {
       angle: 120,
       bgColor: 'bg-key-color',
       textColor: 'text-white',
-      content: "'각도'를 바꾸고 '관점'을 틀어 각자만의 방식으로 작품을 이해하는 시간을 가지고자 합니다.",
+      content: data.tutorial.step3,
       style: {
         top: '70vh',
         left: '-10%',
@@ -228,9 +285,6 @@ const ArtPage = () => {
     }
   }, [isHomePage]);
 
-  // 언어 데이터 선택
-  const data = language === 'ko' ? koData : enData;
-  
   // 페이지 전환 처리 수정
   const handlePageChange = (newPage) => {
     setShowMenu(false);  // 메뉴 닫기
@@ -303,27 +357,6 @@ const ArtPage = () => {
   // toggleMenu 함수 추가
   const toggleMenu = () => {
     setShowMenu(prev => !prev);
-  };
-
-  // 권한 요청 함수
-  const requestPermission = () => {
-    if (
-      typeof DeviceMotionEvent !== "undefined" &&
-      typeof DeviceMotionEvent.requestPermission === "function"
-    ) {
-      DeviceMotionEvent.requestPermission()
-        .then((permissionState) => {
-          if (permissionState === "granted") {
-            console.log("Permission granted!");
-            setPermissionGranted(true);
-            setShowModal(false);
-          }
-        })
-        .catch(console.error);
-    } else {
-      setPermissionGranted(true);
-      setShowModal(false);
-    }
   };
 
   // 작품 페이지 렌더링 함수 수정
@@ -409,123 +442,129 @@ const ArtPage = () => {
     );
   };
 
-  // 조건부 렌더링 수정
-  if (pageNumber === 0 && tutorialStep === 0) {
-    // 홈 페이지 렌더링
-    return (
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
-          <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium">
-            {data.home1.title}
-          </h1>
-          <div className="items-center space-y-2 text-center z-11 font-bold text-black">
-            <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
-            <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
-            <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
-          </div>
-        </div>
+  // 렌더링 부분 수정
+  return (
+    <>
+      {/* 권한 요청 모달을 항상 최상단에 렌더링 */}
+      <Modal 
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={requestPermission}
+      />
 
-        {/* 회전하는 박스 */}
-        <div className="fixed inset-0 flex items-center justify-center z-0">
-          <div
-            style={{
-              backgroundColor: boxColor,
-              transition: "all 0.3s ease",
-              transform: `rotate(${gamma}deg)`,
-              width: '250px',
-              height: '250px',
-              borderRadius: (Math.abs(gamma) >= 45 && Math.abs(gamma) <= 65) || 
-                           (Math.abs(gamma) >= -65 && Math.abs(gamma) <= -45) 
-                           ? '125px' : '0px',
-            }}
-            className="shadow-lg"
-          />
-        </div>
-
-        {/* 하단 영역 수정 */}
-        <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
-          {showStartButton && (
-            <button 
-              onClick={handleStartClick}
-              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms] hover:bg-gray-800"
-            >
-              {data.home1.startButton}
-            </button>
-          )}
-          <LanguageSelector />
-        </div>
-      </div>
-    );
-  } else if (tutorialStep > 0) {
-    const currentConfig = tutorialConfig[tutorialStep];
-    return (
-      <div className="relative min-h-screen overflow-hidden bg-base-color">
-        <div className="fixed top-2 left-0 right-0 text-center z-10">
-          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
-        </div>
-
-        <div 
-          className={currentConfig.containerClassName }
-          style={{
-            ...currentConfig.style,
-            transform: `rotate(${currentConfig.angle}deg) translateX(-50%)`,
-            filter: `blur(${blurAmount}px)`,
-            transition: 'filter 0.3s ease, transform 0.3s ease',
-          }}
-        >
-          <div 
-            className={`p-4 ${currentConfig.bgColor} shadow-2xl relative rounded-lg`}
-          >
-            <p className={`text-lg leading-relaxed ${currentConfig.textColor} break-keep mb-8`}>
-              {currentConfig.content}
-            </p>
-            
-            <div className="mt-14">
-              
-              {tutorialStep === 3 ? (
-                <div 
-                  className="absolute bottom-2 right-2 cursor-pointer"
-                  onClick={toggleMenu}
-                >
-                  <MenuIcon />
-                </div>
-              ) : (
-                <div 
-                  className="absolute bottom-2 right-2 cursor-pointer"
-                  onClick={handleTutorialNext}
-                >
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12H19M19 12L12 5M19 12L12 19" 
-                      stroke="#FF5218" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-              )}
+      {/* 메인 컨텐츠 */}
+      {pageNumber === 0 && tutorialStep === 0 ? (
+        // 홈 페이지 렌더링
+        <div className="min-h-screen bg-gray-100 p-4">
+          <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
+            <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line">
+              {data.home1.title}
+            </h1>
+            <div className="items-center space-y-2 text-center z-11 font-bold text-black">
+              <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
+              <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
+              <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
             </div>
           </div>
-        </div>
 
-        {tutorialStep === 3 && (
+          {/* 회전하는 박스 */}
+          <div className="fixed inset-0 flex items-center justify-center z-0">
+            <div
+              style={{
+                backgroundColor: boxColor,
+                transition: "all 0.3s ease",
+                transform: `rotate(${gamma}deg)`,
+                width: '250px',
+                height: '250px',
+                borderRadius: (Math.abs(gamma) >= 45 && Math.abs(gamma) <= 65) || 
+                             (Math.abs(gamma) >= -65 && Math.abs(gamma) <= -45) 
+                             ? '125px' : '0px',
+              }}
+              className="shadow-lg"
+            />
+          </div>
+
+          {/* 하단 영역 수정 */}
+          <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
+            {showStartButton && (
+              <button 
+                onClick={handleStartClick}
+                className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-lg transition-opacity duration-[2000ms] hover:bg-gray-800"
+              >
+                {data.home1.startButton}
+              </button>
+            )}
+            <LanguageSelector />
+          </div>
+        </div>
+      ) : tutorialStep > 0 ? (
+        // 튜토리얼 렌더링
+        <div className="relative min-h-screen overflow-hidden bg-base-color">
+          <div className="fixed top-2 left-0 right-0 text-center z-10">
+            <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          </div>
+
           <div 
-            className="fixed top-[20vh] rotate-[120deg] right-10 left-10 items-center justify-center p-1 bg-white/80 text-black text-center text-sm font-medium"
+            className={tutorialConfig[tutorialStep].containerClassName }
             style={{
+              ...tutorialConfig[tutorialStep].style,
+              transform: `rotate(${tutorialConfig[tutorialStep].angle}deg) translateX(-50%)`,
               filter: `blur(${blurAmount}px)`,
-              transition: 'filter 0.3s ease',
+              transition: 'filter 0.3s ease, transform 0.3s ease',
             }}
           >
-            메뉴 아이콘을 클릭하세요
+            <div 
+              className={`p-4 ${tutorialConfig[tutorialStep].bgColor} shadow-2xl relative rounded-lg`}
+            >
+              <p className={`text-lg leading-relaxed ${tutorialConfig[tutorialStep].textColor} break-keep mb-8`}>
+                {tutorialConfig[tutorialStep].content}
+              </p>
+              
+              <div className="mt-14">
+                
+                {tutorialStep === 3 ? (
+                  <div 
+                    className="absolute bottom-2 right-2 cursor-pointer"
+                    onClick={toggleMenu}
+                  >
+                    <MenuIcon />
+                  </div>
+                ) : (
+                  <div 
+                    className="absolute bottom-2 right-2 cursor-pointer"
+                    onClick={handleTutorialNext}
+                  >
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 12H19M19 12L12 5M19 12L12 19" 
+                        stroke="#FF5218" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* 메뉴 오버레이 */}
-        {showMenu && <Menu {...menuProps} />}
-      </div>
-    );
-  } else {
-    // 작품 페이지 렌더링
-    return renderArtworkPage();
-  }
+          {tutorialStep === 3 && (
+            <div 
+              className="fixed top-[20vh] rotate-[120deg] right-10 left-10 items-center justify-center p-1 bg-white/80 text-black text-center text-sm font-medium"
+              style={{
+                filter: `blur(${blurAmount}px)`,
+                transition: 'filter 0.3s ease',
+              }}
+            >
+              메뉴 아이콘을 클릭하세요
+            </div>
+          )}
 
-  return null;
+          {/* 메뉴 오버레이 */}
+          {showMenu && <Menu {...menuProps} />}
+        </div>
+      ) : (
+        // 작품 페이지 렌더링
+        renderArtworkPage()
+      )}
+    </>
+  );
 };
 
 export default ArtPage;
