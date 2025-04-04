@@ -42,7 +42,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         </p>
         <button
           onClick={handleClick}
-          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
+          className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
         </button>
@@ -608,7 +608,7 @@ const ArtPage = () => {
           {showStartButton && (
             <button 
               onClick={handleStartClick}
-              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
+              className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
               style={{ 
                 WebkitTapHighlightColor: 'transparent'
               }}
