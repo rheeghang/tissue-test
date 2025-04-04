@@ -28,6 +28,12 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
     setIsOrientationMode(!isOrientationMode);
   };
 
+  // 버튼 텍스트를 언어에 따라 표시
+  const buttonText = {
+    home: language === 'ko' ? '홈' : 'Home',
+    about: language === 'ko' ? '전시 설명' : 'About'
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-20 z-51 flex items-center justify-center text-center">
       <div className="w-[90%] h-[90%] bg-white bg-opacity-90 shadow-lg mx-6 my-6 flex flex-col relative text-bold">
@@ -84,7 +90,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
             }}
             className="w-1/2 h-full bg-white text-black border border-gray-200 hover:bg-gray-50 transition-colors"
           >
-            Home
+            {buttonText.home}
           </button>
           <button
             onClick={() => {
@@ -93,7 +99,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
             }}
             className="w-1/2 h-full bg-black text-white hover:bg-gray-900 transition-colors"
           >
-            About
+            {buttonText.about}
           </button>
         </div>
       </div>

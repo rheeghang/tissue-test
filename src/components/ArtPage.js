@@ -311,15 +311,18 @@ const ArtPage = () => {
     }
   }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
 
-  // 메뉴 아이콘 스크롤 감지 함수 추가
+  // 메뉴 아이콘 스크롤 감지 함수 수정
   useEffect(() => {
     const handleScroll = (e) => {
       const container = e.target;
-      const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
+      const scrollPosition = container.scrollTop;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      const scrollRatio = scrollPosition / maxScroll;
       
-      if (isAtBottom && !showMenu) {
-        setMenuIconColor('black'); // key-color
-        setMenuIconScale(1.2); // 스케일 증가
+      // 스크롤이 90% 이상 되었을 때 이벤트 발생
+      if (scrollRatio >= 0.9 && !showMenu) {
+        setMenuIconColor('black');
+        setMenuIconScale(1.2);
         
         // 0.3초 후에 원래 크기로 돌아오기
         setTimeout(() => {
@@ -331,10 +334,9 @@ const ArtPage = () => {
       }
     };
 
-    // 모든 container 클래스를 가진 요소에 스크롤 이벤트 리스너 추가
     const containers = document.querySelectorAll('.container');
     containers.forEach(container => {
-      container.addEventListener('scroll', handleScroll);
+      container.addEventListener('scroll', handleScroll, { passive: true });
     });
 
     return () => {
