@@ -20,6 +20,12 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   const buttonText = isMobile ? "권한 허용하기" : "확인";
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onConfirm();
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div 
@@ -35,12 +41,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={(e) => {
-            console.log('권한 요청 버튼 클릭됨');
-            console.log('이벤트 타입:', e.type);
-            console.log('이벤트 타겟:', e.target);
-            onConfirm();
-          }}
+          onClick={handleClick}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
@@ -171,11 +172,9 @@ const ArtPage = () => {
 
   // Home1 페이지에서 시작하기 버튼 클릭 시
   const handleStartClick = (e) => {
-    console.log('시작하기 버튼 클릭됨');
     if (e) {
-      console.log('이벤트 타입:', e.type);
-      console.log('이벤트 타겟:', e.target);
-      console.log('현재 tutorialStep:', tutorialStep);
+      e.preventDefault();
+      e.stopPropagation();
     }
     setTutorialStep(1);
   };
@@ -206,18 +205,26 @@ const ArtPage = () => {
 
   // 언어 선택 컴포넌트
   const LanguageSelector = () => (
-    <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center touch-manipulation">
+    <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
       <div className="text-lg font-bold text-black">
         <button 
+          onClick={(e) => {
+            e.preventDefault();
+            handleLanguageChange('ko');
+          }}
           className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
-          onClick={() => handleLanguageChange('ko')}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           Ko
         </button>
         <span className="mx-2">|</span>
         <button 
+          onClick={(e) => {
+            e.preventDefault();
+            handleLanguageChange('en');
+          }}
           className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
-          onClick={() => handleLanguageChange('en')}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           En
         </button>
@@ -326,7 +333,7 @@ const ArtPage = () => {
 
   // 터치 이벤트 관련 수정
   useEffect(() => {
-    // viewport meta 태그 동적 추가/수정
+    // viewport 설정만 남기고 다른 이벤트 리스너는 제거
     let metaViewport = document.querySelector('meta[name="viewport"]');
     if (!metaViewport) {
       metaViewport = document.createElement('meta');
@@ -334,21 +341,6 @@ const ArtPage = () => {
       document.head.appendChild(metaViewport);
     }
     metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-
-    // 핀치 줌만 선택적으로 방지
-    const handleGestureStart = (e) => {
-      // 핀치 줌 제스처일 때만 preventDefault
-      if (e.touches && e.touches.length > 1) {
-        e.preventDefault();
-      }
-    };
-    
-    // passive: false로 설정하여 preventDefault가 정상 작동하도록 함
-    document.addEventListener('gesturestart', handleGestureStart, { passive: false });
-    
-    return () => {
-      document.removeEventListener('gesturestart', handleGestureStart);
-    };
   }, []);
 
   // renderArtworkPage 함수 내의 rotation 계산 수정
@@ -581,9 +573,10 @@ const ArtPage = () => {
   // renderHomePage 함수 추가
   const renderHomePage = () => {
     return (
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800 top-[10vh]">
-          <h1 className="text-sm leading-relaxed font-bold mt-6 mb-4 font-medium whitespace-pre-line">
+      <div className="min-h-screen bg-gray-100 p-4 relative flex flex-col">
+        {/* 타이틀과 각도 표시 영역 */}
+        <div className="flex flex-col items-center pt-[3vh] space-y-2 text-center z-10 text-gray-800">
+          <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line px-4">
             {data.home1.title}
           </h1>
           <div className="items-center space-y-2 text-center z-51 font-bold text-black">
@@ -606,21 +599,18 @@ const ArtPage = () => {
                            (Math.abs(gamma) >= 290 && Math.abs(gamma) <= 320) 
                            ? '125px' : '0px',
             }}
-            className="shadow-2xl"
+            className="shadow-lg"
           />
         </div>
 
         {/* 하단 영역 */}
-        <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3 touch-manipulation">
+        <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
           {showStartButton && (
             <button 
               onClick={handleStartClick}
-              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl touch-none"
+              className="w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
               style={{ 
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-                opacity: startButtonOpacity,
-                transition: 'opacity 2000ms ease-in-out'
+                WebkitTapHighlightColor: 'transparent'
               }}
             >
               {data.home1.startButton}

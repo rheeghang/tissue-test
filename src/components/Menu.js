@@ -30,7 +30,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-20 z-51 flex items-center justify-center text-center">
-      <div className="w-[85%] bg-white bg-opacity-80 shadow-lg mx-3 my-3 flex flex-col relative text-bold">
+      <div className="w-[90%] bg-white bg-opacity-80 shadow-lg mx-3 my-3 flex flex-col relative text-bold">
 
         <div className="h-8"></div>
 
@@ -58,7 +58,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 px-2">
           <div className="flex flex-col items-center">
             {menuItems.map((item) => (
               <button
@@ -68,7 +68,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
                   onClose();
                 }}
                 className={`py-3 px-1 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center
-                  ${pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-3rem)]'}`}
+                  ${pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]'}`}
               >
                 <span className="text-center">{item.label}</span>
               </button>
