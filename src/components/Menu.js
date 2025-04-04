@@ -30,9 +30,9 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-20 z-51 flex items-center justify-center text-center">
-      <div className="w-[90%] bg-white bg-opacity-80 shadow-lg mx-3 my-3 flex flex-col relative text-bold">
+      <div className="w-[90%] bg-white bg-opacity-80 shadow-lg mx-6 my-3 flex flex-col relative text-bold">
 
-        <div className="h-8"></div>
+        <div className="h-12"></div>
 
         <div className="px-4 py-2 border-b border-gray-200">
           <div className="flex items-center justify-between">

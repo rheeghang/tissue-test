@@ -43,8 +43,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         <button
           onTouchStart={(e) => {
             e.preventDefault();
-            console.log('권한 허용하기 버튼 터치됨');
-            onConfirm(); // 터치와 동시에 바로 실행
+            onConfirm();
           }}
           className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
@@ -71,6 +70,9 @@ const ArtPage = () => {
   const [pageNumber, setPageNumber] = useState(0);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [initialAlpha, setInitialAlpha] = useState(null);  // 페이지 로드시의 알파값 저장
+  const [menuIconColor, setMenuIconColor] = useState('black');
+  const [currentBeta, setCurrentBeta] = useState(0);
+  const [currentGamma, setCurrentGamma] = useState(0);
 
   // context hooks
   const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
@@ -214,8 +216,7 @@ const ArtPage = () => {
         <button 
           onTouchStart={(e) => {
             e.preventDefault();
-            console.log('Ko 버튼 터치됨');
-            handleLanguageChange('ko'); // 터치와 동시에 바로 실행
+            handleLanguageChange('ko');
           }}
           className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -226,8 +227,7 @@ const ArtPage = () => {
         <button 
           onTouchStart={(e) => {
             e.preventDefault();
-            console.log('En 버튼 터치됨');
-            handleLanguageChange('en'); // 터치와 동시에 바로 실행
+            handleLanguageChange('en');
           }}
           className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -310,9 +310,40 @@ const ArtPage = () => {
     }
   }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
 
-  // toggleMenu 함수 추가
+  // 메뉴 아이콘 스크롤 감지 함수 추가
+  useEffect(() => {
+    const handleScroll = (e) => {
+      const container = e.target;
+      const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
+      
+      if (isAtBottom && !showMenu) {
+        setMenuIconColor('#FF5218'); // key-color
+      } else {
+        setMenuIconColor('black');
+      }
+    };
+
+    // 모든 container 클래스를 가진 요소에 스크롤 이벤트 리스너 추가
+    const containers = document.querySelectorAll('.container');
+    containers.forEach(container => {
+      container.addEventListener('scroll', handleScroll);
+    });
+
+    return () => {
+      containers.forEach(container => {
+        container.removeEventListener('scroll', handleScroll);
+      });
+    };
+  }, [showMenu]);
+
+  // 메뉴 토글 함수 수정
   const toggleMenu = () => {
-    setShowMenu(prev => !prev);
+    setShowMenu(prev => {
+      if (!prev) {
+        setMenuIconColor('black'); // 메뉴가 열릴 때 검정색으로
+      }
+      return !prev;
+    });
   };
 
   // 페이지 번호가 변경될 때마다 스크롤 위치 초기화
@@ -347,9 +378,9 @@ const ArtPage = () => {
       }
     };
 
-    // 이벤트 리스너 등록
-    document.addEventListener('touchstart', logTouch);
-    document.addEventListener('touchend', logTouch);
+    // 이벤트 리스너 등록 시 passive: false 옵션 추가
+    document.addEventListener('touchstart', logTouch, { passive: false });
+    document.addEventListener('touchend', logTouch, { passive: false });
     document.addEventListener('click', (e) => {
       if (e.target.tagName === 'BUTTON') {
         console.log(`${e.target.textContent?.trim()} 버튼 클릭됨`);
@@ -362,7 +393,19 @@ const ArtPage = () => {
     };
   }, []);
 
-  // renderArtworkPage 함수 내의 rotation 계산 수정
+  // deviceorientation 이벤트 핸들러 수정
+  useEffect(() => {
+    const handleOrientation = (event) => {
+      setCurrentBeta(event.beta || 0);
+      setCurrentGamma(event.gamma || 0);
+      // 기존의 alpha 처리 로직은 유지
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, []);
+
+  // renderArtworkPage 함수 내의 각도 표시 부분 수정
   const renderArtworkPage = () => {
     if (pageNumber === 0) return null;
 
@@ -377,14 +420,17 @@ const ArtPage = () => {
 
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
-        <div className="fixed top-2 left-0 right-0 text-center z-10">
-          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+        <div className="fixed top-2 left-0 right-0 text-center z-10 space-y-1">
+          <p className="text-xl font-bold text-white">α: {Math.round(currentAlpha)}°</p>
+          <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
         </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
-            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors z-100"
+            className="rounded-full p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors z-100"
+            style={{ backgroundColor: menuIconColor }}
             aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
           >
             {showMenu ? (
@@ -406,13 +452,6 @@ const ArtPage = () => {
             )}
           </button>
         </div>
-
-        {/* 각도 표시
-        <div className="fixed top-2 left-0 right-0 text-center z-10">
-          <p className="text-xl font-bold text-white">
-            {Math.round(currentAlpha)}°
-          </p>
-        </div> */}
 
         <div className="outer-container absolute w-[120%] h-[150vh] flex items-center justify-center"
           style={{
@@ -454,14 +493,6 @@ const ArtPage = () => {
           </div>
         </div>
 
-        {/* 가이드 메시지
-        <div className="fixed top-3 right-10 left-10 items-center justify-center p-1 bg-white/50 text-black text-center text-sm">
-          {language === 'ko' 
-            ? "다음 작품으로 이동하려면 흔들어주세요."
-            : "Shake it to move to the next part"
-          }
-        </div> */}
-
         {/* 메뉴 오버레이 */}
         {showMenu && <Menu {...menuProps} />}
       </div>
@@ -486,6 +517,8 @@ const ArtPage = () => {
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
         </div>
 
         <div 
@@ -560,7 +593,7 @@ const ArtPage = () => {
         <div className="fixed top-5 right-5 z-20">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
-            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors"
+            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 transition-colors"
             aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
           >
             {showMenu ? (
@@ -628,8 +661,7 @@ const ArtPage = () => {
             <button 
               onTouchStart={(e) => {
                 e.preventDefault();
-                console.log('시작하기 버튼 터치됨');
-                handleStartClick(); // 터치와 동시에 바로 실행
+                handleStartClick();
               }}
               className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
               style={{ WebkitTapHighlightColor: 'transparent' }}

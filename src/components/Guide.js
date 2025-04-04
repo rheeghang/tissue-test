@@ -1,6 +1,11 @@
 import React from 'react';
 
-const Guide = ({ show }) => {
+const Guide = ({ show, language }) => {
+  const guideText = {
+    ko: "기기를 회전하며 방향을 찾아보세요.",
+    en: "Rotate your device to find the direction."
+  };
+
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       <div className="relative z-50 text-center">
@@ -9,7 +14,7 @@ const Guide = ({ show }) => {
           <div className="w-[100px] h-[60px] border-2 border-white animate-rotate-left"></div>
         </div>
         <p className="mb-6 p-4 pb-2 text-white">
-          기기를 회전하며 방향을 찾아보세요.
+          {guideText[language] || guideText.ko}
         </p>
       </div>
     </div>

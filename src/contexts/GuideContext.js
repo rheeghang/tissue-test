@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState } from 'react';
 import Guide from '../components/Guide';
+import { useLanguage } from './LanguageContext';
 
 const GuideContext = createContext();
 
 export const GuideProvider = ({ children }) => {
   const [showGuide, setShowGuide] = useState(false);
+  const { language } = useLanguage();
 
   const showGuideMessage = () => {
     setShowGuide(true);
@@ -16,7 +18,7 @@ export const GuideProvider = ({ children }) => {
   return (
     <GuideContext.Provider value={{ showGuideMessage }}>
       {children}
-      <Guide show={showGuide} />
+      <Guide show={showGuide} language={language} />
     </GuideContext.Provider>
   );
 };

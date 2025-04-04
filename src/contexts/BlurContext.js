@@ -5,6 +5,8 @@ const BlurContext = createContext();
 export const BlurProvider = ({ children }) => {
   const [blurAmount, setBlurAmount] = useState(0);
   const [currentAlpha, setCurrentAlpha] = useState(0);
+  const [currentBeta, setCurrentBeta] = useState(0);
+  const [currentGamma, setCurrentGamma] = useState(0);
   const [targetAlpha, setTargetAlpha] = useState(0);
 
   useEffect(() => {
