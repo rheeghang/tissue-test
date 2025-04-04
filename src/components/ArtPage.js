@@ -53,7 +53,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onTouchStart={handleTouch}
+          onClick={handleTouch}
           className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
@@ -225,7 +225,7 @@ const ArtPage = () => {
     <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
       <div className="text-lg font-bold text-black">
         <button 
-          onTouchStart={(e) => {
+          onClick={(e) => {
             e.preventDefault();
             handleLanguageChange('ko');
           }}
@@ -236,7 +236,7 @@ const ArtPage = () => {
         </button>
         <span className="mx-2">|</span>
         <button 
-          onTouchStart={(e) => {
+          onClick={(e) => {
             e.preventDefault();
             handleLanguageChange('en');
           }}
@@ -696,6 +696,7 @@ const ArtPage = () => {
             </button>
           )}
           <LanguageSelector />
+          
         </div>
       </div>
     );
