@@ -35,7 +35,12 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={onConfirm}
+          onClick={(e) => {
+            console.log('권한 요청 버튼 클릭됨');
+            console.log('이벤트 타입:', e.type);
+            console.log('이벤트 타겟:', e.target);
+            onConfirm();
+          }}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
@@ -166,10 +171,13 @@ const ArtPage = () => {
 
   // Home1 페이지에서 시작하기 버튼 클릭 시
   const handleStartClick = (e) => {
+    console.log('시작하기 버튼 클릭됨');
     if (e) {
-      e.stopPropagation();  // 이벤트 전파 중단
+      console.log('이벤트 타입:', e.type);
+      console.log('이벤트 타겟:', e.target);
+      console.log('현재 tutorialStep:', tutorialStep);
     }
-    setTutorialStep(1);  // 튜토리얼 시작
+    setTutorialStep(1);
   };
 
   // 튜토리얼 단계 이동
@@ -190,6 +198,8 @@ const ArtPage = () => {
 
   // 언어 변경 핸들러
   const handleLanguageChange = (lang) => {
+    console.log('언어 변경 버튼 클릭됨:', lang);
+    console.log('현재 언어:', language);
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
@@ -316,24 +326,18 @@ const ArtPage = () => {
 
   // 터치 이벤트 관련 수정
   useEffect(() => {
-    // viewport meta 태그 동적 추가/수정
-    let metaViewport = document.querySelector('meta[name="viewport"]');
-    if (!metaViewport) {
-      metaViewport = document.createElement('meta');
-      metaViewport.name = 'viewport';
-      document.head.appendChild(metaViewport);
-    }
-    metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-
-    // 핀치 줌만 방지하고 일반 터치는 허용
-    const handleGestureStart = (e) => {
-      e.preventDefault();
+    const handleTouch = (e) => {
+      console.log('터치 이벤트 발생:', e.type);
+      console.log('터치 타겟:', e.target);
+      console.log('터치 시간:', new Date().toISOString());
     };
-    
-    document.addEventListener('gesturestart', handleGestureStart);
+
+    document.addEventListener('touchstart', handleTouch);
+    document.addEventListener('touchend', handleTouch);
 
     return () => {
-      document.removeEventListener('gesturestart', handleGestureStart);
+      document.removeEventListener('touchstart', handleTouch);
+      document.removeEventListener('touchend', handleTouch);
     };
   }, []);
 
@@ -568,7 +572,7 @@ const ArtPage = () => {
   const renderHomePage = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-4">
-        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800">
+        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800 top-[5vh]">
           <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line">
             {data.home1.title}
           </h1>
