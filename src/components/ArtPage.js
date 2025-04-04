@@ -41,7 +41,11 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={handleClick}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            console.log('권한 허용하기 버튼 터치됨');
+            onConfirm(); // 터치와 동시에 바로 실행
+          }}
           className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
@@ -208,9 +212,10 @@ const ArtPage = () => {
     <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
       <div className="text-lg font-bold text-black">
         <button 
-          onClick={(e) => {
+          onTouchStart={(e) => {
             e.preventDefault();
-            handleLanguageChange('ko');
+            console.log('Ko 버튼 터치됨');
+            handleLanguageChange('ko'); // 터치와 동시에 바로 실행
           }}
           className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -219,9 +224,10 @@ const ArtPage = () => {
         </button>
         <span className="mx-2">|</span>
         <button 
-          onClick={(e) => {
+          onTouchStart={(e) => {
             e.preventDefault();
-            handleLanguageChange('en');
+            console.log('En 버튼 터치됨');
+            handleLanguageChange('en'); // 터치와 동시에 바로 실행
           }}
           className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -333,14 +339,27 @@ const ArtPage = () => {
 
   // 터치 이벤트 관련 수정
   useEffect(() => {
-    // viewport 설정만 남기고 다른 이벤트 리스너는 제거
-    let metaViewport = document.querySelector('meta[name="viewport"]');
-    if (!metaViewport) {
-      metaViewport = document.createElement('meta');
-      metaViewport.name = 'viewport';
-      document.head.appendChild(metaViewport);
-    }
-    metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    const logTouch = (e) => {
+      // 버튼인 경우에만 로그 출력
+      if (e.target.tagName === 'BUTTON') {
+        const buttonText = e.target.textContent?.trim();
+        console.log(`${buttonText} 버튼에 ${e.type}`);
+      }
+    };
+
+    // 이벤트 리스너 등록
+    document.addEventListener('touchstart', logTouch);
+    document.addEventListener('touchend', logTouch);
+    document.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        console.log(`${e.target.textContent?.trim()} 버튼 클릭됨`);
+      }
+    });
+
+    return () => {
+      document.removeEventListener('touchstart', logTouch);
+      document.removeEventListener('touchend', logTouch);
+    };
   }, []);
 
   // renderArtworkPage 함수 내의 rotation 계산 수정
@@ -607,11 +626,13 @@ const ArtPage = () => {
         <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
           {showStartButton && (
             <button 
-              onClick={handleStartClick}
-              className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
-              style={{ 
-                WebkitTapHighlightColor: 'transparent'
+              onTouchStart={(e) => {
+                e.preventDefault();
+                console.log('시작하기 버튼 터치됨');
+                handleStartClick(); // 터치와 동시에 바로 실행
               }}
+              className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {data.home1.startButton}
             </button>
