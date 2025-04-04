@@ -14,16 +14,28 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const modalMessage = isMobile
-    ? "작품 감상을 위해 기기 방향 감지 센서 권한이 필요합니다."
-    : "이 웹사이트는 모바일 기기에 최적화되어 있습니다. 모바일 기기로 접속해주세요.";
+  const modalMessage = "작품 감상을 위해 기기 방향 감지 센서 권한이 필요합니다.";
+  const buttonText = "권한 허용하기";
 
-  const buttonText = isMobile ? "권한 허용하기" : "확인";
+  if (!isMobile) return null;
 
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onConfirm();
+    
+    try {
+      // iOS 시스템 권한 요청 직접 호출
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          onConfirm();
+        }
+      } else {
+        onConfirm();
+      }
+    } catch (error) {
+      console.error('권한 요청 실패:', error);
+    }
   };
 
   return (
@@ -35,16 +47,13 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       
       <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
         <h3 className="mb-4 text-xl font-bold text-gray-900">
-          {isMobile ? "센서 권한 필요" : "알림"}
+          센서 권한 필요
         </h3>
         <p className="mb-6 text-gray-600">
           {modalMessage}
         </p>
         <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onConfirm();
-          }}
+          onClick={handleClick}  // onTouchStart 대신 onClick 사용
           className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
