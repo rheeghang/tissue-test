@@ -30,7 +30,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-20 z-51 flex items-center justify-center text-center">
-      <div className="w-[90%] bg-white bg-opacity-80 shadow-lg mx-6 my-3 flex flex-col relative text-bold">
+      <div className="w-[90%] h-[90%] bg-white bg-opacity-90 shadow-lg mx-6 my-6 flex flex-col relative text-bold">
 
         <div className="h-12"></div>
 
@@ -48,7 +48,7 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
               aria-label="모드 전환"
             >
               <div className={`relative w-12 h-6 rounded-full transition-colors duration-200 ease-in-out ${
-                isOrientationMode ? 'bg-key-color' : 'bg-gray-300'
+                isOrientationMode ? 'bg-page3-bg' : 'bg-gray-300'
               }`}>
                 <div className={`absolute top-0 w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
                   isOrientationMode ? 'translate-x-6' : 'translate-x-0'

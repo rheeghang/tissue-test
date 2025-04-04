@@ -73,6 +73,7 @@ const ArtPage = () => {
   const [menuIconColor, setMenuIconColor] = useState('black');
   const [currentBeta, setCurrentBeta] = useState(0);
   const [currentGamma, setCurrentGamma] = useState(0);
+  const [menuIconScale, setMenuIconScale] = useState(1);
 
   // context hooks
   const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
@@ -317,9 +318,16 @@ const ArtPage = () => {
       const isAtBottom = container.scrollHeight - container.scrollTop === container.clientHeight;
       
       if (isAtBottom && !showMenu) {
-        setMenuIconColor('#FF5218'); // key-color
+        setMenuIconColor('black'); // key-color
+        setMenuIconScale(1.2); // 스케일 증가
+        
+        // 0.3초 후에 원래 크기로 돌아오기
+        setTimeout(() => {
+          setMenuIconScale(1);
+        }, 300);
       } else {
-        setMenuIconColor('black');
+        setMenuIconColor('#FF5218');
+        setMenuIconScale(1);
       }
     };
 
@@ -421,17 +429,21 @@ const ArtPage = () => {
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
-          <p className="text-xl font-bold text-white">α: {Math.round(currentAlpha)}°</p>
-          <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          {/* <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
         </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
-            className="rounded-full p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-colors z-100"
-            style={{ backgroundColor: menuIconColor }}
+            className="rounded-full p-2 shadow-lg flex items-center justify-center w-12 h-12 hover:bg-gray-800 transition-all z-100"
+            style={{ 
+              backgroundColor: menuIconColor,
+              transform: `scale(${menuIconScale})`,
+              transition: 'all 0.3s ease'
+            }}
             aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
           >
             {showMenu ? (
@@ -518,9 +530,9 @@ const ArtPage = () => {
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
-          <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
+          {/* <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
         </div>
 
         <div 
