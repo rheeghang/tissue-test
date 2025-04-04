@@ -109,19 +109,18 @@ const ArtPage = () => {
     setShowModal(false);
   };
 
-  // 컴포넌트 마운트 시 권한 체크 부분 수정
+  // 컴포넌트 마운트 시 권한 체크
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     if (isMobile) {
       if (isIOS()) {
-        setShowModal(true);
+        setShowModal(true);  // iOS에서는 항상 모달 표시
       } else {
         setPermissionGranted(true);
         setShowModal(false);
       }
     } else {
-      // 데스크톱인 경우 모달 표시하지 않고 권한 허용 상태로 설정
       setPermissionGranted(true);
       setShowModal(false);
     }
