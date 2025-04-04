@@ -79,7 +79,7 @@ const ArtPage = () => {
   const [pageNumber, setPageNumber] = useState(0);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [initialAlpha, setInitialAlpha] = useState(null);  // 페이지 로드시의 알파값 저장
-  const [menuIconColor, setMenuIconColor] = useState('black');
+  const [menuIconColor, setMenuIconColor] = useState('#FF5218');
   const [currentBeta, setCurrentBeta] = useState(0);
   const [currentGamma, setCurrentGamma] = useState(0);
   const [menuIconScale, setMenuIconScale] = useState(1);
