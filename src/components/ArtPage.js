@@ -19,7 +19,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   if (!isMobile) return null;
 
-  const handleClick = async (e) => {
+  const handleTouch = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -53,7 +53,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={handleClick}  // onTouchStart 대신 onClick 사용
+          onTouchStart={handleTouch}
           className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
         >
           {buttonText}
