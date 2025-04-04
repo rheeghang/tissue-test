@@ -326,18 +326,28 @@ const ArtPage = () => {
 
   // 터치 이벤트 관련 수정
   useEffect(() => {
-    const handleTouch = (e) => {
-      console.log('터치 이벤트 발생:', e.type);
-      console.log('터치 타겟:', e.target);
-      console.log('터치 시간:', new Date().toISOString());
+    // viewport meta 태그 동적 추가/수정
+    let metaViewport = document.querySelector('meta[name="viewport"]');
+    if (!metaViewport) {
+      metaViewport = document.createElement('meta');
+      metaViewport.name = 'viewport';
+      document.head.appendChild(metaViewport);
+    }
+    metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+
+    // 핀치 줌만 선택적으로 방지
+    const handleGestureStart = (e) => {
+      // 핀치 줌 제스처일 때만 preventDefault
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
     };
-
-    document.addEventListener('touchstart', handleTouch);
-    document.addEventListener('touchend', handleTouch);
-
+    
+    // passive: false로 설정하여 preventDefault가 정상 작동하도록 함
+    document.addEventListener('gesturestart', handleGestureStart, { passive: false });
+    
     return () => {
-      document.removeEventListener('touchstart', handleTouch);
-      document.removeEventListener('touchend', handleTouch);
+      document.removeEventListener('gesturestart', handleGestureStart);
     };
   }, []);
 
@@ -572,11 +582,11 @@ const ArtPage = () => {
   const renderHomePage = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-4">
-        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800 top-[5vh]">
-          <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line">
+        <div className="items-center min-h-screen space-y-2 text-center z-10 text-gray-800 top-[10vh]">
+          <h1 className="text-sm leading-relaxed font-bold mt-6 mb-4 font-medium whitespace-pre-line">
             {data.home1.title}
           </h1>
-          <div className="items-center space-y-2 text-center z-11 font-bold text-black">
+          <div className="items-center space-y-2 text-center z-51 font-bold text-black">
             <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
             <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
             <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
@@ -596,7 +606,7 @@ const ArtPage = () => {
                            (Math.abs(gamma) >= 290 && Math.abs(gamma) <= 320) 
                            ? '125px' : '0px',
             }}
-            className="shadow-lg"
+            className="shadow-2xl"
           />
         </div>
 
