@@ -71,14 +71,6 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {buttonText}
         </button>
       </div>
-      
-      <ScreenReaderText
-        currentPage={pageNumber}
-        blurAmount={blurAmount}
-        isModalOpen={showModal}
-        tutorialStep={tutorialStep}
-        onTutorialNext={handleTutorialNext}
-      />
     </div>
   );
 };
