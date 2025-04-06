@@ -626,7 +626,7 @@ const ArtPage = () => {
     const { title, subtitle, body } = data.about;
 
     return (
-      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center ">
+      <div className="min-h-screen fixed w-full flex items-center justify-center ">
         <div className="w-[100vw] h-[100vh] flex items-center justify-center">
           <div 
             className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-14 text-black leading-relaxed"
@@ -650,7 +650,7 @@ const ArtPage = () => {
         <div className="fixed top-5 right-5 z-20">
           <button 
             onClick={() => setShowMenu(!showMenu)} 
-            className="rounded-full bg-black p-2 shadow-lg flex items-center justify-center w-12 h-12 transition-colors"
+            className="rounded-full bg-key-color p-2 shadow-lg flex items-center justify-center w-12 h-12 transition-colors"
             aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
           >
             {showMenu ? (
