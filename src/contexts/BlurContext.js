@@ -19,8 +19,8 @@ export const BlurProvider = ({ children }) => {
       setCurrentBeta(beta);
       setCurrentGamma(gamma);
       
-      const tolerance = 20;
-      const maxBlur = 20;
+      const tolerance = 15;
+      const maxBlur = 30;
       
       // 두 기준에 대한 차이 계산
       const betaDifference1 = Math.abs(beta - targetBeta1);
