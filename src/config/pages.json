@@ -76,7 +76,7 @@
   "tutorial": {
     "1": {
       "targetBeta1": 20,
-      "targetGamma1": 15,
+      "targetGamma1": -15,
       "targetBeta2": 50,
       "targetGamma2": -46,
       "rotationAngle": 30,
