@@ -88,7 +88,7 @@ const ArtPage = () => {
   const [announcement, setAnnouncement] = useState('');
 
   // context hooks
-  const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
+  const { blurAmount, currentAlpha, setTargetAngles } = useBlur();
   const { showGuideMessage } = useGuide();
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { changeLanguage } = useLanguage();
@@ -151,7 +151,12 @@ const ArtPage = () => {
     if (!isHomePage && pageNumber > 0) {
       const config = pageConfig.pages[pageNumber];
       if (config) {
-        setTargetAlpha(config.targetAlpha);
+        setTargetAngles(
+          config.targetBeta1,
+          config.targetGamma1,
+          config.targetBeta2,
+          config.targetGamma2
+        );
       }
     }
   }, [pageNumber, isHomePage]);
@@ -298,7 +303,12 @@ const ArtPage = () => {
     if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0) {
       const config = pageConfig.pages[pageNumber];
       if (config) {
-        setTargetAlpha(config.targetAlpha);
+        setTargetAngles(
+          config.targetBeta1,
+          config.targetGamma1,
+          config.targetBeta2,
+          config.targetGamma2
+        );
       }
     }
   }, [pageNumber, isOrientationMode, isHomePage, tutorialStep]);
@@ -426,6 +436,21 @@ const ArtPage = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, []);
 
+  // 튜토리얼 관련 useEffect 수정
+  useEffect(() => {
+    if (tutorialStep > 0) {
+      const currentConfig = pageConfig.tutorial[tutorialStep];
+      if (currentConfig) {
+        setTargetAngles(
+          currentConfig.targetBeta1,
+          currentConfig.targetGamma1,
+          currentConfig.targetBeta2,
+          currentConfig.targetGamma2
+        );
+      }
+    }
+  }, [tutorialStep, setTargetAngles]);
+
   // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
     if (pageNumber === 0) return null;
@@ -437,7 +462,7 @@ const ArtPage = () => {
     if (!pageContent) return null;
 
     // 디바이스 초기 알파값 기준으로 회전 각도 계산
-    const rotationAngle = (alphaInit || 0) + config.targetAlpha;
+    const rotationAngle = config.rotationAngle;
 
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
@@ -530,10 +555,15 @@ const ArtPage = () => {
     if (tutorialStep > 0) {
       const currentConfig = pageConfig.tutorial[tutorialStep];
       if (currentConfig && currentConfig.targetAlpha) {
-        setTargetAlpha(currentConfig.targetAlpha);
+        setTargetAngles(
+          currentConfig.targetBeta1,
+          currentConfig.targetGamma1,
+          currentConfig.targetBeta2,
+          currentConfig.targetGamma2
+        );
       }
     }
-  }, [tutorialStep, setTargetAlpha]);
+  }, [tutorialStep, setTargetAngles]);
 
   // 튜토리얼 렌더링 함수에서는 useEffect 제거
   const renderTutorial = () => {
@@ -552,7 +582,7 @@ const ArtPage = () => {
           className={currentConfig.containerClassName}
           style={{
             ...currentConfig.style,
-            transform: `rotate(${currentConfig.angle}deg) translateX(-50%)`,
+            transform: `rotate(${currentConfig.rotationAngle}deg) translateX(-50%)`,
             filter: `blur(${blurAmount}px)`,
             transition: 'filter 0.3s ease, transform 0.3s ease',
           }}

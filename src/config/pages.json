@@ -1,50 +1,85 @@
 {
   "pages": {
     "1": {
-      "targetAlpha": 105,
+      "targetBeta1": -10,
+      "targetGamma1": -31,
+      "targetBeta2": 3,
+      "targetGamma2": -60,
+      "rotationAngle": 105,
       "className": "bg-page1-bg text-page1-text text-stroke-white-thin",
       "marginTop": "63vh"
     },
     "2": {
-      "targetAlpha": 315,
+      "targetBeta1": 11,
+      "targetGamma1": 10,
+      "targetBeta2": 37,
+      "targetGamma2": 53,
+      "rotationAngle": 315,
       "className": "bg-page2-bg text-page2-text text-stroke-white-thin",
       "marginTop": "65vh"
     },
     "3": {
-      "targetAlpha": 45,
+      "targetBeta1": 9,
+      "targetGamma1": -6,
+      "targetBeta2": 28,
+      "targetGamma2": -58,
+      "rotationAngle": 45,
       "className": "bg-page3-bg text-page3-text text-stroke-thin",
       "marginTop": "55vh"
     },
     "4": {
-      "targetAlpha": 90,
+      "targetBeta1": 7,
+      "targetGamma1": -15,
+      "targetBeta2": 3,
+      "targetGamma2": -70,
+      "rotationAngle": 90,
       "className": "bg-page4-bg text-page4-text text-stroke-white-thin",
       "marginTop": "65vh"
     },
     "5": {
-      "targetAlpha": 270,
+      "targetBeta1": -3,
+      "targetGamma1": 14,
+      "targetBeta2": -4,
+      "targetGamma2": -64,
+      "rotationAngle": 270,
       "className": "bg-page5-bg text-page5-text text-stroke-thin",
       "marginTop": "65vh"
     },
     "6": {
-      "targetAlpha": 190,
+      "targetBeta1": -18,
+      "targetGamma1": -1,
+      "targetBeta2": -59,
+      "targetGamma2": 44,
+      "rotationAngle": 190,
       "className": "bg-page6-bg text-page6-text text-stroke-thin",
       "marginTop": "45vh"
     },
     "7": {
-      "targetAlpha": 135,
+      "targetBeta1": -4,
+      "targetGamma1": -13,
+      "targetBeta2": -29,
+      "targetGamma2": -56,
+      "rotationAngle": 135,
       "className": "bg-page7-bg text-page7-text text-stroke-thin",
       "marginTop": "65vh"
     },
     "8": {
-      "targetAlpha": 225,
+      "targetBeta1": -10,
+      "targetGamma1": 7,
+      "targetBeta2": -39,
+      "targetGamma2": 54,
+      "rotationAngle": 225,
       "className": "bg-page8-bg text-page8-text text-stroke-white-thin",
       "marginTop": "65vh"
     }
   },
   "tutorial": {
     "1": {
-      "targetAlpha": 30,
-      "angle": 30,
+      "targetBeta1": 20,
+      "targetGamma1": 15,
+      "targetBeta2": 50,
+      "targetGamma2": -46,
+      "rotationAngle": 30,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
       "style": {
@@ -54,8 +89,11 @@
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     },
     "2": {
-      "targetAlpha": 80,
-      "angle": 80,
+      "targetBeta1": 7,
+      "targetGamma1": -24,
+      "targetBeta2": 10,
+      "targetGamma2": -67,
+      "rotationAngle": 80,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
       "style": {
@@ -66,8 +104,11 @@
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     },
     "3": {
-      "targetAlpha": 120,
-      "angle": 120,
+      "targetBeta1": -5,
+      "targetGamma1": -20,
+      "targetBeta2": -19,
+      "targetGamma2": -66,
+      "rotationAngle": 120,
       "bgColor": "bg-key-color",
       "textColor": "text-white",
       "style": {
