@@ -71,6 +71,14 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {buttonText}
         </button>
       </div>
+      
+      <ScreenReaderText
+        currentPage={pageNumber}
+        blurAmount={blurAmount}
+        isModalOpen={showModal}
+        tutorialStep={tutorialStep}
+        onTutorialNext={handleTutorialNext}
+      />
     </div>
   );
 };
@@ -239,33 +247,39 @@ const ArtPage = () => {
   };
 
   // 언어 선택 컴포넌트
-  const LanguageSelector = () => (
-    <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
-      <div className="text-xl font-bold text-black">
-        <button 
-          onClick={(e) => {
-            e.preventDefault();
-            handleLanguageChange('ko');
-          }}
-          className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          Ko
-        </button>
-        <span className="mx-2">|</span>
-        <button 
-          onClick={(e) => {
-            e.preventDefault();
-            handleLanguageChange('en');
-          }}
-          className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          En
-        </button>
+  const LanguageSelector = () => {
+    const handleLanguageSelect = (lang, e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleLanguageChange(lang);
+    };
+
+    return (
+      <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
+        <div className="text-xl font-bold text-black">
+          <button 
+            onClick={(e) => handleLanguageSelect('ko', e)}
+            onTouchStart={(e) => handleLanguageSelect('ko', e)}
+            className={`px-3 py-2 ${language === 'ko' ? 'text-black' : 'text-gray-400'}`}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            aria-label={language === 'ko' ? "한국어 선택됨" : "한국어로 변경"}
+          >
+            Ko
+          </button>
+          <span className="mx-2" aria-hidden="true">|</span>
+          <button 
+            onClick={(e) => handleLanguageSelect('en', e)}
+            onTouchStart={(e) => handleLanguageSelect('en', e)}
+            className={`px-3 py-2 ${language === 'en' ? 'text-black' : 'text-gray-400'}`}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            aria-label={language === 'en' ? "English selected" : "Change to English"}
+          >
+            En
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // 시작하기 버튼 표시 타이머
   useEffect(() => {
@@ -556,6 +570,14 @@ const ArtPage = () => {
 
         {/* 메뉴 오버레이 */}
         {showMenu && <Menu {...menuProps} />}
+
+        <ScreenReaderText
+          currentPage={pageNumber}
+          blurAmount={blurAmount}
+          isModalOpen={showModal}
+          tutorialStep={tutorialStep}
+          onTutorialNext={handleTutorialNext}
+        />
       </div>
     );
   };
@@ -769,10 +791,10 @@ const ArtPage = () => {
       {/* 스크린리더 텍스트 추가 */}
       <ScreenReaderText 
         currentPage={pageNumber}
-        alpha={alpha}
-        beta={beta}
-        gamma={gamma}
-        isOrientationMode={isOrientationMode}
+        blurAmount={blurAmount}
+        isModalOpen={showModal}
+        tutorialStep={tutorialStep}
+        onTutorialNext={handleTutorialNext}
       />
 
       <LiveAnnouncer 
