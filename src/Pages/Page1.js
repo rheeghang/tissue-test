@@ -12,28 +12,34 @@ const Page1 = () => {
   
   // 블러 이펙트를 위한 상태 추가
   const [blurAmount, setBlurAmount] = useState(0);
-  const [currentAlpha, setCurrentAlpha] = useState(0);
-  const tolerance = 17;
-  const targetAlpha = 105;
-  const targetBeta = 10;
-  const targetGamma = 10;
+  const [currentBeta, setCurrentBeta] = useState(0);
+  const [currentGamma, setCurrentGamma] = useState(0);
+  
+  const tolerance = 20;  // 허용 범위 ±30
+  const targetBeta = -10;  // 목표 베타값
+  const targetGamma = -31;  // 목표 감마값
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
 
   // 디바이스 방향 감지 및 블러 계산
   useEffect(() => {
     const handleOrientation = (event) => {
-      const alpha = event.alpha || 0;
-      setCurrentAlpha(alpha);
+      const beta = event.beta || 0;
+      const gamma = event.gamma || 0;
       
-      // 타겟 각도와의 차이 계산
-      const difference = Math.abs(alpha - targetAlpha);
+      setCurrentBeta(beta);
+      setCurrentGamma(gamma);
       
-      // 블러 양 계산
-      if (difference <= tolerance) {
+      // 베타와 감마의 목표값과의 차이 계산
+      const betaDifference = Math.abs(beta - targetBeta);
+      const gammaDifference = Math.abs(gamma - targetGamma);
+      
+      // 두 각도 모두 허용 범위 내에 있을 때만 블러 제거
+      if (betaDifference <= tolerance && gammaDifference <= tolerance) {
         setBlurAmount(0);
       } else {
-        // 차이가 클수록 블러가 강해지도록 계산
-        const blur = Math.min(20, (difference - tolerance) / 3);
+        // 더 큰 차이값을 기준으로 블러 계산
+        const maxDifference = Math.max(betaDifference, gammaDifference);
+        const blur = Math.min(20, (maxDifference - tolerance) / 3);
         setBlurAmount(blur);
       }
     };
@@ -42,10 +48,12 @@ const Page1 = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, []);
 
-  // 가이드 메시지 표시 로직
+  // 가이드 메시지 표시 로직 수정
   useEffect(() => {
     const now = Date.now();
-    const isOutOfRange = Math.abs(currentAlpha - targetAlpha) > tolerance;
+    const betaDifference = Math.abs(currentBeta - targetBeta);
+    const gammaDifference = Math.abs(currentGamma - targetGamma);
+    const isOutOfRange = betaDifference > tolerance || gammaDifference > tolerance;
     
     if (isOutOfRange) {
       if (!outOfRangeStartTime) {
@@ -56,7 +64,7 @@ const Page1 = () => {
     } else {
       setOutOfRangeStartTime(null);
     }
-  }, [currentAlpha, outOfRangeStartTime, showGuideMessage]);
+  }, [currentBeta, currentGamma, outOfRangeStartTime, showGuideMessage]);
 
   // 다국어 처리를 위한 안내 메시지
   const guideMessage = language === 'ko' 
@@ -66,10 +74,10 @@ const Page1 = () => {
   return (
     <div className="min-h-screen bg-black fixed w-full">
       <div className="outer-container rotate-[105deg] top-[-20vh] relative w-[95%] h-[140vh] items-center justify-center"
-        // style={{
-        //   filter: `blur(${blurAmount}px)`, 
-        //   transition: 'filter 0.3s ease'
-        // }}
+        style={{
+          filter: `blur(${blurAmount}px)`, 
+          transition: 'filter 0.3s ease'
+        }}
       >
         <div 
           className="container h-[130vh] overflow-y-auto overflow-x-hidden"
@@ -102,11 +110,12 @@ const Page1 = () => {
         {guideMessage}
       </div>
       
-      {/* 디버깅을 위한 각도 표시 (필요시 주석 해제) */}
-      {/* <div className="fixed top-2 left-0 right-0 text-center z-10">
-        <p className="text-xl font-bold text-white">α: {Math.round(currentAlpha)}°</p>
+      {/* 디버깅을 위한 각도 표시 */}
+      <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
+        <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+        <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
         <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
-      </div> */}
+      </div>
     </div>
   );
 };

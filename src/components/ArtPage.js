@@ -8,13 +8,15 @@ import pageConfig from '../config/pages.json';
 import { useMode } from '../contexts/ModeContext';
 import MenuIcon from './MenuIcon';
 import Menu from './Menu';
+import ScreenReaderText from './ScreenReaderText';
+import LiveAnnouncer from './LiveAnnouncer';
 
 // Modal 컴포넌트 추가
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const modalMessage = "작품 감상을 위해 기기 방향 감지 센서 권한이 필요합니다.";
+  const modalMessage = "작품 감상을 위해 기기 방향 감지 센서를 허용해주세요";
   const buttonText = "권한 허용하기";
 
   if (!isMobile) return null;
@@ -73,7 +75,6 @@ const ArtPage = () => {
     return localStorage.getItem('language') || 'ko';
   });
   const [showStartButton, setShowStartButton] = useState(false);
-  const [startButtonOpacity, setStartButtonOpacity] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showModal, setShowModal] = useState(true);
   const [pageNumber, setPageNumber] = useState(0);
@@ -83,11 +84,14 @@ const ArtPage = () => {
   const [currentBeta, setCurrentBeta] = useState(0);
   const [currentGamma, setCurrentGamma] = useState(0);
   const [menuIconScale, setMenuIconScale] = useState(1);
+  const [startButtonOpacity, setStartButtonOpacity] = useState(0);
+  const [announcement, setAnnouncement] = useState('');
 
   // context hooks
   const { blurAmount, currentAlpha, setTargetAlpha } = useBlur();
   const { showGuideMessage } = useGuide();
-  const { isOrientationMode } = useMode();
+  const { isOrientationMode, setIsOrientationMode } = useMode();
+  const { changeLanguage } = useLanguage();
 
   // 언어 데이터 선택을 상태 선언 후로 이동
   const data = language === 'ko' ? koData : enData;
@@ -212,18 +216,17 @@ const ArtPage = () => {
     }
   };
 
-  // 언어 변경 핸들러
+  // 언어 변경 핸들러 수정
   const handleLanguageChange = (lang) => {
-    console.log('언어 변경 버튼 클릭됨:', lang);
-    console.log('현재 언어:', language);
-    setLanguage(lang);
+    setLanguage(lang);  // 로컬 상태 업데이트
+    changeLanguage(lang);  // Context 상태 업데이트 (setContextLanguage 대신 changeLanguage 사용)
     localStorage.setItem('language', lang);
   };
 
   // 언어 선택 컴포넌트
   const LanguageSelector = () => (
     <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
-      <div className="text-lg font-bold text-black">
+      <div className="text-xl font-bold text-black">
         <button 
           onClick={(e) => {
             e.preventDefault();
@@ -329,18 +332,16 @@ const ArtPage = () => {
       const maxScroll = container.scrollHeight - container.clientHeight;
       const scrollRatio = scrollPosition / maxScroll;
       
-      // 스크롤이 90% 이상 되었을 때 이벤트 발생
+      // 스크롤이 90% 이상 되었을 때 크기와 색상 모두 변경
       if (scrollRatio >= 0.9 && !showMenu) {
-        setMenuIconColor('black');
-        setMenuIconScale(1.2);
+        setMenuIconColor('#FF8000');
+        setMenuIconScale(1.3);
         
-        // 0.3초 후에 원래 크기로 돌아오기
+        // 0.3초 후에 원래 상태로 돌아오기
         setTimeout(() => {
+          setMenuIconColor('#FF5218');
           setMenuIconScale(1);
-        }, 300);
-      } else {
-        setMenuIconColor('#FF5218');
-        setMenuIconScale(1);
+        }, 500);
       }
     };
 
@@ -425,7 +426,7 @@ const ArtPage = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, []);
 
-  // renderArtworkPage 함수 내의 각도 표시 부분 수정
+  // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
     if (pageNumber === 0) return null;
 
@@ -442,9 +443,9 @@ const ArtPage = () => {
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
-          {/* <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
         </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
@@ -499,7 +500,7 @@ const ArtPage = () => {
             }}
           >
             <div 
-              className={`container p-6 w-[320px] ${config.className} shadow-2xl mt-[50vh] mb-[80vh]`}
+              className={`container p-6 w-[320px] ${config.className} shadow-xl mt-[50vh] mb-[80vh]`}
               style={{
                 marginTop: config.marginTop
               }}
@@ -542,9 +543,9 @@ const ArtPage = () => {
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
           <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
-          {/* <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
         </div>
 
         <div 
@@ -556,7 +557,7 @@ const ArtPage = () => {
             transition: 'filter 0.3s ease, transform 0.3s ease',
           }}
         >
-          <div className={`p-4 ${currentConfig.bgColor} shadow-2xl relative`}>
+          <div className={`p-4 ${currentConfig.bgColor} shadow-xl relative`}>
             <p className={`text-lg leading-relaxed ${currentConfig.textColor} break-keep mb-8`}>
               {data.tutorial[`step${tutorialStep}`]}
             </p>
@@ -653,8 +654,8 @@ const ArtPage = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-4 relative flex flex-col">
         {/* 타이틀과 각도 표시 영역 */}
-        <div className="flex flex-col items-center pt-[3vh] space-y-2 text-center z-10 text-gray-800">
-          <h1 className="text-sm leading-relaxed font-bold mb-4 font-medium whitespace-pre-line px-4">
+        <div className="flex flex-col items-center pt-[3vh] mt-[2vh] space-y-2 text-center z-10 text-gray-800">
+          <h1 className="text-base leading-relaxed font-bold mb-4 font-medium whitespace-pre-line px-4">
             {data.home1.title}
           </h1>
           <div className="items-center space-y-2 text-center z-51 font-bold text-black">
@@ -683,23 +684,37 @@ const ArtPage = () => {
 
         {/* 하단 영역 */}
         <div className="fixed bottom-3 left-0 right-0 flex flex-col items-center space-y-3">
-          {showStartButton && (
-            <button 
-              onTouchStart={(e) => {
-                e.preventDefault();
-                handleStartClick();
-              }}
-              className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              {data.home1.startButton}
-            </button>
-          )}
+          <button 
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleStartClick();
+            }}
+            className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
+            style={{ 
+              WebkitTapHighlightColor: 'transparent',
+              opacity: startButtonOpacity,
+              transition: 'opacity 2s ease-in'
+            }}
+          >
+            {data.home1.startButton}
+          </button>
           <LanguageSelector />
           
         </div>
       </div>
     );
+  };
+
+  const handleModeChange = () => {
+    setIsOrientationMode(prev => {
+      const newMode = !prev;
+      setAnnouncement(
+        language === 'ko' 
+          ? `각도 모드가 ${newMode ? '켜졌습니다' : '꺼졌습니다'}`
+          : `Angle mode ${newMode ? 'enabled' : 'disabled'}`
+      );
+      return newMode;
+    });
   };
 
   // 메인 렌더링 부분 수정
@@ -709,6 +724,20 @@ const ArtPage = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onConfirm={requestPermission}
+      />
+
+      {/* 스크린리더 텍스트 추가 */}
+      <ScreenReaderText 
+        currentPage={pageNumber}
+        alpha={alpha}
+        beta={beta}
+        gamma={gamma}
+        isOrientationMode={isOrientationMode}
+      />
+
+      <LiveAnnouncer 
+        message={announcement}
+        clearMessage={() => setAnnouncement('')}
       />
 
       {pageNumber === 'about' ? (

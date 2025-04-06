@@ -15,7 +15,7 @@ export const BlurProvider = ({ children }) => {
       setCurrentAlpha(alpha);
 
       const tolerance = 17;
-      const maxBlur = 20; // 최대 블러 값
+      const maxBlur = 10; // 최대 블러 값
       const difference = Math.abs(alpha - targetAlpha);
       
       if (difference <= tolerance) {

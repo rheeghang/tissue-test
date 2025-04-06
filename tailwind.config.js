@@ -60,16 +60,28 @@ module.exports = {
         'rotate-left': {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(-360deg)' }
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
         }
       },
       animation: {
-        'rotate-left': 'rotate-left 15s linear infinite'
+        'rotate-left': 'rotate-left 15s linear infinite',
+        'fadeIn': 'fadeIn 2s ease-in forwards'
       },
       textShadow: {
         'stroke-thin': '-0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000',
         'stroke-medium': '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
         'stroke-thick': '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000',
         'stroke-white-thin': '-0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff, 0.5px 0.5px 0 #fff',
+      },
+      boxShadow: {
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.3)',
+        'xl': '5px 15px 15px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        '3xl': '0 35px 60px -15px rgba(0, 0, 0, 0.6)',
+        '4xl': '0 45px 70px -18px rgba(0, 0, 0, 0.7)',
       },
     },
   },
@@ -92,4 +104,6 @@ module.exports = {
       addUtilities(newUtilities, ['responsive', 'hover'])
     }
   ],
+
+  
 } 
