@@ -371,7 +371,7 @@ const ArtPage = () => {
   const toggleMenu = () => {
     setShowMenu(prev => {
       if (!prev) {
-        setMenuIconColor('black'); // 메뉴가 열릴 때 검정색으로
+        setMenuIconColor('#FF5218'); // 메뉴가 열릴 때 검정색으로
       }
       return !prev;
     });
