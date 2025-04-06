@@ -10,6 +10,7 @@ export const BlurProvider = ({ children }) => {
   const [targetGamma1, setTargetGamma1] = useState(0);
   const [targetBeta2, setTargetBeta2] = useState(0);
   const [targetGamma2, setTargetGamma2] = useState(0);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
     const handleOrientation = (event) => {
@@ -18,6 +19,11 @@ export const BlurProvider = ({ children }) => {
       
       setCurrentBeta(beta);
       setCurrentGamma(gamma);
+      
+      if (isUnlocked) {
+        setBlurAmount(0);
+        return;
+      }
       
       const tolerance = 15;
       const maxBlur = 30;
@@ -35,6 +41,7 @@ export const BlurProvider = ({ children }) => {
       
       if (isInRange1 || isInRange2) {
         setBlurAmount(0);
+        setIsUnlocked(true);
       } else {
         // 두 기준 중 더 가까운 쪽의 차이값으로 블러 계산
         const maxDifference1 = Math.max(betaDifference1, gammaDifference1);
@@ -47,7 +54,7 @@ export const BlurProvider = ({ children }) => {
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [targetBeta1, targetGamma1, targetBeta2, targetGamma2]);
+  }, [targetBeta1, targetGamma1, targetBeta2, targetGamma2, isUnlocked]);
 
   return (
     <BlurContext.Provider value={{
@@ -59,6 +66,7 @@ export const BlurProvider = ({ children }) => {
         setTargetGamma1(gamma1);
         setTargetBeta2(beta2);
         setTargetGamma2(gamma2);
+        setIsUnlocked(false);
       }
     }}>
       {children}

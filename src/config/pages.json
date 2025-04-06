@@ -12,8 +12,8 @@
     "2": {
       "targetBeta1": 11,
       "targetGamma1": 10,
-      "targetBeta2": 37,
-      "targetGamma2": 53,
+      "targetBeta2": 33,
+      "targetGamma2": 70,
       "rotationAngle": 315,
       "className": "bg-page2-bg text-page2-text text-stroke-white-thin",
       "marginTop": "65vh"
@@ -37,10 +37,10 @@
       "marginTop": "65vh"
     },
     "5": {
-      "targetBeta1": -3,
-      "targetGamma1": 14,
+      "targetBeta1": -2,
+      "targetGamma1": 35,
       "targetBeta2": -4,
-      "targetGamma2": -64,
+      "targetGamma2": 64,
       "rotationAngle": 270,
       "className": "bg-page5-bg text-page5-text text-stroke-thin",
       "marginTop": "65vh"
@@ -106,8 +106,8 @@
     "3": {
       "targetBeta1": -5,
       "targetGamma1": -20,
-      "targetBeta2": -19,
-      "targetGamma2": -66,
+      "targetBeta2": -20,
+      "targetGamma2": -19,
       "rotationAngle": 120,
       "bgColor": "bg-key-color",
       "textColor": "text-white",
