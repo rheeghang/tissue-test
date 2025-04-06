@@ -19,10 +19,10 @@
       "marginTop": "65vh"
     },
     "3": {
-      "targetBeta1": 9,
+      "targetBeta1": 14,
       "targetGamma1": -6,
       "targetBeta2": 28,
-      "targetGamma2": -58,
+      "targetGamma2": -30,
       "rotationAngle": 45,
       "className": "bg-page3-bg text-page3-text text-stroke-thin",
       "marginTop": "55vh"

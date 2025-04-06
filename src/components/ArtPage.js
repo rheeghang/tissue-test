@@ -21,12 +21,17 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   if (!isMobile) return null;
 
-  const handleTouch = async (e) => {
+  let isProcessing = false;
+
+  const handlePermissionRequest = async (e) => {
+    if (isProcessing) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
+    isProcessing = true;
+
     try {
-      // iOS 시스템 권한 요청 직접 호출
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         const permission = await DeviceOrientationEvent.requestPermission();
         if (permission === 'granted') {
@@ -37,6 +42,10 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       }
     } catch (error) {
       console.error('권한 요청 실패:', error);
+    } finally {
+      setTimeout(() => {
+        isProcessing = false;
+      }, 300);
     }
   };
 
@@ -47,7 +56,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         onClick={onClose}
       ></div>
       
-      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
+      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl pointer-events-none">
         <h3 className="mb-4 text-xl font-bold text-gray-900">
           센서 권한 필요
         </h3>
@@ -55,8 +64,9 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={handleTouch}
-          className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors"
+          onTouchStart={handlePermissionRequest}
+          onClick={handlePermissionRequest}
+          className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors pointer-events-auto"
         >
           {buttonText}
         </button>
