@@ -10,6 +10,7 @@ import MenuIcon from './MenuIcon';
 import Menu from './Menu';
 import ScreenReaderText from './ScreenReaderText';
 import LiveAnnouncer from './LiveAnnouncer';
+import Guide from './Guide';
 
 // Modal 컴포넌트 추가
 const Modal = ({ isOpen, onClose, onConfirm }) => {
@@ -25,9 +26,6 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   const handlePermissionRequest = async (e) => {
     if (isProcessing) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
     
     isProcessing = true;
 
@@ -396,16 +394,14 @@ const ArtPage = () => {
   // 터치 이벤트 관련 수정
   useEffect(() => {
     const logTouch = (e) => {
-      // 버튼인 경우에만 로그 출력
       if (e.target.tagName === 'BUTTON') {
         const buttonText = e.target.textContent?.trim();
         console.log(`${buttonText} 버튼에 ${e.type}`);
       }
     };
 
-    // 이벤트 리스너 등록 시 passive: false 옵션 추가
-    document.addEventListener('touchstart', logTouch, { passive: false });
-    document.addEventListener('touchend', logTouch, { passive: false });
+    document.addEventListener('touchstart', logTouch);
+    document.addEventListener('touchend', logTouch);
     document.addEventListener('click', (e) => {
       if (e.target.tagName === 'BUTTON') {
         console.log(`${e.target.textContent?.trim()} 버튼 클릭됨`);
@@ -567,10 +563,6 @@ const ArtPage = () => {
       let lastTap = 0;
       
       return (e) => {
-        // 이벤트 버블링 방지
-        e.preventDefault();
-        e.stopPropagation();
-
         // 클릭된 요소가 버튼이나 메뉴 아이콘인 경우 더블탭 이벤트를 처리하지 않음
         if (e.target.closest('.tutorial-button') || e.target.closest('.menu-icon')) {
           return;
@@ -585,7 +577,7 @@ const ArtPage = () => {
         if (tapLength < 500 && tapLength > 0) {
           if (tutorialStep === 3) {  // 마지막 스텝에서
             if (!showMenu) {  // 메뉴가 닫혀있을 때만
-              toggleMenu();  // 메뉴 토글
+              setShowMenu(true);  // toggleMenu 대신 직접 setShowMenu 사용
             }
           } else {  // 이전 스텝들에서
             handleTutorialNext();  // 다음 스텝으로
@@ -598,8 +590,8 @@ const ArtPage = () => {
     return (
       <div 
         className="relative min-h-screen overflow-hidden bg-base-color"
-        onTouchStart={handleDoubleTap}  // onTouchEnd 대신 onTouchStart 사용
-        style={{ WebkitTapHighlightColor: 'transparent' }}  // 탭 하이라이트 제거
+        onTouchStart={handleDoubleTap}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
           {/* <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
@@ -623,10 +615,9 @@ const ArtPage = () => {
             
             <div className="mt-14">
               {tutorialStep === 3 ? (
-                <button  // div를 button으로 변경
+                <button
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={toggleMenu}
-                  onTouchStart={toggleMenu}
+                  onClick={() => setShowMenu(true)}
                   style={{ 
                     pointerEvents: 'auto',
                     background: 'none',
