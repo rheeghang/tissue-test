@@ -56,7 +56,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         onClick={onClose}
       ></div>
       
-      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl pointer-events-none">
+      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl pointer-events-auto">
         <h3 className="mb-4 text-xl font-bold text-gray-900">
           센서 권한을 허용해 주세요
         </h3>
