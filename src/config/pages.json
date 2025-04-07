@@ -104,10 +104,10 @@
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     },
     "3": {
-      "targetBeta1": -4,
-      "targetGamma1": -13,
-      "targetBeta2": -33,
-      "targetGamma2": -23,
+      "targetBeta1": -20,
+      "targetGamma1": -15,
+      "targetBeta2": -44,
+      "targetGamma2": -25,
       "rotationAngle": 120,
       "bgColor": "bg-key-color",
       "textColor": "text-white",
