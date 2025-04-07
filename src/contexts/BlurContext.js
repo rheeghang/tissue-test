@@ -4,68 +4,48 @@ const BlurContext = createContext();
 
 export const BlurProvider = ({ children }) => {
   const [blurAmount, setBlurAmount] = useState(0);
-  const [currentBeta, setCurrentBeta] = useState(0);
-  const [currentGamma, setCurrentGamma] = useState(0);
-  const [targetBeta1, setTargetBeta1] = useState(0);
-  const [targetGamma1, setTargetGamma1] = useState(0);
-  const [targetBeta2, setTargetBeta2] = useState(0);
-  const [targetGamma2, setTargetGamma2] = useState(0);
+  const [currentAlpha, setCurrentAlpha] = useState(0);
+  const [targetAlpha, setTargetAlpha] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
     const handleOrientation = (event) => {
-      const beta = event.beta || 0;
-      const gamma = event.gamma || 0;
-      
-      setCurrentBeta(beta);
-      setCurrentGamma(gamma);
+      const alpha = event.alpha || 0;
+      setCurrentAlpha(alpha);
       
       if (isUnlocked) {
         setBlurAmount(0);
         return;
       }
       
-      const tolerance = 8; 
-      const maxBlur = 40;
+      const tolerance = 30; 
+      const maxBlur = 20;
       
-      // 두 기준에 대한 차이 계산
-      const betaDifference1 = Math.abs(beta - targetBeta1);
-      const gammaDifference1 = Math.abs(gamma - targetGamma1);
+      // 알파 각도의 차이 계산 (360도 범위 고려)
+      let alphaDifference = Math.abs(alpha - targetAlpha);
+      if (alphaDifference > 180) {
+        alphaDifference = 360 - alphaDifference;
+      }
       
-      const betaDifference2 = Math.abs(beta - targetBeta2);
-      const gammaDifference2 = Math.abs(gamma - targetGamma2);
-      
-      // 두 기준 중 하나라도 만족하면 블러 제거
-      const isInRange1 = betaDifference1 <= tolerance && gammaDifference1 <= tolerance;
-      const isInRange2 = betaDifference2 <= tolerance && gammaDifference2 <= tolerance;
-      
-      if (isInRange1 || isInRange2) {
+      if (alphaDifference <= tolerance) {
         setBlurAmount(0);
         setIsUnlocked(true);
       } else {
-        // 두 기준 중 더 가까운 쪽의 차이값으로 블러 계산
-        const maxDifference1 = Math.max(betaDifference1, gammaDifference1);
-        const maxDifference2 = Math.max(betaDifference2, gammaDifference2);
-        const minDifference = Math.min(maxDifference1, maxDifference2);
-        const blur = Math.min(maxBlur, (minDifference - tolerance) / 3);
+        const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
         setBlurAmount(blur);
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [targetBeta1, targetGamma1, targetBeta2, targetGamma2, isUnlocked]);
+  }, [targetAlpha, isUnlocked]);
 
   return (
     <BlurContext.Provider value={{
       blurAmount,
-      currentBeta,
-      currentGamma,
-      setTargetAngles: (beta1, gamma1, beta2, gamma2) => {
-        setTargetBeta1(beta1);
-        setTargetGamma1(gamma1);
-        setTargetBeta2(beta2);
-        setTargetGamma2(gamma2);
+      currentAlpha,
+      setTargetAngles: (alpha) => {
+        setTargetAlpha(alpha);
         setIsUnlocked(false);
       },
       setIsUnlocked
