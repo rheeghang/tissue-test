@@ -51,22 +51,22 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div 
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      ></div>
+      {/* 배경 딤처리 - 클릭 불가능하게 */}
+      <div className="fixed inset-0 bg-black/50 transition-opacity pointer-events-none" />
       
-      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl pointer-events-auto">
-        <h3 className="mb-4 text-xl font-bold text-gray-900">
+      {/* 모달 컨텐츠 */}
+      <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-xl font-bold text-gray-900 select-none">
           센서 권한을 허용해 주세요
         </h3>
-        <p className="mb-6 text-gray-600">
+        <p className="mb-6 text-gray-600 select-none">
           {modalMessage}
         </p>
         <button
-          onTouchStart={handlePermissionRequest}
           onClick={handlePermissionRequest}
-          className="modal-button w-full rounded-md bg-black px-4 py-2 text-white transition-colors pointer-events-auto"
+          onTouchStart={handlePermissionRequest}
+          className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors active:bg-gray-800"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           {buttonText}
         </button>
