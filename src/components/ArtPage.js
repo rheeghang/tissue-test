@@ -160,10 +160,7 @@ const ArtPage = () => {
       const config = pageConfig.pages[pageNumber];
       if (config) {
         setTargetAngles(
-          config.targetBeta1,
-          config.targetGamma1,
-          config.targetBeta2,
-          config.targetGamma2
+          config.targetAlpha
         );
       }
     }

@@ -21,7 +21,6 @@ export const BlurProvider = ({ children }) => {
       const tolerance = 30; 
       const maxBlur = 20;
       
-      // 알파 각도의 차이 계산 (360도 범위 고려)
       let alphaDifference = Math.abs(alpha - targetAlpha);
       if (alphaDifference > 180) {
         alphaDifference = 360 - alphaDifference;
