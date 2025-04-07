@@ -90,12 +90,13 @@ const ArtPage = () => {
   const [menuIconColor, setMenuIconColor] = useState('#FF5218');
   const [currentBeta, setCurrentBeta] = useState(0);
   const [currentGamma, setCurrentGamma] = useState(0);
+  const [currentAlpha, setCurrentAlpha] = useState(0);
   const [menuIconScale, setMenuIconScale] = useState(1);
   const [startButtonOpacity, setStartButtonOpacity] = useState(0);
   const [announcement, setAnnouncement] = useState('');
 
   // context hooks
-  const { blurAmount, currentAlpha, setTargetAngles, setIsUnlocked } = useBlur();
+  const { blurAmount, setTargetAngles, setIsUnlocked } = useBlur();
   const { showGuideMessage } = useGuide();
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { changeLanguage } = useLanguage();
@@ -175,16 +176,6 @@ const ArtPage = () => {
         setAlpha(prevAlpha => {
           const newAlpha = event.alpha || 0;
           return Math.round(newAlpha / 10) * 10;  // 10도 단위로 반올림
-        });
-        
-        setBeta(prevBeta => {
-          const newBeta = event.beta || 0;
-          return Math.round(newBeta / 10) * 10;
-        });
-        
-        setGamma(prevGamma => {
-          const newGamma = event.gamma || 0;
-          return Math.round(newGamma / 10) * 10;
         });
       };
 
@@ -314,10 +305,7 @@ const ArtPage = () => {
       const currentConfig = pageConfig.tutorial[tutorialStep];
       if (currentConfig) {
         setTargetAngles(
-          currentConfig.targetBeta1,
-          currentConfig.targetGamma1,
-          currentConfig.targetBeta2,
-          currentConfig.targetGamma2
+          currentConfig.targetAlpha
         );
         // blurAmount가 0이 되면 isUnlocked를 true로 설정
         if (blurAmount === 0) {
@@ -418,8 +406,7 @@ const ArtPage = () => {
   // deviceorientation 이벤트 핸들러 수정
   useEffect(() => {
     const handleOrientation = (event) => {
-      setCurrentBeta(event.beta || 0);
-      setCurrentGamma(event.gamma || 0);
+      // 베타, 감마 관련 코드 제거
       // 기존의 alpha 처리 로직은 유지
     };
 
@@ -461,7 +448,7 @@ const ArtPage = () => {
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
-          {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
+          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
           {/* <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
           <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
@@ -722,9 +709,7 @@ const ArtPage = () => {
             {data.home1.title}
           </h1>
           <div className="items-center space-y-2 text-center font-bold text-black">
-            <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
-            <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
-            <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
+            <p className="text-xl font-medium text-gray-800">{Math.round(currentAlpha)}°</p>
           </div>
         </div>
 
