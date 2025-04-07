@@ -468,9 +468,9 @@ const ArtPage = () => {
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
           {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
-          <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+          {/* <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
         </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
@@ -602,9 +602,9 @@ const ArtPage = () => {
         style={{ WebkitTapHighlightColor: 'transparent' }}  // 탭 하이라이트 제거
       >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
-          <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
+          {/* <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
         </div>
 
         <div 
