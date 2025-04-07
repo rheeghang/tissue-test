@@ -623,25 +623,37 @@ const ArtPage = () => {
             
             <div className="mt-14">
               {tutorialStep === 3 ? (
-                <div 
+                <button  // div를 button으로 변경
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={toggleMenu}  // handleTutorialNext 대신 toggleMenu 사용
-                  style={{ pointerEvents: 'auto' }}  // 항상 클릭 가능하도록 수정
+                  onClick={toggleMenu}
+                  onTouchStart={toggleMenu}
+                  style={{ 
+                    pointerEvents: 'auto',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0
+                  }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
                   <MenuIcon />
-                </div>
+                </button>
               ) : (
-                <div 
+                <button  // div를 button으로 변경
                   className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
-                  onClick={handleTutorialNext}  // 통합된 클릭 핸들러 사용
+                  onClick={handleTutorialNext}
+                  onTouchStart={handleTutorialNext}
+                  style={{ 
+                    background: 'none',
+                    border: 'none',
+                    padding: 0
+                  }}
                   aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12H19M19 12L12 5M19 12L12 19" 
                       stroke="#FF5218" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </div>
+                </button>
               )}
             </div>
           </div>
