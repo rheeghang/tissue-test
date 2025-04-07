@@ -11,9 +11,9 @@
     },
     "2": {
       "targetBeta1": 11,
-      "targetGamma1": 10,
+      "targetGamma1": 24,
       "targetBeta2": 33,
-      "targetGamma2": 70,
+      "targetGamma2": 39,
       "rotationAngle": 315,
       "className": "bg-page2-bg text-page2-text text-stroke-white-thin",
       "marginTop": "65vh"
@@ -28,10 +28,10 @@
       "marginTop": "55vh"
     },
     "4": {
-      "targetBeta1": 7,
+      "targetBeta1": 2,
       "targetGamma1": -15,
-      "targetBeta2": 3,
-      "targetGamma2": -70,
+      "targetBeta2": 0,
+      "targetGamma2": -50,
       "rotationAngle": 90,
       "className": "bg-page4-bg text-page4-text text-stroke-white-thin",
       "marginTop": "65vh"
@@ -48,8 +48,8 @@
     "6": {
       "targetBeta1": -18,
       "targetGamma1": -1,
-      "targetBeta2": -59,
-      "targetGamma2": 44,
+      "targetBeta2": -48,
+      "targetGamma2": 22,
       "rotationAngle": 190,
       "className": "bg-page6-bg text-page6-text text-stroke-thin",
       "marginTop": "45vh"
@@ -57,8 +57,8 @@
     "7": {
       "targetBeta1": -4,
       "targetGamma1": -13,
-      "targetBeta2": -29,
-      "targetGamma2": -56,
+      "targetBeta2": -33,
+      "targetGamma2": -23,
       "rotationAngle": 135,
       "className": "bg-page7-bg text-page7-text text-stroke-thin",
       "marginTop": "65vh"
@@ -66,8 +66,8 @@
     "8": {
       "targetBeta1": -10,
       "targetGamma1": 7,
-      "targetBeta2": -39,
-      "targetGamma2": 54,
+      "targetBeta2": -22,
+      "targetGamma2": 39,
       "rotationAngle": 225,
       "className": "bg-page8-bg text-page8-text text-stroke-white-thin",
       "marginTop": "65vh"
@@ -89,10 +89,10 @@
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     },
     "2": {
-      "targetBeta1": 7,
-      "targetGamma1": -24,
-      "targetBeta2": 10,
-      "targetGamma2": -67,
+      "targetBeta1": 5,
+      "targetGamma1": -44,
+      "targetBeta2": 12,
+      "targetGamma2": -48,
       "rotationAngle": 80,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
@@ -106,8 +106,8 @@
     "3": {
       "targetBeta1": -5,
       "targetGamma1": -20,
-      "targetBeta2": -20,
-      "targetGamma2": -19,
+      "targetBeta2": -24,
+      "targetGamma2": -32,
       "rotationAngle": 120,
       "bgColor": "bg-key-color",
       "textColor": "text-white",
