@@ -32,14 +32,8 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
     isProcessing = true;
 
     try {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        const permission = await DeviceOrientationEvent.requestPermission();
-        if (permission === 'granted') {
-          onConfirm();
-        }
-      } else {
-        onConfirm();
-      }
+      // 여기서 바로 권한 요청하지 않고 onConfirm 호출
+      onConfirm();
     } catch (error) {
       console.error('권한 요청 실패:', error);
     } finally {
