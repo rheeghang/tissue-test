@@ -607,15 +607,28 @@ const ArtPage = () => {
         const tapLength = currentTime - lastTap;
         
         if (tapLength < 500 && tapLength > 0) {
-          if (tutorialStep === 3) {  // 마지막 스텝에서만 메뉴 토글
-            toggleMenu();
-          } else if (tutorialStep < 3) {  // 이전 스텝들에서는 다음으로 이동
-            handleTutorialNext();
+          if (tutorialStep === 3) {  // 마지막 스텝에서
+            if (!showMenu) {  // 메뉴가 닫혀있을 때만
+              toggleMenu();  // 메뉴 토글
+            }
+          } else {  // 이전 스텝들에서
+            handleTutorialNext();  // 다음 스텝으로
           }
         }
         lastTap = currentTime;
       };
     })();
+    
+    // 클릭 핸들러 추가
+    const handleClick = () => {
+      if (tutorialStep === 3) {
+        if (!showMenu) {
+          toggleMenu();
+        }
+      } else {
+        handleTutorialNext();
+      }
+    };
     
     return (
       <div 
@@ -646,7 +659,7 @@ const ArtPage = () => {
               {tutorialStep === 3 ? (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={toggleMenu}
+                  onClick={handleClick}  // 통합된 클릭 핸들러 사용
                   style={{ pointerEvents: showMenu ? 'none' : 'auto' }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
@@ -655,7 +668,7 @@ const ArtPage = () => {
               ) : (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
-                  onClick={handleTutorialNext}
+                  onClick={handleClick}  // 통합된 클릭 핸들러 사용
                   aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
