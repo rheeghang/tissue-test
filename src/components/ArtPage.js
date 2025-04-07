@@ -22,13 +22,18 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   if (!isMobile) return null;
 
-  const handleClick = async (e) => {
+  let isProcessing = false;
+
+  const handlePermissionRequest = async (e) => {
+    if (isProcessing) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
+    isProcessing = true;
+
     try {
-      if (typeof DeviceOrientationEvent !== 'undefined' && 
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         const permission = await DeviceOrientationEvent.requestPermission();
         if (permission === 'granted') {
           onConfirm();
@@ -38,13 +43,19 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       }
     } catch (error) {
       console.error('권한 요청 실패:', error);
+    } finally {
+      setTimeout(() => {
+        isProcessing = false;
+      }, 300);
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      {/* 배경 딤처리 - 클릭 불가능하게 */}
       <div className="fixed inset-0 bg-black/50 transition-opacity pointer-events-none" />
       
+      {/* 모달 컨텐츠 */}
       <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
         <h3 className="mb-4 text-xl font-bold text-gray-900 select-none">
           센서 권한을 허용해 주세요
@@ -53,7 +64,8 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={handleClick}
+          onClick={handlePermissionRequest}
+          onTouchStart={handlePermissionRequest}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors active:bg-gray-800"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
@@ -82,13 +94,12 @@ const ArtPage = () => {
   const [menuIconColor, setMenuIconColor] = useState('#FF5218');
   const [currentBeta, setCurrentBeta] = useState(0);
   const [currentGamma, setCurrentGamma] = useState(0);
-  const [currentAlpha, setCurrentAlpha] = useState(0);
   const [menuIconScale, setMenuIconScale] = useState(1);
   const [startButtonOpacity, setStartButtonOpacity] = useState(0);
   const [announcement, setAnnouncement] = useState('');
 
   // context hooks
-  const { blurAmount, setTargetAngles, setIsUnlocked } = useBlur();
+  const { blurAmount, currentAlpha, setTargetAngles, setIsUnlocked } = useBlur();
   const { showGuideMessage } = useGuide();
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { changeLanguage } = useLanguage();
@@ -396,8 +407,8 @@ const ArtPage = () => {
   // deviceorientation 이벤트 핸들러 수정
   useEffect(() => {
     const handleOrientation = (event) => {
-      // 베타, 감마 관련 코드 제거
-      // 기존의 alpha 처리 로직은 유지
+      const gamma = event.gamma || 0;
+      setGamma(gamma);  // 감마값 설정
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
