@@ -9,8 +9,18 @@ export const BlurProvider = ({ children }) => {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
+    let lastValidAlpha = null;
+
     const handleOrientation = (event) => {
-      const alpha = event.alpha || 0;
+      let alpha = event.alpha;
+      
+      // 알파값이 null이거나 갑자기 0이 되는 경우 이전 유효한 값 사용
+      if (alpha === null || (lastValidAlpha !== null && Math.abs(alpha - lastValidAlpha) > 180)) {
+        alpha = lastValidAlpha || 0;
+      } else {
+        lastValidAlpha = alpha;
+      }
+
       setCurrentAlpha(alpha);
       
       if (isUnlocked) {
@@ -18,7 +28,7 @@ export const BlurProvider = ({ children }) => {
         return;
       }
       
-      const tolerance = 30; 
+      const tolerance = 30;
       const maxBlur = 20;
       
       // 알파값 정규화 (0-360 범위로)
@@ -33,7 +43,8 @@ export const BlurProvider = ({ children }) => {
       
       // 디버깅용 로그
       console.log({
-        alpha: normalizedAlpha,
+        rawAlpha: alpha,
+        normalized: normalizedAlpha,
         target: normalizedTarget,
         difference: alphaDifference,
         blur: alphaDifference <= tolerance ? 0 : Math.min(maxBlur, (alphaDifference - tolerance) / 3)

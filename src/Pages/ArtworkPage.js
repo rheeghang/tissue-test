@@ -22,16 +22,30 @@ const ArtworkPage = () => {
   const [outOfRangeStartTime, setOutOfRangeStartTime] = React.useState(null);
   const [menuIconColor, setMenuIconColor] = React.useState('#FF5218');
   const [menuIconScale, setMenuIconScale] = React.useState(1);
+  const [initialAlpha, setInitialAlpha] = React.useState(null);
 
   const data = language === 'ko' ? koData : enData;
   const config = pageConfig.pages[pageNumber];
   const pageContent = data[`page${pageNumber}`];
 
   useEffect(() => {
-    if (config) {
-      setTargetAngles(config.targetAlpha);
+    const handleFirstOrientation = (event) => {
+      if (initialAlpha === null && event.alpha !== null) {
+        setInitialAlpha(event.alpha);
+        window.removeEventListener('deviceorientation', handleFirstOrientation);
+      }
+    };
+
+    window.addEventListener('deviceorientation', handleFirstOrientation);
+    return () => window.removeEventListener('deviceorientation', handleFirstOrientation);
+  }, [initialAlpha]);
+
+  useEffect(() => {
+    if (config && initialAlpha !== null) {
+      const relativeTargetAngle = ((config.targetAlpha + initialAlpha) % 360 + 360) % 360;
+      setTargetAngles(relativeTargetAngle);
     }
-  }, [pageNumber, setTargetAngles, config]);
+  }, [pageNumber, setTargetAngles, config, initialAlpha]);
 
   // 가이드 메시지 관리
   useEffect(() => {
@@ -105,7 +119,9 @@ const ArtworkPage = () => {
     <Layout>
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
-          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          <p className="text-xl font-bold text-white">
+            {Math.round(currentAlpha)}°
+          </p>
         </div>
 
         {/* 메뉴 아이콘 */}
