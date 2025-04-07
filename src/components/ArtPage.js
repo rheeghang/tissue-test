@@ -16,8 +16,8 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const modalMessage = "작품 감상을 위해 기기 방향 감지 센서를 허용해주세요";
-  const buttonText = "권한 허용하기";
+  const modalMessage = "작품 감상을 위해 기기의 방향 감지 센서 사용이 필요합니다 ";
+  const buttonText = "허용 후 계속하기";
 
   if (!isMobile) return null;
 
@@ -58,7 +58,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       
       <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl pointer-events-none">
         <h3 className="mb-4 text-xl font-bold text-gray-900">
-          센서 권한 필요
+          센서 권한을 허용해 주세요
         </h3>
         <p className="mb-6 text-gray-600">
           {modalMessage}
@@ -707,12 +707,12 @@ const ArtPage = () => {
   const renderHomePage = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-4 relative flex flex-col">
-        {/* 타이틀과 각도 표시 영역 */}
-        <div className="flex flex-col items-center pt-[3vh] mt-[2vh] space-y-2 text-center z-10 text-gray-800">
+        {/* 타이틀과 각도 표시 영역 - fixed로 변경 */}
+        <div className="fixed top-3 left-0 right-0 flex flex-col items-center space-y-2 text-center z-10">
           <h1 className="text-base leading-relaxed font-bold mb-4 font-medium whitespace-pre-line px-4">
             {data.home1.title}
           </h1>
-          <div className="items-center space-y-2 text-center z-51 font-bold text-black">
+          <div className="items-center space-y-2 text-center font-bold text-black">
             <p className="text-xl font-medium text-gray-800">Z(α): {Math.round(alpha)}°</p>
             <p className="text-xl font-medium text-gray-800">X(β): {Math.round(beta)}°</p>
             <p className="text-xl font-medium text-gray-800">Y(γ): {Math.round(gamma)}°</p>
