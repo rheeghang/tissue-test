@@ -286,6 +286,7 @@ const ArtPage = () => {
   const handlePageChange = (newPage) => {
     setShowMenu(false);
     setIsUnlocked(false);  // 페이지 전환 시 리셋
+    setOutOfRangeStartTime(null);  // 페이지 전환 시 타이머 리셋
     
     if (newPage === 'home') {
       setTutorialStep(0);
@@ -430,22 +431,19 @@ const ArtPage = () => {
   useEffect(() => {
     if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0 && !showMenu) {
       const now = Date.now();
-      const config = pageConfig.pages[pageNumber];
-      if (!config) return;
-
-      const isOutOfRange = Math.abs(currentAlpha - config.targetAlpha) > 17;
       
-      if (isOutOfRange) {
+      if (blurAmount >= 2) {  // 블러 값이 2 이상일 때
         if (!outOfRangeStartTime) {
           setOutOfRangeStartTime(now);
         } else if (now - outOfRangeStartTime >= 4000) {
           showGuideMessage();
+          setOutOfRangeStartTime(null);  // 가이드 메시지를 표시한 후 타이머 리셋
         }
       } else {
         setOutOfRangeStartTime(null);
       }
     }
-  }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
+  }, [blurAmount, isHomePage, tutorialStep, isOrientationMode, pageNumber, showMenu, outOfRangeStartTime, showGuideMessage]);
 
   // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
@@ -464,9 +462,9 @@ const ArtPage = () => {
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
           {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
-          {/* <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
         </div>
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
@@ -594,9 +592,9 @@ const ArtPage = () => {
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
-          {/* <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
+          <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
-          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p> */}
+          <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
         </div>
 
         <div 

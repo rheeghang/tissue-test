@@ -12,7 +12,7 @@ export const GuideProvider = ({ children }) => {
     setShowGuide(true);
     setTimeout(() => {
       setShowGuide(false);
-    }, 3000);
+    }, 2000);
   };
 
   return (
