@@ -482,7 +482,7 @@ const ArtPage = () => {
     return (
       <div className="min-h-screen bg-base-color fixed w-full flex items-center justify-center">
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
-          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
           <p className="text-xl font-bold text-white">β: {Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">γ: {Math.round(currentGamma)}°</p>
           <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
@@ -595,7 +595,7 @@ const ArtPage = () => {
     return (
       <div className="relative min-h-screen overflow-hidden bg-base-color">
         <div className="fixed top-2 left-0 right-0 text-center z-10">
-          <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
+          {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
           <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
           <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ToggleSwitch from './ToggleSwitch';
 import { useMode } from '../contexts/ModeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,6 +23,10 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
     { id: 'artwork8', label: data.page8.title, pageNumber: 8, bgClass: 'bg-page8-text', textClass: 'text-page8-bg' },
   ];
 
+  const [selectedPage, setSelectedPage] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previousPage, setPreviousPage] = useState(pageNumber);
+
   // 모드 토글 핸들러
   const handleModeToggle = () => {
     setIsOrientationMode(!isOrientationMode);
@@ -32,6 +36,18 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
   const buttonText = {
     home: language === 'ko' ? '홈' : 'Home',
     about: language === 'ko' ? '전시 설명' : 'About'
+  };
+
+  const handlePageSelect = (pageNum) => {
+    setPreviousPage(pageNumber); // 현재 페이지 저장
+    setSelectedPage(pageNum);
+    setIsTransitioning(true);
+    
+    // 0.5초 후에 페이지 전환
+    setTimeout(() => {
+      onPageSelect(pageNum);
+      onClose();
+    }, 500);
   };
 
   return (
@@ -68,12 +84,14 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => {
-                  onPageSelect(item.pageNumber);
-                  onClose();
-                }}
-                className={`py-3 px-1 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-opacity font-medium flex items-center justify-center
-                  ${pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]'}`}
+                onClick={() => handlePageSelect(item.pageNumber)}
+                className={`py-3 px-1 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-all duration-500 font-medium flex items-center justify-center
+                  ${isTransitioning ? 
+                    (selectedPage === item.pageNumber ? 'w-full' : 
+                     previousPage === item.pageNumber ? 'w-[calc(100%-2rem)]' : 
+                     'w-[calc(100%-2rem)]') :
+                    (pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]')
+                  }`}
               >
                 <span className="text-center">{item.label}</span>
               </button>
@@ -83,20 +101,16 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
 
         <div className="flex h-12">
           <button
-            onClick={() => {
-              onPageSelect('home');
-              onClose();
-            }}
-            className="w-1/2 h-full bg-white text-black border border-gray-200 hover:bg-gray-50 transition-colors"
+            onClick={() => handlePageSelect('home')}
+            className={`w-1/2 h-full bg-white text-black border border-gray-200 hover:bg-gray-50 transition-all duration-500
+              ${isTransitioning && selectedPage === 'home' ? 'w-[55%]' : 'w-1/2'}`}
           >
             {buttonText.home}
           </button>
           <button
-            onClick={() => {
-              onPageSelect('about');
-              onClose();
-            }}
-            className="w-1/2 h-full bg-black text-white hover:bg-gray-900 transition-colors"
+            onClick={() => handlePageSelect('about')}
+            className={`w-1/2 h-full bg-black text-white hover:bg-gray-900 transition-all duration-500
+              ${isTransitioning && selectedPage === 'about' ? 'w-[55%]' : 'w-1/2'}`}
           >
             {buttonText.about}
           </button>
