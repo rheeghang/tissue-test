@@ -10,10 +10,11 @@ const Guide = ({ show, language }) => {
     <div className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       <div className="relative z-50 text-center">
         {/* 회전하는 사각형 */}
-        <div className="flex justify-center mb-4 ">
+        <div className="flex justify-center mb-4" aria-hidden="true">
           <div className="w-[100px] h-[60px] border-2 border-white animate-rotate-left"></div>
         </div>
-        <p className="mb-6 p-4 pb-2 text-white">
+        {/* 가이드 텍스트를 스크린리더에서 제외 */}
+        <p className="mb-6 p-4 pb-2 text-white" aria-hidden="true">
           {guideText[language] || guideText.ko}
         </p>
       </div>

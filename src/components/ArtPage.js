@@ -218,9 +218,6 @@ const ArtPage = () => {
   const handleTutorialNext = () => {
     if (tutorialStep < 3) {
       setTutorialStep(tutorialStep + 1);
-    } else {
-      setTutorialStep(0);
-      setPageNumber(2);  // 첫 번째 작품 페이지로
     }
   };
 
@@ -592,10 +589,40 @@ const ArtPage = () => {
   const renderTutorial = () => {
     const currentConfig = pageConfig.tutorial[tutorialStep];
     
+    // 더블 탭 핸들러 수정
+    const handleDoubleTap = (() => {
+      let lastTap = 0;
+      
+      return (e) => {
+        // 클릭된 요소가 버튼이나 메뉴 아이콘인 경우 더블탭 이벤트를 처리하지 않음
+        if (e.target.closest('.tutorial-button') || e.target.closest('.menu-icon')) {
+          return;
+        }
+        
+        // 메뉴가 열려있을 때는 더블탭 이벤트를 처리하지 않음
+        if (showMenu) return;
+        
+        e.preventDefault();
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        if (tapLength < 500 && tapLength > 0) {
+          if (tutorialStep === 3) {  // 마지막 스텝에서만 메뉴 토글
+            toggleMenu();
+          } else if (tutorialStep < 3) {  // 이전 스텝들에서는 다음으로 이동
+            handleTutorialNext();
+          }
+        }
+        lastTap = currentTime;
+      };
+    })();
+    
     return (
-      <div className="relative min-h-screen overflow-hidden bg-base-color">
+      <div 
+        className="relative min-h-screen overflow-hidden bg-base-color"
+        onTouchEnd={handleDoubleTap}
+      >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
-          {/* <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p> */}
           <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
           <p className="text-xl font-bold text-white">{Math.round(currentGamma)}°</p>
           <p className="text-xl font-bold text-white">blur: {Math.round(blurAmount)}</p>
@@ -618,15 +645,18 @@ const ArtPage = () => {
             <div className="mt-14">
               {tutorialStep === 3 ? (
                 <div 
-                  className="absolute bottom-2 right-2 cursor-pointer"
+                  className="absolute bottom-2 right-2 cursor-pointer menu-icon"
                   onClick={toggleMenu}
+                  style={{ pointerEvents: showMenu ? 'none' : 'auto' }}
+                  aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
                   <MenuIcon />
                 </div>
               ) : (
                 <div 
-                  className="absolute bottom-2 right-2 cursor-pointer"
+                  className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
                   onClick={handleTutorialNext}
+                  aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12H19M19 12L12 5M19 12L12 19" 

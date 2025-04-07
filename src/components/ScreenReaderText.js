@@ -26,9 +26,10 @@ const ScreenReaderText = ({
   const rotationAngle = config?.rotationAngle;
 
   useEffect(() => {
-    // 튜토리얼은 무조건 읽기
+    // 튜토리얼일 때는 각도와 상관없이 항상 읽기
     if (tutorialStep > 0) {
       setShouldReadContent(true);
+      setHasReadContent(false);  // 튜토리얼은 반복 읽기 허용
     }
     // about 페이지는 바로 읽기
     else if (currentPage === 'about') {
@@ -96,7 +97,7 @@ const ScreenReaderText = ({
   };
 
   const getPageContent = () => {
-    if (!pageData || !shouldReadContent) return '';
+    if (!pageData || (!shouldReadContent && !tutorialStep)) return '';  // 튜토리얼이 아닐 때만 shouldReadContent 체크
     
     // about 페이지
     if (currentPage === 'about') {
@@ -147,19 +148,24 @@ const ScreenReaderText = ({
   useEffect(() => {
     if (shouldReadContent) {
       const timer = setTimeout(() => {
-        setHasReadContent(true);
+        // 튜토리얼이 아닐 때만 hasReadContent를 true로 설정
+        if (!tutorialStep) {
+          setHasReadContent(true);
+        }
         setShouldReadContent(false);
-      }, 1000); // 읽기 시작 후 적절한 시간 설정
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [shouldReadContent]);
+  }, [shouldReadContent, tutorialStep]);
 
-  // 페이지가 변경되면 읽기 상태 초기화
+  // 튜토리얼 스텝이 변경될 때마다 읽기 상태 초기화
   useEffect(() => {
-    setHasReadContent(false);
-    setShouldReadContent(false);
-  }, [currentPage]);
+    if (tutorialStep > 0) {
+      setHasReadContent(false);
+      setShouldReadContent(true);
+    }
+  }, [tutorialStep]);
 
   return (
     <>
@@ -168,10 +174,10 @@ const ScreenReaderText = ({
         aria-live="polite" 
         role="status"
       >
-        {!shouldReadContent && !hasReadContent && getInitialDescription()}
+        {(!shouldReadContent && !hasReadContent && !tutorialStep) && getInitialDescription()}
       </div>
       
-      {shouldReadContent && (
+      {(shouldReadContent || tutorialStep > 0) && (
         <div 
           className="sr-only" 
           aria-live="assertive" 
