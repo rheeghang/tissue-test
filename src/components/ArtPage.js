@@ -12,7 +12,7 @@ import ScreenReaderText from './ScreenReaderText';
 import LiveAnnouncer from './LiveAnnouncer';
 import Guide from './Guide';
 
-// Modal 컴포넌트 추가
+// Modal 컴포넌트 수정
 const Modal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
@@ -22,13 +22,10 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
 
   if (!isMobile) return null;
 
-  let isProcessing = false;
-
-  const handlePermissionRequest = async (e) => {
-    if (isProcessing) return;
+  const handleClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    isProcessing = true;
-
     try {
       if (typeof DeviceOrientationEvent !== 'undefined' && 
           typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -41,17 +38,13 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       }
     } catch (error) {
       console.error('권한 요청 실패:', error);
-    } finally {
-      isProcessing = false;
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* 배경 딤처리 - 클릭 불가능하게 */}
       <div className="fixed inset-0 bg-black/50 transition-opacity pointer-events-none" />
       
-      {/* 모달 컨텐츠 */}
       <div className="relative z-[101] w-80 rounded-lg bg-white p-6 shadow-xl">
         <h3 className="mb-4 text-xl font-bold text-gray-900 select-none">
           센서 권한을 허용해 주세요
@@ -60,8 +53,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
           {modalMessage}
         </p>
         <button
-          onClick={handlePermissionRequest}
-          onTouchStart={handlePermissionRequest}
+          onClick={handleClick}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors active:bg-gray-800"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
@@ -112,22 +104,23 @@ const ArtPage = () => {
     );
   };
 
-  // 권한 요청 함수
+  // requestPermission 함수 수정
   const requestPermission = async () => {
     try {
-      if (isIOS() && typeof DeviceOrientationEvent !== 'undefined' && 
+      if (typeof DeviceOrientationEvent !== 'undefined' && 
           typeof DeviceOrientationEvent.requestPermission === 'function') {
         const permission = await DeviceOrientationEvent.requestPermission();
         if (permission === 'granted') {
           setPermissionGranted(true);
+          setShowModal(false);
         }
       } else {
         setPermissionGranted(true);
+        setShowModal(false);
       }
     } catch (error) {
       console.error('권한 요청 실패:', error);
     }
-    setShowModal(false);
   };
 
   // 컴포넌트 마운트 시 권한 체크
