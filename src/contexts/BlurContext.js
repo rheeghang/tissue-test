@@ -21,10 +21,23 @@ export const BlurProvider = ({ children }) => {
       const tolerance = 30; 
       const maxBlur = 20;
       
-      let alphaDifference = Math.abs(alpha - targetAlpha);
+      // 알파값 정규화 (0-360 범위로)
+      const normalizedAlpha = ((alpha % 360) + 360) % 360;
+      const normalizedTarget = ((targetAlpha % 360) + 360) % 360;
+      
+      // 최단 거리 계산
+      let alphaDifference = Math.abs(normalizedAlpha - normalizedTarget);
       if (alphaDifference > 180) {
         alphaDifference = 360 - alphaDifference;
       }
+      
+      // 디버깅용 로그
+      console.log({
+        alpha: normalizedAlpha,
+        target: normalizedTarget,
+        difference: alphaDifference,
+        blur: alphaDifference <= tolerance ? 0 : Math.min(maxBlur, (alphaDifference - tolerance) / 3)
+      });
       
       if (alphaDifference <= tolerance) {
         setBlurAmount(0);
@@ -44,7 +57,9 @@ export const BlurProvider = ({ children }) => {
       blurAmount,
       currentAlpha,
       setTargetAngles: (alpha) => {
-        setTargetAlpha(alpha);
+        // 타겟 알파값도 정규화
+        const normalizedAlpha = ((alpha % 360) + 360) % 360;
+        setTargetAlpha(normalizedAlpha);
         setIsUnlocked(false);
       },
       setIsUnlocked
