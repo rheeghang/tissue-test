@@ -1,59 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Menu from './Menu';
-import { Outlet } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useBlur } from '../contexts/BlurContext';
 
-const Layout = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  const SHAKE_THRESHOLD = 30;
-  const SHAKE_INTERVAL = 1000;
-  let lastShakeTime = 0;
+export const Layout = ({ children }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const { setIsUnlocked } = useBlur();
+  const navigate = useNavigate();
 
-  const handleMotion = (event) => {
-    const now = Date.now();
-    if (now - lastShakeTime < SHAKE_INTERVAL) return;
+  const handlePageChange = (newPage) => {
+    setShowMenu(false);
+    setIsUnlocked(false);
 
-    const { acceleration } = event;
-    if (!acceleration) return;
-
-    const shakeStrength = 
-      Math.abs(acceleration.x) +
-      Math.abs(acceleration.y) +
-      Math.abs(acceleration.z);
-
-    if (shakeStrength > SHAKE_THRESHOLD) {
-      setIsMenuOpen(true);
-      lastShakeTime = now;
+    if (newPage === 'home') {
+      navigate('/');
+    } else if (newPage === 'about') {
+      navigate('/about');
+    } else {
+      navigate(`/artwork/${newPage}`);
     }
   };
 
-  useEffect(() => {
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      DeviceMotionEvent.requestPermission()
-        .then(permissionState => {
-          if (permissionState === 'granted') {
-            window.addEventListener('devicemotion', handleMotion);
-          }
-        })
-        .catch(console.error);
-    } else {
-      window.addEventListener('devicemotion', handleMotion);
-    }
-
-    return () => {
-      window.removeEventListener('devicemotion', handleMotion);
-    };
-  }, []);
-
   return (
-    <div>
-      <Outlet />
-      <Menu 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)}
-      />
-    </div>
+    <>
+      {children}
+      {showMenu && (
+        <Menu
+          isOpen={showMenu}
+          onClose={() => setShowMenu(false)}
+          onPageSelect={handlePageChange}
+        />
+      )}
+    </>
   );
-};
-
-export default Layout; 
+}; 

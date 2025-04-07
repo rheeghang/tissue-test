@@ -1,29 +1,27 @@
 import React from 'react';
-import ArtPage from './components/ArtPage';
-import { BlurProvider } from './contexts/BlurContext';
-import { GuideProvider } from './contexts/GuideContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { ModeProvider } from './contexts/ModeContext';
-import Page1 from './Pages/Page1';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './providers/AppProvider';
+import Home from './Pages/Home';
+import Tutorial from './Tutorials/Tutorial';
+import ArtworkPage from './Pages/ArtworkPage';
+import About from './Pages/About';
+import ScreenReaderText from './components/ScreenReaderText';
+import LiveAnnouncer from './components/LiveAnnouncer';
 
-const App = () => {
+function App() {
   return (
-    <LanguageProvider>
-      <BlurProvider>
-        <GuideProvider>
-          <ModeProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<ArtPage />} />
-                <Route path="/1" element={<Page1 />} />
-              </Routes>
-            </Router>
-          </ModeProvider>
-        </GuideProvider>
-      </BlurProvider>
-    </LanguageProvider>
+    <AppProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/tutorial/:step" element={<Tutorial />} />
+          <Route path="/artwork/:pageNumber" element={<ArtworkPage />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+        <LiveAnnouncer />
+      </BrowserRouter>
+    </AppProvider>
   );
-};
+}
 
 export default App;
