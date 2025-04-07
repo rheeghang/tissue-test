@@ -53,7 +53,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         <h3 className="mb-4 text-xl font-bold text-gray-900 select-none">
           센서 권한을 허용해 주세요
         </h3>
-        <p className="mb-6 text-gray-600 select-none">
+        <p className="mb-4 text-gray-600 select-none">
           {modalMessage}
         </p>
         <button
