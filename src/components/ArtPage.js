@@ -217,12 +217,14 @@ const ArtPage = () => {
   // 튜토리얼 단계 이동
   const handleTutorialNext = () => {
     if (tutorialStep < 3) {
+      setIsUnlocked(false);  // 다음 단계로 이동 시 리셋
       setTutorialStep(tutorialStep + 1);
     }
   };
 
   const handleTutorialPrev = () => {
     if (tutorialStep > 1) {
+      setIsUnlocked(false);  // 이전 단계로 이동 시 리셋
       setTutorialStep(tutorialStep - 1);
     }
   };
@@ -285,17 +287,15 @@ const ArtPage = () => {
   // 페이지 전환 처리 수정
   const handlePageChange = (newPage) => {
     setShowMenu(false);  // 메뉴 닫기
+    setIsUnlocked(false);  // 페이지 전환 시 isUnlocked 리셋
     
     if (newPage === 'home') {
-      console.log('홈으로 이동');
       setTutorialStep(0);
-      setPageNumber(0);  // 홈 페이지는 0번으로 설정
+      setPageNumber(0);
     } else if (newPage === 'about') {
-      console.log('어바웃 페이지로 이동');
       setTutorialStep(0);
-      setPageNumber('about');  // about 페이지로 설정
+      setPageNumber('about');
     } else {
-      console.log('작품 페이지로 이동:', newPage);
       setTutorialStep(0);
       setPageNumber(Number(newPage));
     }
@@ -309,46 +309,30 @@ const ArtPage = () => {
     pageNumber: pageNumber
   };
 
-
-  // blur 효과 관리
+  // 튜토리얼 관련 useEffect 수정 - renderArtworkPage와 동일한 로직 적용
   useEffect(() => {
-    if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0) {
-      const config = pageConfig.pages[pageNumber];
-      if (config) {
+    if (tutorialStep > 0) {
+      const currentConfig = pageConfig.tutorial[tutorialStep];
+      if (currentConfig) {
         setTargetAngles(
-          config.targetBeta1,
-          config.targetGamma1,
-          config.targetBeta2,
-          config.targetGamma2
+          currentConfig.targetBeta1,
+          currentConfig.targetGamma1,
+          currentConfig.targetBeta2,
+          currentConfig.targetGamma2
         );
-        // blurAmount가 0이 되면 isUnlocked를 true로 설정
-        if (blurAmount === 0) {
-          setIsUnlocked(true);
-        }
       }
     }
-  }, [pageNumber, isOrientationMode, isHomePage, tutorialStep, blurAmount, setIsUnlocked]);
+  }, [tutorialStep, setTargetAngles]);
 
-  // 가이드 메시지 관리
+  // 블러 효과 관리를 위한 공통 useEffect - 튜토리얼과 작품 페이지 모두에 적용
   useEffect(() => {
-    if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0 && !showMenu) {
-      const now = Date.now();
-      const config = pageConfig.pages[pageNumber];
-      if (!config) return;
-
-      const isOutOfRange = Math.abs(currentAlpha - config.targetAlpha) > 17;
-      
-      if (isOutOfRange) {
-        if (!outOfRangeStartTime) {
-          setOutOfRangeStartTime(now);
-        } else if (now - outOfRangeStartTime >= 4000) {
-          showGuideMessage();
-        }
-      } else {
-        setOutOfRangeStartTime(null);
+    // 튜토리얼이나 작품 페이지일 때만 실행
+    if ((tutorialStep > 0 || (!isHomePage && pageNumber > 0)) && isOrientationMode) {
+      if (blurAmount === 0) {
+        setIsUnlocked(true);
       }
     }
-  }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
+  }, [tutorialStep, pageNumber, isHomePage, isOrientationMode, blurAmount, setIsUnlocked]);
 
   // 메뉴 아이콘 스크롤 감지 함수 수정
   useEffect(() => {
@@ -452,24 +436,26 @@ const ArtPage = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, []);
 
-  // 튜토리얼 관련 useEffect 수정
+  // 가이드 메시지 관리
   useEffect(() => {
-    if (tutorialStep > 0) {
-      const currentConfig = pageConfig.tutorial[tutorialStep];
-      if (currentConfig) {
-        setTargetAngles(
-          currentConfig.targetBeta1,
-          currentConfig.targetGamma1,
-          currentConfig.targetBeta2,
-          currentConfig.targetGamma2
-        );
-        // 작품 페이지와 동일한 방식으로 isUnlocked 처리
-        if (blurAmount === 0) {
-          setIsUnlocked(true);
+    if (!isHomePage && !tutorialStep && isOrientationMode && pageNumber > 0 && !showMenu) {
+      const now = Date.now();
+      const config = pageConfig.pages[pageNumber];
+      if (!config) return;
+
+      const isOutOfRange = Math.abs(currentAlpha - config.targetAlpha) > 17;
+      
+      if (isOutOfRange) {
+        if (!outOfRangeStartTime) {
+          setOutOfRangeStartTime(now);
+        } else if (now - outOfRangeStartTime >= 4000) {
+          showGuideMessage();
         }
+      } else {
+        setOutOfRangeStartTime(null);
       }
     }
-  }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked]);
+  }, [currentAlpha, pageNumber, isOrientationMode, outOfRangeStartTime, showMenu]);
 
   // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
@@ -577,6 +563,21 @@ const ArtPage = () => {
       </div>
     );
   };
+
+  // 튜토리얼 관련 useEffect를 컴포넌트 최상위 레벨로 이동
+  useEffect(() => {
+    if (tutorialStep > 0) {
+      const currentConfig = pageConfig.tutorial[tutorialStep];
+      if (currentConfig && currentConfig.targetAlpha) {
+        setTargetAngles(
+          currentConfig.targetBeta1,
+          currentConfig.targetGamma1,
+          currentConfig.targetBeta2,
+          currentConfig.targetGamma2
+        );
+      }
+    }
+  }, [tutorialStep, setTargetAngles]);
 
   // 튜토리얼 렌더링 함수에서는 useEffect 제거
   const renderTutorial = () => {
