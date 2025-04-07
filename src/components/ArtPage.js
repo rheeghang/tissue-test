@@ -217,12 +217,14 @@ const ArtPage = () => {
   // 튜토리얼 단계 이동
   const handleTutorialNext = () => {
     if (tutorialStep < 3) {
+      setIsUnlocked(false);  // 다음 단계로 넘어갈 때 isUnlocked 리셋
       setTutorialStep(tutorialStep + 1);
     }
   };
 
   const handleTutorialPrev = () => {
     if (tutorialStep > 1) {
+      setIsUnlocked(false);  // 이전 단계로 돌아갈 때 isUnlocked 리셋
       setTutorialStep(tutorialStep - 1);
     }
   };
@@ -457,20 +459,16 @@ const ArtPage = () => {
     if (tutorialStep > 0) {
       const currentConfig = pageConfig.tutorial[tutorialStep];
       if (currentConfig) {
-        // 새로운 튜토리얼 스텝으로 넘어갈 때마다 새로운 각도 설정
+        setIsUnlocked(false);  // 새로운 튜토리얼 스텝으로 진입할 때 isUnlocked 리셋
         setTargetAngles(
           currentConfig.targetBeta1,
           currentConfig.targetGamma1,
           currentConfig.targetBeta2,
           currentConfig.targetGamma2
         );
-        // blurAmount가 0이 되면 isUnlocked를 true로 설정
-        if (blurAmount === 0) {
-          setIsUnlocked(true);
-        }
       }
     }
-  }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked]);
+  }, [tutorialStep, setTargetAngles, setIsUnlocked]);
 
   // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
@@ -661,8 +659,8 @@ const ArtPage = () => {
               {tutorialStep === 3 ? (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={handleTutorialNext}  // 통합된 클릭 핸들러 사용
-                  style={{ pointerEvents: showMenu ? 'none' : 'auto' }}
+                  onClick={toggleMenu}  // handleTutorialNext 대신 toggleMenu 사용
+                  style={{ pointerEvents: 'auto' }}  // 항상 클릭 가능하도록 수정
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
                   <MenuIcon />
