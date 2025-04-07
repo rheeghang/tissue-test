@@ -26,8 +26,12 @@ const ScreenReaderText = ({
   const rotationAngle = config?.rotationAngle;
 
   useEffect(() => {
-    // about 페이지나 튜토리얼은 바로 읽기 시작
-    if (currentPage === 'about' || tutorialStep > 0) {
+    // 튜토리얼은 무조건 읽기
+    if (tutorialStep > 0) {
+      setShouldReadContent(true);
+    }
+    // about 페이지는 바로 읽기
+    else if (currentPage === 'about') {
       setShouldReadContent(true);
     }
     // 일반 페이지는 blur 값으로 판단
