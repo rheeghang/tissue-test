@@ -286,8 +286,8 @@ const ArtPage = () => {
 
   // 페이지 전환 처리 수정
   const handlePageChange = (newPage) => {
-    setShowMenu(false);  // 메뉴 닫기
-    setIsUnlocked(false);  // 페이지 전환 시 isUnlocked 리셋
+    setShowMenu(false);
+    setIsUnlocked(false);  // 페이지 전환 시 리셋
     
     if (newPage === 'home') {
       setTutorialStep(0);
@@ -309,7 +309,7 @@ const ArtPage = () => {
     pageNumber: pageNumber
   };
 
-  // 튜토리얼 관련 useEffect 수정 - renderArtworkPage와 동일한 로직 적용
+  // 튜토리얼 관련 useEffect 수정
   useEffect(() => {
     if (tutorialStep > 0) {
       const currentConfig = pageConfig.tutorial[tutorialStep];
@@ -320,19 +320,13 @@ const ArtPage = () => {
           currentConfig.targetBeta2,
           currentConfig.targetGamma2
         );
+        // blurAmount가 0이 되면 isUnlocked를 true로 설정
+        if (blurAmount === 0) {
+          setIsUnlocked(true);
+        }
       }
     }
-  }, [tutorialStep, setTargetAngles]);
-
-  // 블러 효과 관리를 위한 공통 useEffect - 튜토리얼과 작품 페이지 모두에 적용
-  useEffect(() => {
-    // 튜토리얼이나 작품 페이지일 때만 실행
-    if ((tutorialStep > 0 || (!isHomePage && pageNumber > 0)) && isOrientationMode) {
-      if (blurAmount === 0) {
-        setIsUnlocked(true);
-      }
-    }
-  }, [tutorialStep, pageNumber, isHomePage, isOrientationMode, blurAmount, setIsUnlocked]);
+  }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked]);
 
   // 메뉴 아이콘 스크롤 감지 함수 수정
   useEffect(() => {
@@ -563,21 +557,6 @@ const ArtPage = () => {
       </div>
     );
   };
-
-  // 튜토리얼 관련 useEffect를 컴포넌트 최상위 레벨로 이동
-  useEffect(() => {
-    if (tutorialStep > 0) {
-      const currentConfig = pageConfig.tutorial[tutorialStep];
-      if (currentConfig && currentConfig.targetAlpha) {
-        setTargetAngles(
-          currentConfig.targetBeta1,
-          currentConfig.targetGamma1,
-          currentConfig.targetBeta2,
-          currentConfig.targetGamma2
-        );
-      }
-    }
-  }, [tutorialStep, setTargetAngles]);
 
   // 튜토리얼 렌더링 함수에서는 useEffect 제거
   const renderTutorial = () => {
