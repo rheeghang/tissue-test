@@ -32,14 +32,19 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
     isProcessing = true;
 
     try {
-      // 여기서 바로 권한 요청하지 않고 onConfirm 호출
-      onConfirm();
+      if (typeof DeviceOrientationEvent !== 'undefined' && 
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          onConfirm();
+        }
+      } else {
+        onConfirm();
+      }
     } catch (error) {
       console.error('권한 요청 실패:', error);
     } finally {
-      setTimeout(() => {
-        isProcessing = false;
-      }, 300);
+      isProcessing = false;
     }
   };
 
@@ -53,7 +58,7 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         <h3 className="mb-4 text-xl font-bold text-gray-900 select-none">
           센서 권한을 허용해 주세요
         </h3>
-        <p className="mb-4 text-gray-600 select-none">
+        <p className="mb-6 text-gray-600 select-none">
           {modalMessage}
         </p>
         <button
