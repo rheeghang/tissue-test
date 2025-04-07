@@ -67,7 +67,8 @@ export const BlurProvider = ({ children }) => {
         setTargetBeta2(beta2);
         setTargetGamma2(gamma2);
         setIsUnlocked(false);
-      }
+      },
+      setIsUnlocked
     }}>
       {children}
     </BlurContext.Provider>

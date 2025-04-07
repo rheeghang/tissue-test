@@ -97,7 +97,7 @@ const ArtPage = () => {
   const [announcement, setAnnouncement] = useState('');
 
   // context hooks
-  const { blurAmount, currentAlpha, setTargetAngles } = useBlur();
+  const { blurAmount, currentAlpha, setTargetAngles, setIsUnlocked } = useBlur();
   const { showGuideMessage } = useGuide();
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { changeLanguage } = useLanguage();
@@ -321,9 +321,13 @@ const ArtPage = () => {
           config.targetBeta2,
           config.targetGamma2
         );
+        // blurAmount가 0이 되면 isUnlocked를 true로 설정
+        if (blurAmount === 0) {
+          setIsUnlocked(true);
+        }
       }
     }
-  }, [pageNumber, isOrientationMode, isHomePage, tutorialStep]);
+  }, [pageNumber, isOrientationMode, isHomePage, tutorialStep, blurAmount, setIsUnlocked]);
 
   // 가이드 메시지 관리
   useEffect(() => {
@@ -460,9 +464,13 @@ const ArtPage = () => {
           currentConfig.targetBeta2,
           currentConfig.targetGamma2
         );
+        // blurAmount가 0이 되면 isUnlocked를 true로 설정
+        if (blurAmount === 0) {
+          setIsUnlocked(true);
+        }
       }
     }
-  }, [tutorialStep, setTargetAngles]);
+  }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked]);
 
   // renderArtworkPage 함수 내의 각도 표시 부분
   const renderArtworkPage = () => {
