@@ -453,6 +453,7 @@ const ArtPage = () => {
     if (tutorialStep > 0) {
       const currentConfig = pageConfig.tutorial[tutorialStep];
       if (currentConfig) {
+        // 새로운 튜토리얼 스텝으로 넘어갈 때마다 새로운 각도 설정
         setTargetAngles(
           currentConfig.targetBeta1,
           currentConfig.targetGamma1,
@@ -594,6 +595,10 @@ const ArtPage = () => {
       let lastTap = 0;
       
       return (e) => {
+        // 이벤트 버블링 방지
+        e.preventDefault();
+        e.stopPropagation();
+
         // 클릭된 요소가 버튼이나 메뉴 아이콘인 경우 더블탭 이벤트를 처리하지 않음
         if (e.target.closest('.tutorial-button') || e.target.closest('.menu-icon')) {
           return;
@@ -602,7 +607,6 @@ const ArtPage = () => {
         // 메뉴가 열려있을 때는 더블탭 이벤트를 처리하지 않음
         if (showMenu) return;
         
-        e.preventDefault();
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTap;
         
@@ -619,21 +623,11 @@ const ArtPage = () => {
       };
     })();
     
-    // 클릭 핸들러 추가
-    const handleClick = () => {
-      if (tutorialStep === 3) {
-        if (!showMenu) {
-          toggleMenu();
-        }
-      } else {
-        handleTutorialNext();
-      }
-    };
-    
     return (
       <div 
         className="relative min-h-screen overflow-hidden bg-base-color"
-        onTouchEnd={handleDoubleTap}
+        onTouchStart={handleDoubleTap}  // onTouchEnd 대신 onTouchStart 사용
+        style={{ WebkitTapHighlightColor: 'transparent' }}  // 탭 하이라이트 제거
       >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
           <p className="text-xl font-bold text-white">{Math.round(currentBeta)}°</p>
@@ -659,7 +653,7 @@ const ArtPage = () => {
               {tutorialStep === 3 ? (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={handleClick}  // 통합된 클릭 핸들러 사용
+                  onClick={handleTutorialNext}  // 통합된 클릭 핸들러 사용
                   style={{ pointerEvents: showMenu ? 'none' : 'auto' }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
@@ -668,7 +662,7 @@ const ArtPage = () => {
               ) : (
                 <div 
                   className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
-                  onClick={handleClick}  // 통합된 클릭 핸들러 사용
+                  onClick={handleTutorialNext}  // 통합된 클릭 핸들러 사용
                   aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
