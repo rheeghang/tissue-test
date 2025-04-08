@@ -11,25 +11,22 @@ export const BlurProvider = ({ children }) => {
   useEffect(() => {
     const handleOrientation = (event) => {
       const alpha = event.alpha || 0;
-      setCurrentAlpha(alpha);
       
-      if (isUnlocked) {
-        setBlurAmount(0);
-        return;
-      }
-      
-      const tolerance = 30; 
-      const maxBlur = 20;
-      
-      // 단순히 현재 알파값과 타겟 알파값의 차이 계산
-      const alphaDifference = Math.abs(alpha - targetAlpha);
-      
-      if (alphaDifference <= tolerance) {
-        setBlurAmount(0);
-        setIsUnlocked(true);
-      } else {
-        const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
-        setBlurAmount(blur);
+      if (!isUnlocked) {  // isUnlocked가 false일 때만 처리
+        setCurrentAlpha(alpha);
+        
+        const tolerance = 30; 
+        const maxBlur = 20;
+        
+        const alphaDifference = Math.abs(alpha - targetAlpha);
+        
+        if (alphaDifference <= tolerance) {
+          setBlurAmount(0);
+          setIsUnlocked(true);
+        } else {
+          const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
+          setBlurAmount(blur);
+        }
       }
     };
 
@@ -52,4 +49,4 @@ export const BlurProvider = ({ children }) => {
   );
 };
 
-export const useBlur = () => useContext(BlurContext); 
+export const useBlur = () => useContext(BlurContext);

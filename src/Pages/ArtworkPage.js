@@ -23,6 +23,7 @@ const ArtworkPage = () => {
   const [menuIconColor, setMenuIconColor] = React.useState('#FF5218');
   const [menuIconScale, setMenuIconScale] = React.useState(1);
   const [initialAlpha, setInitialAlpha] = React.useState(null);
+  const [isUnlocked, setIsUnlockedState] = React.useState(false);
 
   const data = language === 'ko' ? koData : enData;
   const config = pageConfig.pages[pageNumber];
@@ -30,14 +31,22 @@ const ArtworkPage = () => {
 
   useEffect(() => {
     if (config) {
-      // 타겟 알파값 직접 설정
       setTargetAngles(config.targetAlpha);
+      if (blurAmount === 0) {
+        setIsUnlocked(true);
+      }
     }
-  }, [pageNumber, setTargetAngles, config]);
+  }, [pageNumber, setTargetAngles, blurAmount, setIsUnlocked, config]);
+
+  // 페이지 변경 시 상태 초기화
+  useEffect(() => {
+    setIsUnlocked(false);
+    setOutOfRangeStartTime(null);
+  }, [pageNumber]);
 
   // 가이드 메시지 관리
   useEffect(() => {
-    if (isOrientationMode && !showMenu) {
+    if (isOrientationMode && !showMenu && !isUnlocked) {
       const now = Date.now();
       
       if (blurAmount >= 2) {
@@ -51,7 +60,7 @@ const ArtworkPage = () => {
         setOutOfRangeStartTime(null);
       }
     }
-  }, [blurAmount, isOrientationMode, showMenu, outOfRangeStartTime, showGuideMessage]);
+  }, [blurAmount, isOrientationMode, showMenu, outOfRangeStartTime, showGuideMessage, isUnlocked]);
 
   // 스크롤 이벤트 핸들러 추가
   useEffect(() => {
@@ -100,11 +109,6 @@ const ArtworkPage = () => {
       navigate(`/artwork/${newPage}`);
     }
   };
-
-  useEffect(() => {
-    setIsUnlocked(false);
-    setOutOfRangeStartTime(null);
-  }, [pageNumber]);
 
   if (!config || !pageContent) return null;
 
@@ -158,7 +162,7 @@ const ArtworkPage = () => {
             transform: `rotate(${config.rotationAngle}deg)`,
             top: pageNumber === '3' ? '40%' : '50%',
             marginTop: '-75vh',
-            filter: isOrientationMode ? `blur(${blurAmount}px)` : 'none',
+            filter: isOrientationMode && !isUnlocked ? `blur(${blurAmount}px)` : 'none',
             transition: 'filter 0.5s ease, transform 0.5s ease'
           }}
         >
