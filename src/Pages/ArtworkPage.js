@@ -32,7 +32,7 @@ const ArtworkPage = () => {
     if (config) {
       setTargetAngles(config.targetAlpha);
     }
-  }, [pageNumber, setTargetAngles, config]);
+  }, [pageNumber]);
 
 
   useEffect(() => {

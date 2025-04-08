@@ -48,7 +48,14 @@ const Tutorial = () => {
     if (currentConfig) {
       setTargetAngles(currentConfig.targetAlpha);
     }
-  }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked, currentConfig]);
+  }, [tutorialStep]);
+
+  useEffect(() => {
+    if (blurAmount === 0) {
+      setIsUnlocked(true);
+      console.log("✅ 언락 조건 충족! blur = 0");
+    }
+  }, [blurAmount, setIsUnlocked]);
 
   useEffect(() => {
     const handleOrientation = (event) => {
