@@ -102,7 +102,7 @@ const Home = () => {
   const { language, changeLanguage } = useLanguage();
   const navigate = useNavigate();
   const data = language === 'ko' ? koData : enData;
-  const gradientRatio = Math.min(100, Math.max(100, ((gamma + 90) / 180) * 100));
+  const gradientRatio = Math.min(100, Math.max(0, ((gamma + 90) / 180) * 100));
 
   const isIOS = () => {
     return (
@@ -167,7 +167,7 @@ const Home = () => {
   return (
     <Layout>
       <div 
-            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed z-1"
+            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed z-10"
             style={{
               background: `linear-gradient(to left, #FFEA7B ${gradientRatio}%, #FACFB9)`
             }}>
