@@ -90,29 +90,19 @@ const Tutorial = () => {
 
   const handleDoubleTap = (() => {
     let lastTap = 0;
-    let menuJustOpened = false;
     
     return (e) => {
-      if (menuJustOpened) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-
       if (e.target.closest('.tutorial-button') || e.target.closest('.menu-icon')) {
-        e.preventDefault();
         e.stopPropagation();
         return;
       }
       
       if (showMenu) {
-        e.preventDefault();
         e.stopPropagation();
         return;
       }
       
       if (tutorialStep === 3) {
-        e.preventDefault();
         e.stopPropagation();
         return;
       }
@@ -213,14 +203,19 @@ const Tutorial = () => {
               {tutorialStep === 3 ? (
                 <button
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={handleOpenMenu}
-                  onTouchStart={handleOpenMenu}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(true);
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(true);
+                  }}
                   style={{ 
                     pointerEvents: 'auto',
                     background: 'none',
                     border: 'none',
-                    padding: 0,
-                    zIndex: 50
+                    padding: 0
                   }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >

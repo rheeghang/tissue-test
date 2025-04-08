@@ -14,7 +14,7 @@ export const BlurProvider = ({ children }) => {
       const alpha = event.alpha;
       setCurrentAlpha(alpha);  // 항상 현재 각도 업데이트
       
-      if (!isUnlocked) {  // 블러 효과만 isUnlocked 상태에 따라 제어
+      if (!isUnlocked) {  // isUnlocked가 false일 때만 블러 계산
         const tolerance = 30; 
         const maxBlur = 20;
         
