@@ -87,8 +87,8 @@
       "targetGamma1": -15,
       "targetBeta2": 50,
       "targetGamma2": -46,
-      "targetAlpha": 30,
-      "rotationAngle": 30,
+      "targetAlpha": 40,
+      "rotationAngle": 40,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
       "style": {
@@ -102,8 +102,8 @@
       "targetGamma1": -15,
       "targetBeta2": 0,
       "targetGamma2": -50,
-      "targetAlpha": 80,
-      "rotationAngle": 80,
+      "targetAlpha": 90,
+      "rotationAngle": 90,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
       "style": {
@@ -118,8 +118,8 @@
       "targetGamma1": -15,
       "targetBeta2": -44,
       "targetGamma2": -25,
-      "targetAlpha": 120,
-      "rotationAngle": 120,
+      "targetAlpha": 130,
+      "rotationAngle": 130,
       "bgColor": "bg-white",
       "textColor": "text-gray-800",
       "style": {
