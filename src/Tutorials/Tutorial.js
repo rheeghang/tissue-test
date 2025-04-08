@@ -47,9 +47,6 @@ const Tutorial = () => {
   useEffect(() => {
     if (currentConfig) {
       setTargetAngles(currentConfig.targetAlpha);
-      if (blurAmount === 0) {
-        setIsUnlocked(true);
-      }
     }
   }, [tutorialStep, setTargetAngles, blurAmount, setIsUnlocked, currentConfig]);
 

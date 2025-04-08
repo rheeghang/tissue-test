@@ -17,9 +17,9 @@ export const BlurProvider = ({ children }) => {
     const handleOrientation = (event) => {
       if (event.alpha == null) return;
       const alpha = event.alpha;
-      setCurrentAlpha(alpha);  // 항상 현재 각도 업데이트
+      setCurrentAlpha(alpha);
       
-      if (!isUnlockedRef.current) {  // isUnlocked가 false일 때만 블러 계산
+      if (!isUnlockedRef.current) {
         const tolerance = 30; 
         const maxBlur = 20;
         
@@ -28,7 +28,6 @@ export const BlurProvider = ({ children }) => {
         if (alphaDifference <= tolerance) {
           setBlurAmount(0);
           setIsUnlocked(true);
-          isUnlockedRef.current = true;
         } else {
           const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
           setBlurAmount(blur);
