@@ -28,6 +28,7 @@ export const BlurProvider = ({ children }) => {
         if (alphaDifference <= tolerance) {
           setBlurAmount(0);
           setIsUnlocked(true);
+          console.log("✅ 언락 조건 충족! blur = 0");
         } else {
           const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
           setBlurAmount(blur);
@@ -49,6 +50,7 @@ export const BlurProvider = ({ children }) => {
         setTargetAlpha(alpha);
         setIsUnlocked(false);
         isUnlockedRef.current = false;
+        console.log("🔒 타겟 알파 설정! isUnlocked = false");
       },
       setIsUnlocked,
       isUnlocked
