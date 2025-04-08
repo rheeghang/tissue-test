@@ -32,7 +32,7 @@ export const BlurProvider = ({ children }) => {
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [targetAlpha, isUnlocked]);
+  }, [targetAlpha]);
 
   return (
     <BlurContext.Provider value={{
