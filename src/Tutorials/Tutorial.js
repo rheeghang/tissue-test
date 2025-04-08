@@ -185,20 +185,17 @@ const Tutorial = () => {
         {tutorialStep === 4 && (
           <button
             className="fixed top-3 right-3 cursor-pointer menu-icon rounded-full p-2 shadow-lg flex items-center justify-center w-12 h-12 transition-all z-50 bg-key-color"
-            onClick={(e) => {
-              if (!isUnlocked) return;
-              e.stopPropagation();
-              setShowMenu(!showMenu);
-            }}
-            onTouchStart={(e) => {
-              if (!isUnlocked) return;
-              e.stopPropagation();
-              setShowMenu(!showMenu);
+            onClick={() => {
+              if (isUnlocked || showMenu) {
+                setShowMenu(!showMenu);
+              }
             }}
             style={{ 
-              pointerEvents: isUnlocked ? 'auto' : 'none',
+              pointerEvents: isUnlocked || showMenu ? 'auto' : 'none',
               border: 'none',
-              padding: 0
+              padding: 0,
+              transition: 'all 0.3s ease',
+              WebkitTapHighlightColor: 'transparent'
             }}
             aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
           >
