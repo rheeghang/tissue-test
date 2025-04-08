@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './providers/AppProvider';
-import Home from './pages/Home';
+import Home from './Pages/Home';
 import Tutorial from './Tutorials/Tutorial';
-import ArtworkPage from './pages/ArtworkPage';
-import About from './pages/About';
+import ArtworkPage from './Pages/ArtworkPage';
+import About from './Pages/About';
 import ScreenReaderText from './components/ScreenReaderText';
 import LiveAnnouncer from './components/LiveAnnouncer';
 
