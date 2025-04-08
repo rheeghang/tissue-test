@@ -8,6 +8,7 @@ export const BlurProvider = ({ children }) => {
   const [targetAlpha, setTargetAlpha] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const isUnlockedRef = useRef(isUnlocked);
+  const isTutorialModeRef = useRef(false);
 
   useEffect(() => {
     isUnlockedRef.current = isUnlocked;
@@ -19,7 +20,7 @@ export const BlurProvider = ({ children }) => {
       const alpha = event.alpha;
       setCurrentAlpha(alpha);
       
-      if (!isUnlocked) {
+      if (!isUnlockedRef.current) {
         const tolerance = 30; 
         const maxBlur = 20;
         
@@ -34,6 +35,7 @@ export const BlurProvider = ({ children }) => {
           setBlurAmount(blur);
         }
       } else {
+        // isUnlocked가 true일 때는 항상 blurAmount를 0으로 유지
         setBlurAmount(0);
       }
     };
@@ -42,16 +44,19 @@ export const BlurProvider = ({ children }) => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, [targetAlpha]);
 
+  const setTargetAngles = (alpha, isTutorial = false) => {
+    setTargetAlpha(alpha);
+    setIsUnlocked(false);
+    isUnlockedRef.current = false;
+    isTutorialModeRef.current = isTutorial;
+    console.log("🔒 타겟 알파 설정! isUnlocked = false, isTutorial =", isTutorial);
+  };
+
   return (
     <BlurContext.Provider value={{
       blurAmount,
       currentAlpha,
-      setTargetAngles: (alpha) => {
-        setTargetAlpha(alpha);
-        setIsUnlocked(false);
-        isUnlockedRef.current = false;
-        console.log("🔒 타겟 알파 설정! isUnlocked = false");
-      },
+      setTargetAngles,
       setIsUnlocked,
       isUnlocked
     }}>
