@@ -10,7 +10,8 @@ export const BlurProvider = ({ children }) => {
 
   useEffect(() => {
     const handleOrientation = (event) => {
-      const alpha = event.alpha || 0;
+      if (event.alpha == null) return;
+      const alpha = event.alpha;
       setCurrentAlpha(alpha);  // 항상 현재 각도 업데이트
       
       if (!isUnlocked) {  // 블러 효과만 isUnlocked 상태에 따라 제어

@@ -208,4 +208,4 @@ const ArtworkPage = () => {
   );
 };
 
-export default ArtworkPage; 
+export default ArtworkPage;
