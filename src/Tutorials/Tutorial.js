@@ -102,6 +102,11 @@ const Tutorial = () => {
         e.stopPropagation();
         return;
       }
+
+      if (!isUnlocked) {
+        e.stopPropagation();
+        return;
+      }
       
       const currentTime = new Date().getTime();
       const tapLength = currentTime - lastTap;
@@ -195,7 +200,7 @@ const Tutorial = () => {
             <div className="mt-14">
               {tutorialStep === 4 ? (
                 <button
-                  className={`absolute bottom-2 right-2 cursor-pointer menu-icon ${!isUnlocked ? 'pointer-events-none opacity-50' : ''}`}
+                  className="absolute bottom-2 right-2 cursor-pointer menu-icon"
                   onClick={(e) => {
                     if (!isUnlocked) return;
                     e.stopPropagation();
@@ -210,8 +215,7 @@ const Tutorial = () => {
                     pointerEvents: isUnlocked ? 'auto' : 'none',
                     background: 'none',
                     border: 'none',
-                    padding: 0,
-                    transition: 'opacity 0.3s ease'
+                    padding: 0
                   }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
@@ -219,15 +223,14 @@ const Tutorial = () => {
                 </button>
               ) : (
                 <div
-                  className={`absolute bottom-2 right-2 cursor-pointer tutorial-button ${!isUnlocked ? 'pointer-events-none opacity-50' : ''}`}
+                  className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
                   onClick={() => isUnlocked && handleTutorialNext()}
                   onTouchStart={() => isUnlocked && handleTutorialNext()}
                   style={{ 
                     pointerEvents: isUnlocked ? 'auto' : 'none',
                     background: 'none',
                     border: 'none',
-                    padding: 0,
-                    transition: 'opacity 0.3s ease'
+                    padding: 0
                   }}
                   aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >

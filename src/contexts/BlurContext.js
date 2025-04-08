@@ -21,8 +21,8 @@ export const BlurProvider = ({ children }) => {
       setCurrentAlpha(alpha);
       
       if (!isUnlockedRef.current) {
-        const tolerance = 30; 
-        const maxBlur = 20;
+        const tolerance = 20; 
+        const maxBlur = 15;
         
         const alphaDifference = Math.abs(alpha - targetAlpha);
         
@@ -34,9 +34,6 @@ export const BlurProvider = ({ children }) => {
           const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
           setBlurAmount(blur);
         }
-      } else {
-        // isUnlocked가 true일 때는 항상 blurAmount를 0으로 유지
-        setBlurAmount(0);
       }
     };
 

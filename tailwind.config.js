@@ -16,44 +16,41 @@ module.exports = {
         semibold: 600,
       },
       colors: {
-        'vivid-blue': '#YOUR_COLOR_CODE_HERE', // 원하는 색상 코드로 변경
-        'exhibition-bg': '#YOUR_COLOR_CODE_HERE', // 다른 커스텀 색상들도 여기에 추가
+        'vivid-blue': '#0072BB',
+        'exhibition-bg': '#FFFFFF',
         'exhibition': {
-          bg: '#FFFFFF', // 배경색
-          text: '#000000', // 텍스트 색상
+          bg: '#FFFFFF',
+          text: '#000000',
         },
-        'page1-bg': '#6BFFA2',  // 연두색
-        'page1-text': '#FF38A7',  // 핑크
+        'page1-bg': '#6BFFA2',
+        'page1-text': '#FF38A7',
 
-        'page2-bg': '#FFF100',  // 노란색
+        'page2-bg': '#FFF100',
         'page2-text': '#0072BB',  
 
-        'page3-bg': '#26277D',  // 진한 파란색
+        'page3-bg': '#26277D',
         'page3-text': '#00EA67', 
 
-        'page4-bg': '#D0D0D0',  // 검정
-        'page4-text': '#FF5218',  // 흰색
+        'page4-bg': '#D0D0D0',
+        'page4-text': '#FF5218',
 
-        'page5-bg': '#534546',  // 검정
-        'page5-text': '#FF93F5',  // 흰색
+        'page5-bg': '#534546',
+        'page5-text': '#FF93F5',
 
-        'page6-bg': '#A079DA',  // 검정
-        'page6-text': '#CCFF66',  // 흰색
+        'page6-bg': '#A079DA',
+        'page6-text': '#CCFF66',
 
-        'page7-bg': '#4CFFF3',  // 검정
-        'page7-text': '#832ECA',  // 흰색
+        'page7-bg': '#4CFFF3',
+        'page7-text': '#832ECA',
 
-        'page8-bg': '#FFCAE6',  // 검정
-        'page8-text': '#044E00',  // 흰색
+        'page8-bg': '#FFCAE6',
+        'page8-text': '#044E00',
 
         'base-color': '#E4E4E4',
-        
-        
-
         'key-color': '#FF5218',
       },
       lineHeight: {
-        'base': '170%',  // 기본 행간을 170%로 설정
+        'base': '170%',
         'relaxed': '175%',
       },
       keyframes: {
@@ -83,6 +80,9 @@ module.exports = {
         '3xl': '0 35px 60px -15px rgba(0, 0, 0, 0.6)',
         '4xl': '0 45px 70px -18px rgba(0, 0, 0, 0.7)',
       },
+      backgroundImage: {
+        'key-gradient': 'linear-gradient(to left, #FFEA7B, #FACFB9)',
+      },
     },
   },
   plugins: [
@@ -94,16 +94,8 @@ module.exports = {
         '.text-stroke-medium': {
           textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
         },
-        '.text-stroke-thick': {
-          textShadow: '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000',
-        },
-        '.text-stroke-white-thin': {
-          textShadow: '-0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff, 0.5px 0.5px 0 #fff',
-        },
-      }
-      addUtilities(newUtilities, ['responsive', 'hover'])
-    }
+      };
+      addUtilities(newUtilities);
+    },
   ],
-
-  
-} 
+}; 

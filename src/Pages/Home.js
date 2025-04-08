@@ -102,6 +102,7 @@ const Home = () => {
   const { language, changeLanguage } = useLanguage();
   const navigate = useNavigate();
   const data = language === 'ko' ? koData : enData;
+  const gradientRatio = Math.min(70, Math.max(30, ((gamma + 90) / 180) * 100));
 
   const isIOS = () => {
     return (
@@ -145,7 +146,7 @@ const Home = () => {
       setTimeout(() => {
         setStartButtonOpacity(1);
       }, 100);
-    }, 6000);
+    }, 4000);
     return () => clearTimeout(showTimer);
   }, []);
 
@@ -168,7 +169,7 @@ const Home = () => {
       <div 
             className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed z-[-2]"
             style={{
-              background: 'linear-gradient(to left, #FFEA7B, #FACFB9)'
+              background: `linear-gradient(to left, #FFEA7B ${gradientRatio}%, #FACFB9)`
             }}>
       <div className="min-h-screen p-4 relative flex flex-col">
         <Modal 
@@ -195,18 +196,16 @@ const Home = () => {
         </div>
 
         <div className="fixed inset-0 flex items-center justify-center z-0">
-          <div
+          <div className="bg-key-gradient shadow-lg"
             style={{
-              backgroundColor: "rgba(255, 255, 255, 0.6)",
               transition: "all 0.5s ease",
-              transform: `rotate(${gamma}deg)`,
+              transform: `rotate(${gamma-90}deg)`,
               width: '250px',
               height: '250px',
               borderRadius: (Math.abs(gamma) >= 40 && Math.abs(gamma) <= 70) || 
                            (Math.abs(gamma) >= 290 && Math.abs(gamma) <= 320) 
                            ? '125px' : '0px',
             }}
-            className="shadow-lg"
           />
         </div>
 
