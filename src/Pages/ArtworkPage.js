@@ -23,25 +23,10 @@ const ArtworkPage = () => {
   const [menuIconColor, setMenuIconColor] = React.useState('#FF5218');
   const [menuIconScale, setMenuIconScale] = React.useState(1);
   const [initialAlpha, setInitialAlpha] = React.useState(null);
-  const [isUnlocked, setIsUnlockedState] = React.useState(false);
 
   const data = language === 'ko' ? koData : enData;
   const config = pageConfig.pages[pageNumber];
   const pageContent = data[`page${pageNumber}`];
-
-  // 디바이스 방향 이벤트 처리 추가
-  useEffect(() => {
-    const handleOrientation = (event) => {
-      const alpha = event.alpha ?? 0;
-      
-      if (!isUnlocked) {  // isUnlocked가 false일 때만 업데이트
-        setCurrentAlpha(alpha);
-      }
-    };
-
-    window.addEventListener('deviceorientation', handleOrientation);
-    return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [isUnlocked]);
 
   useEffect(() => {
     if (config) {
