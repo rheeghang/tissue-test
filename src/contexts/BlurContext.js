@@ -28,6 +28,7 @@ export const BlurProvider = ({ children }) => {
         if (alphaDifference <= tolerance) {
           setBlurAmount(0);
           setIsUnlocked(true);
+          isUnlockedRef.current = true;
         } else {
           const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
           setBlurAmount(blur);
@@ -46,6 +47,7 @@ export const BlurProvider = ({ children }) => {
       setTargetAngles: (alpha) => {
         setTargetAlpha(alpha);
         setIsUnlocked(false);
+        isUnlockedRef.current = false;
       },
       setIsUnlocked,
       isUnlocked

@@ -34,11 +34,15 @@ const ArtworkPage = () => {
     }
   }, [pageNumber, setTargetAngles, config]);
 
-  // 페이지 변경 시 상태 초기화
+
   useEffect(() => {
-    setIsUnlocked(false);
-    setOutOfRangeStartTime(null);
-  }, [pageNumber, setIsUnlocked]);
+    const containers = document.querySelectorAll('.container');
+    containers.forEach(container => {
+      if (container) {
+        container.scrollTop = 0;
+      }
+    });
+  }, [pageNumber]);
 
   // 가이드 메시지 관리
   useEffect(() => {
