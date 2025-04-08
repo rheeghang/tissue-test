@@ -19,7 +19,7 @@ export const BlurProvider = ({ children }) => {
       const alpha = event.alpha;
       setCurrentAlpha(alpha);
       
-      if (!isUnlockedRef.current) {
+      if (!isUnlocked) {
         const tolerance = 30; 
         const maxBlur = 20;
         
@@ -32,6 +32,8 @@ export const BlurProvider = ({ children }) => {
           const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
           setBlurAmount(blur);
         }
+      } else {
+        setBlurAmount(0);
       }
     };
 
