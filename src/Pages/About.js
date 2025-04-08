@@ -62,7 +62,7 @@ const About = () => {
 
         <div className="w-[100vw] h-[100vh] flex items-center justify-center">
           <div 
-            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-14 text-black leading-relaxed"
+            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed"
             style={{
               background: 'linear-gradient(to left, #FFEA7B, #FACFB9)'
             }}

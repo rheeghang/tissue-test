@@ -13,7 +13,13 @@ import Menu from '../components/Menu';
 const Tutorial = () => {
   const { step: stepParam } = useParams();
   const navigate = useNavigate();
-  const [tutorialStep, setTutorialStep] = useState(Number(stepParam));
+  
+  // tutorialStep 초기값 설정을 더 안전하게
+  const [tutorialStep, setTutorialStep] = useState(() => {
+    const step = Number(stepParam);
+    return isNaN(step) || step < 1 || step > 3 ? 1 : step;
+  });
+
   const [alphaInit, setAlphaInit] = useState(null);
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [currentBeta, setCurrentBeta] = useState(0);
@@ -25,8 +31,29 @@ const Tutorial = () => {
   const { language } = useLanguage();
   const data = language === 'ko' ? koData : enData;
 
-  // 각 단계별 설정
+  // stepParam이 변경될 때 tutorialStep 업데이트 및 뒤로가기 처리
+  useEffect(() => {
+    const step = Number(stepParam);
+    if (isNaN(step) || step < 1 || step > 3) {
+      setTutorialStep(1);
+      return;
+    }
+    setTutorialStep(step);
+  }, [stepParam]);
+
+  // 현재 설정 가져오기
   const currentConfig = pageConfig.tutorial[tutorialStep];
+
+  // currentConfig가 없는 경우 처리
+  if (!currentConfig) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-base-color flex items-center justify-center">
+          <p className="text-white">로딩중...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   useEffect(() => {
     if (currentConfig) {
@@ -56,9 +83,6 @@ const Tutorial = () => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, [alphaInit]);
 
-
-
-  // shake 이벤트 관련 useEffect
   useEffect(() => {
     const originalShakeEvent = window.onshake;
 
@@ -75,62 +99,85 @@ const Tutorial = () => {
     };
   }, [tutorialStep]);
 
-  // 더블 탭 핸들러
   const handleDoubleTap = (() => {
     let lastTap = 0;
+    let menuJustOpened = false;
     
     return (e) => {
+      if (menuJustOpened) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       if (e.target.closest('.tutorial-button') || e.target.closest('.menu-icon')) {
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
       
-      if (showMenu) return;
+      if (showMenu) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
+      if (tutorialStep === 3) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       
       const currentTime = new Date().getTime();
       const tapLength = currentTime - lastTap;
       
       if (tapLength < 500 && tapLength > 0) {
-        if (tutorialStep === 3) {
-          if (!showMenu) {
-            setShowMenu(true);
-          }
-        } else {
-          handleTutorialNext();
-        }
+        handleTutorialNext();
       }
       lastTap = currentTime;
     };
   })();
 
+  const handleOpenMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setTimeout(() => {
+      setShowMenu(true);
+    }, 100);
+  };
+
   const handleTutorialNext = () => {
     if (tutorialStep < 3) {
+      const nextStep = tutorialStep + 1;
       setIsUnlocked(false);
-      setTutorialStep(tutorialStep + 1);
-      navigate(`/tutorial/${tutorialStep + 1}`);
+      setTutorialStep(nextStep);
     } else {
-      navigate('/artwork/1');
+      window.location.href = '/artwork/1';
     }
   };
 
   const handleTutorialPrev = () => {
     if (tutorialStep > 1) {
+      const prevStep = tutorialStep - 1;
       setIsUnlocked(false);
-      setTutorialStep(tutorialStep - 1);
-      navigate(`/tutorial/${tutorialStep - 1}`);
+      setTutorialStep(prevStep);
     }
   };
 
-  // 페이지 전환 핸들러
   const handlePageChange = (newPage) => {
     setShowMenu(false);
     setIsUnlocked(false);
+    setOutOfRangeStartTime(null);
     
     if (newPage === 'home') {
-      navigate('/');
+      window.location.href = '/';
     } else if (newPage === 'about') {
-      navigate('/about');
+      window.location.href = '/about';
+    } else if (newPage === 'tutorial') {
+      setTutorialStep(1);
     } else {
-      navigate(`/artwork/${newPage}`);
+      window.location.href = `/artwork/${newPage}`;
     }
   };
 
@@ -166,13 +213,14 @@ const Tutorial = () => {
               {tutorialStep === 3 ? (
                 <button
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={() => setShowMenu(true)}
-                  onTouchStart={() => setShowMenu(true)}
+                  onClick={handleOpenMenu}
+                  onTouchStart={handleOpenMenu}
                   style={{ 
                     pointerEvents: 'auto',
                     background: 'none',
                     border: 'none',
-                    padding: 0
+                    padding: 0,
+                    zIndex: 50
                   }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
@@ -200,29 +248,25 @@ const Tutorial = () => {
           </div>
         </div>
 
-        {/* 메뉴 컴포넌트 */}
         {showMenu && (
           <div 
-            className="fixed inset-0 z-[100] bg-black/50"
+            className="fixed inset-0 z-40" 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
-            <div 
-              className="relative z-[101]"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <Menu
-                isOpen={showMenu}
-                onClose={() => setShowMenu(false)}
-                onPageSelect={handlePageChange}
-                pageNumber={tutorialStep}
-              />
-            </div>
+            <Menu
+              isOpen={showMenu}
+              onClose={() => setShowMenu(false)}
+              onPageSelect={handlePageChange}
+              pageNumber={tutorialStep}
+              pageType="tutorial"
+            />
           </div>
         )}
       </div>

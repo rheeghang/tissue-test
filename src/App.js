@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './providers/AppProvider';
-import Home from './Pages/Home';
+import Home from './pages/Home';
 import Tutorial from './Tutorials/Tutorial';
-import ArtworkPage from './Pages/ArtworkPage';
-import About from './Pages/About';
+import ArtworkPage from './pages/ArtworkPage';
+import About from './pages/About';
 import ScreenReaderText from './components/ScreenReaderText';
 import LiveAnnouncer from './components/LiveAnnouncer';
 
@@ -14,7 +14,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/tutorial/:step" element={<Tutorial />} />
+          <Route path="/tutorial/step/:number" element={<Tutorial />} />
           <Route path="/artwork/:pageNumber" element={<ArtworkPage />} />
           <Route path="/about" element={<About />} />
         </Routes>

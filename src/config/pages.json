@@ -67,7 +67,7 @@
       "targetGamma2": -23,
       "targetAlpha": 135,
       "rotationAngle": 135,
-      "className": "bg-page7-bg text-page7-text text-stroke-thin",
+      "className": "bg-page7-bg text-page7-text text-stroke-white-thin",
       "marginTop": "65vh"
     },
     "8": {

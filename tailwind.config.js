@@ -40,8 +40,8 @@ module.exports = {
         'page6-bg': '#A079DA',  // 검정
         'page6-text': '#CCFF66',  // 흰색
 
-        'page7-bg': '#0F7CFF',  // 검정
-        'page7-text': '#E7FF00',  // 흰색
+        'page7-bg': '#4CFFF3',  // 검정
+        'page7-text': '#832ECA',  // 흰색
 
         'page8-bg': '#FFCAE6',  // 검정
         'page8-text': '#044E00',  // 흰색

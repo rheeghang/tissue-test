@@ -29,23 +29,11 @@ const ArtworkPage = () => {
   const pageContent = data[`page${pageNumber}`];
 
   useEffect(() => {
-    const handleFirstOrientation = (event) => {
-      if (initialAlpha === null && event.alpha !== null) {
-        setInitialAlpha(event.alpha);
-        window.removeEventListener('deviceorientation', handleFirstOrientation);
-      }
-    };
-
-    window.addEventListener('deviceorientation', handleFirstOrientation);
-    return () => window.removeEventListener('deviceorientation', handleFirstOrientation);
-  }, [initialAlpha]);
-
-  useEffect(() => {
-    if (config && initialAlpha !== null) {
-      const relativeTargetAngle = ((config.targetAlpha + initialAlpha) % 360 + 360) % 360;
-      setTargetAngles(relativeTargetAngle);
+    if (config) {
+      // 타겟 알파값 직접 설정
+      setTargetAngles(config.targetAlpha);
     }
-  }, [pageNumber, setTargetAngles, config, initialAlpha]);
+  }, [pageNumber, setTargetAngles, config]);
 
   // 가이드 메시지 관리
   useEffect(() => {
@@ -113,6 +101,11 @@ const ArtworkPage = () => {
     }
   };
 
+  useEffect(() => {
+    setIsUnlocked(false);
+    setOutOfRangeStartTime(null);
+  }, [pageNumber]);
+
   if (!config || !pageContent) return null;
 
   return (
@@ -121,6 +114,10 @@ const ArtworkPage = () => {
         <div className="fixed top-2 left-0 right-0 text-center z-10 flex justify-center space-x-4">
           <p className="text-xl font-bold text-white">
             {Math.round(currentAlpha)}°
+            {/* 디버깅용 추가 정보 */}
+            {/* <span className="text-sm ml-2">
+              (Target: {config?.targetAlpha}°)
+            </span> */}
           </p>
         </div>
 
@@ -203,6 +200,7 @@ const ArtworkPage = () => {
             onClose={() => setShowMenu(false)}
             onPageSelect={handlePageChange}
             pageNumber={Number(pageNumber)}
+            pageType="artwork"
           />
         )}
       </div>

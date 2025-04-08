@@ -17,13 +17,6 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
   let isProcessing = false;
 
   const handlePermissionRequest = async (e) => {
-    if (isProcessing) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    isProcessing = true;
-
     try {
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         const permission = await DeviceOrientationEvent.requestPermission();
@@ -35,10 +28,6 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
       }
     } catch (error) {
       console.error('권한 요청 실패:', error);
-    } finally {
-      setTimeout(() => {
-        isProcessing = false;
-      }, 300);
     }
   };
 
@@ -54,7 +43,10 @@ const Modal = ({ isOpen, onClose, onConfirm }) => {
         </p>
         <button
           onClick={handlePermissionRequest}
-          onTouchStart={handlePermissionRequest}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            handlePermissionRequest();
+          }}
           className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors active:bg-gray-800"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
@@ -157,7 +149,7 @@ const Home = () => {
   }, []);
 
   const handleStart = () => {
-    navigate('/tutorial/1');
+    navigate('/tutorial/step/1');
   };
 
   const handleLanguageChange = (lang) => {

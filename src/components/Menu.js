@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import koData from '../i18n/ko.json';
 import enData from '../i18n/en.json';
 
-const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
+const Menu = ({ isOpen, onClose, onPageSelect, pageNumber, pageType }) => {
   const { isOrientationMode, setIsOrientationMode } = useMode();
   const { language } = useLanguage();
   
@@ -88,9 +88,9 @@ const Menu = ({ isOpen, onClose, onPageSelect, pageNumber }) => {
                 className={`py-3 px-1 ${item.bgClass} ${item.textClass} mb-2 rounded-none shadow-md hover:opacity-90 transition-all duration-500 font-medium flex items-center justify-center
                   ${isTransitioning ? 
                     (selectedPage === item.pageNumber ? 'w-full' : 
-                     previousPage === item.pageNumber ? 'w-[calc(100%-2rem)]' : 
+                     previousPage === item.pageNumber && pageType === 'artwork' ? 'w-[calc(100%-2rem)]' : 
                      'w-[calc(100%-2rem)]') :
-                    (pageNumber === item.pageNumber ? 'w-full' : 'w-[calc(100%-2rem)]')
+                    (pageNumber === item.pageNumber && pageType === 'artwork' ? 'w-full' : 'w-[calc(100%-2rem)]')
                   }`}
               >
                 <span className="text-center">{item.label}</span>
