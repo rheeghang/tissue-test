@@ -7,43 +7,36 @@ export const BlurProvider = ({ children }) => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [targetAlpha, setTargetAlpha] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [initialAlpha, setInitialAlpha] = useState(null);
 
   useEffect(() => {
     const handleOrientation = (event) => {
-      if (event.alpha === null || event.alpha === undefined) return;
-      
-      if (initialAlpha === null) {
-        setInitialAlpha(event.alpha);
-        setCurrentAlpha(0);
-        return;
-      }
-
-      const relativeAlpha = event.alpha - initialAlpha;
-      setCurrentAlpha(relativeAlpha);
-      
-      if (isUnlocked) {
-        setBlurAmount(0);
-        return;
-      }
-      
-      const tolerance = 30; 
-      const maxBlur = 20;
-      
-      const alphaDifference = Math.abs(relativeAlpha - targetAlpha);
-      
-      if (alphaDifference <= tolerance) {
-        setBlurAmount(0);
-        setIsUnlocked(true);
-      } else {
-        const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
-        setBlurAmount(blur);
+      if (event.alpha !== null && event.alpha !== undefined) {
+        setCurrentAlpha(event.alpha);
+        
+        if (isUnlocked) {
+          setBlurAmount(0);
+          return;
+        }
+        
+        const tolerance = 30; 
+        const maxBlur = 20;
+        
+        // 단순히 현재 알파값과 타겟 알파값의 차이 계산
+        const alphaDifference = Math.abs(event.alpha - targetAlpha);
+        
+        if (alphaDifference <= tolerance) {
+          setBlurAmount(0);
+          setIsUnlocked(true);
+        } else {
+          const blur = Math.min(maxBlur, (alphaDifference - tolerance) / 3);
+          setBlurAmount(blur);
+        }
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [targetAlpha, isUnlocked, initialAlpha]);
+  }, [targetAlpha, isUnlocked]);
 
   return (
     <BlurContext.Provider value={{
@@ -52,7 +45,6 @@ export const BlurProvider = ({ children }) => {
       setTargetAngles: (alpha) => {
         setTargetAlpha(alpha);
         setIsUnlocked(false);
-        setInitialAlpha(null);
       },
       setIsUnlocked
     }}>
