@@ -26,7 +26,7 @@ const Tutorial = () => {
   const [currentGamma, setCurrentGamma] = useState(0);
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
-  const { blurAmount, setTargetAngles } = useBlur();
+  const { blurAmount, setTargetAngles, isUnlocked } = useBlur();
   const { showGuideMessage } = useGuide();
   const { language } = useLanguage();
   const data = language === 'ko' ? koData : enData;
@@ -195,20 +195,23 @@ const Tutorial = () => {
             <div className="mt-14">
               {tutorialStep === 4 ? (
                 <button
-                  className="absolute bottom-2 right-2 cursor-pointer menu-icon"
+                  className={`absolute bottom-2 right-2 cursor-pointer menu-icon ${!isUnlocked ? 'pointer-events-none opacity-50' : ''}`}
                   onClick={(e) => {
+                    if (!isUnlocked) return;
                     e.stopPropagation();
                     setShowMenu(true);
                   }}
                   onTouchStart={(e) => {
+                    if (!isUnlocked) return;
                     e.stopPropagation();
                     setShowMenu(true);
                   }}
                   style={{ 
-                    pointerEvents: 'auto',
+                    pointerEvents: isUnlocked ? 'auto' : 'none',
                     background: 'none',
                     border: 'none',
-                    padding: 0
+                    padding: 0,
+                    transition: 'opacity 0.3s ease'
                   }}
                   aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
                 >
@@ -216,13 +219,15 @@ const Tutorial = () => {
                 </button>
               ) : (
                 <div
-                  className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
-                  onClick={handleTutorialNext}
-                  onTouchStart={handleTutorialNext}
+                  className={`absolute bottom-2 right-2 cursor-pointer tutorial-button ${!isUnlocked ? 'pointer-events-none opacity-50' : ''}`}
+                  onClick={() => isUnlocked && handleTutorialNext()}
+                  onTouchStart={() => isUnlocked && handleTutorialNext()}
                   style={{ 
+                    pointerEvents: isUnlocked ? 'auto' : 'none',
                     background: 'none',
                     border: 'none',
-                    padding: 0
+                    padding: 0,
+                    transition: 'opacity 0.3s ease'
                   }}
                   aria-label={language === 'ko' ? "다음 단계로" : "Next step"}
                 >
