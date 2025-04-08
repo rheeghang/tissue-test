@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const BlurContext = createContext();
 
@@ -7,6 +7,11 @@ export const BlurProvider = ({ children }) => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [targetAlpha, setTargetAlpha] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const isUnlockedRef = useRef(isUnlocked);
+
+  useEffect(() => {
+    isUnlockedRef.current = isUnlocked;
+  }, [isUnlocked]);
 
   useEffect(() => {
     const handleOrientation = (event) => {
@@ -14,7 +19,7 @@ export const BlurProvider = ({ children }) => {
       const alpha = event.alpha;
       setCurrentAlpha(alpha);  // 항상 현재 각도 업데이트
       
-      if (!isUnlocked) {  // isUnlocked가 false일 때만 블러 계산
+      if (!isUnlockedRef.current) {  // isUnlocked가 false일 때만 블러 계산
         const tolerance = 30; 
         const maxBlur = 20;
         
