@@ -29,6 +29,20 @@ const ArtworkPage = () => {
   const config = pageConfig.pages[pageNumber];
   const pageContent = data[`page${pageNumber}`];
 
+  // 디바이스 방향 이벤트 처리 추가
+  useEffect(() => {
+    const handleOrientation = (event) => {
+      const alpha = event.alpha ?? 0;
+      
+      if (!isUnlocked) {  // isUnlocked가 false일 때만 업데이트
+        setCurrentAlpha(alpha);
+      }
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, [isUnlocked]);
+
   useEffect(() => {
     if (config) {
       setTargetAngles(config.targetAlpha);
