@@ -7,6 +7,7 @@
         "step1": "The National Asian Culture Center, in cooperation with Tissue Office, has developed a mobile web docent to suggest various stances from which to experience the exhibition.",
         "step2": "Deviating from the usual function of a docent, which is to expressly, smoothly, and conveniently deliver curatorial commentary,",
         "step3": "this mobile web docent allows us, as cumbersome, unproductive, and unfamiliar as it may be, to take in the presented works from different angles and perspectives.",
+        "step4": "You can view other artworks through the menu.",
         "shakeGuide": ""
     },
     "guide": {
@@ -74,6 +75,6 @@
     "about":{
         "title": "Crossing the Line:\n Our Bodies, Embedded with Others",
         "subtitle": "2025 ACC Contact",
-        "body": "The 2025 ACC CONTACT exhibition Crossing the Line: Our Bodies, Embedded with Others both mediates acknowledgment of diversity while simultaneously inquiring into the attitude with which to perceive differences. We all draw various mental borderlines as attested by the notions of “inside and outside,” “us and them,” “safety and danger,” and “myself and others.” But what if borderlines are a strictly contingent concept; what if we, too, can be an “other” to someone else? With me being who I am and you being who you are, what forms of asymmetrical communication can we contrive to coexist?"
+        "body": "The 2025 ACC CONTACT exhibition Crossing the Line: Our Bodies, Embedded with Others both mediates acknowledgment of diversity while simultaneously inquiring into the attitude with which to perceive differences. We all draw various mental borderlines as attested by the notions of \"inside and outside,\" \"us and them,\" \"safety and danger,\" and \"myself and others.\" But what if borderlines are a strictly contingent concept; what if we, too, can be an \"other\" to someone else? With me being who I am and you being who you are, what forms of asymmetrical communication can we contrive to coexist?"
     }
 }

@@ -17,7 +17,7 @@ const Tutorial = () => {
   // tutorialStep 초기값 설정
   const [tutorialStep, setTutorialStep] = useState(() => {
     const step = Number(stepParam);
-    return isNaN(step) || step < 1 || step > 3 ? 1 : step;
+    return isNaN(step) || step < 1 || step > 4 ? 1 : step;
   });
 
   const [alphaInit, setAlphaInit] = useState(null);
@@ -26,7 +26,7 @@ const Tutorial = () => {
   const [currentGamma, setCurrentGamma] = useState(0);
   const [outOfRangeStartTime, setOutOfRangeStartTime] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
-  const { blurAmount, setTargetAngles, setIsUnlocked } = useBlur();
+  const { blurAmount, setTargetAngles } = useBlur();
   const { showGuideMessage } = useGuide();
   const { language } = useLanguage();
   const data = language === 'ko' ? koData : enData;
@@ -37,7 +37,7 @@ const Tutorial = () => {
   // 모든 useEffect를 조건문 밖으로 이동
   useEffect(() => {
     const step = Number(stepParam);
-    if (isNaN(step) || step < 1 || step > 3) {
+    if (isNaN(step) || step < 1 || step > 4) {
       setTutorialStep(1);
       return;
     }
@@ -52,10 +52,9 @@ const Tutorial = () => {
 
   useEffect(() => {
     if (blurAmount === 0) {
-      setIsUnlocked(true);
       console.log("✅ 언락 조건 충족! blur = 0");
     }
-  }, [blurAmount, setIsUnlocked]);
+  }, [blurAmount]);
 
   useEffect(() => {
     const handleOrientation = (event) => {
@@ -79,13 +78,6 @@ const Tutorial = () => {
   useEffect(() => {
     const originalShakeEvent = window.onshake;
 
-    window.onshake = (e) => {
-      if (tutorialStep !== 3) {
-        e.preventDefault();
-        return;
-      }
-      originalShakeEvent?.(e);
-    };
 
     return () => {
       window.onshake = originalShakeEvent;
@@ -106,7 +98,7 @@ const Tutorial = () => {
         return;
       }
       
-      if (tutorialStep === 3) {
+      if (tutorialStep === 4) {
         e.stopPropagation();
         return;
       }
@@ -131,9 +123,8 @@ const Tutorial = () => {
   };
 
   const handleTutorialNext = () => {
-    if (tutorialStep < 3) {
+    if (tutorialStep < 4) {
       const nextStep = tutorialStep + 1;
-      setIsUnlocked(false);
       setTutorialStep(nextStep);
     } else {
       window.location.href = '/artwork/1';
@@ -143,14 +134,12 @@ const Tutorial = () => {
   const handleTutorialPrev = () => {
     if (tutorialStep > 1) {
       const prevStep = tutorialStep - 1;
-      setIsUnlocked(false);
       setTutorialStep(prevStep);
     }
   };
 
   const handlePageChange = (newPage) => {
     setShowMenu(false);
-    setIsUnlocked(false);
     setOutOfRangeStartTime(null);
     
     if (newPage === 'home') {
@@ -183,7 +172,7 @@ const Tutorial = () => {
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="fixed top-2 left-0 right-0 text-center z-10">
-          {(tutorialStep === 1 || tutorialStep === 2 || tutorialStep === 3) && (
+          {(tutorialStep === 1 || tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 4) && (
             <p className="text-xl font-bold text-white">{Math.round(currentAlpha)}°</p>
           )}
         </div>
@@ -204,7 +193,7 @@ const Tutorial = () => {
             </p>
             
             <div className="mt-14">
-              {tutorialStep === 3 ? (
+              {tutorialStep === 4 ? (
                 <button
                   className="absolute bottom-2 right-2 cursor-pointer menu-icon"
                   onClick={(e) => {

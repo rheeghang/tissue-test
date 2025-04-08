@@ -120,12 +120,31 @@
       "targetGamma2": -25,
       "targetAlpha": 120,
       "rotationAngle": 120,
-      "bgColor": "bg-key-color",
-      "textColor": "text-white",
+      "bgColor": "bg-white",
+      "textColor": "text-gray-800",
       "style": {
         "top": "60vh",
         "left": "-10%",
         "width": "320px"
+      },
+      "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
+    },
+    "4": {
+      "targetBeta1": -20,
+      "targetGamma1": -15,
+      "targetBeta2": -44,
+      "targetGamma2": -25,
+      "targetAlpha": 0,
+      "rotationAngle": 0,
+      "bgColor": "bg-key-color",
+      "textColor": "text-white",
+      "style": {
+        "top": "40vh",
+        "left": "50%",
+        "width": "320px",
+        "textAlign": "center",
+        "fontSize": "28px",
+        "whiteSpace": "pre-wrap"
       },
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     }

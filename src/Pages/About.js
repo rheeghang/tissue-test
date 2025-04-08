@@ -28,7 +28,7 @@ const About = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center">
+      <div className="min-h-screen bg-black fixed w-full flex items-center justify-center white-space-pre-wrap">
         {/* 메뉴 아이콘 */}
         <div className="fixed top-5 right-5 z-50">
           <button 
