@@ -15,7 +15,7 @@ const ArtworkPage = () => {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = React.useState(false);
-  const { blurAmount, currentAlpha, setTargetAngles, setIsUnlocked } = useBlur();
+  const { blurAmount, currentAlpha, setTargetAngles, setIsUnlocked, isUnlocked } = useBlur();
   const { showGuideMessage } = useGuide();
   const { language } = useLanguage();
   const { isOrientationMode } = useMode();
