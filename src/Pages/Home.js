@@ -65,6 +65,7 @@ const LanguageSelector = ({ language, onLanguageChange }) => {
   };
 
   return (
+    
     <div className="fixed bottom-[15vh] left-0 right-0 flex justify-center">
     <div className="text-xl font-bold text-black">
       <button 
@@ -148,6 +149,11 @@ const Home = () => {
     return () => clearTimeout(showTimer);
   }, []);
 
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/title.png';
+  }, []);
+
   const handleStart = () => {
     navigate('/tutorial/step/1');
   };
@@ -159,7 +165,12 @@ const Home = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-4 relative flex flex-col">
+      <div 
+            className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed z-[-2]"
+            style={{
+              background: 'linear-gradient(to left, #FFEA7B, #FACFB9)'
+            }}>
+      <div className="min-h-screen p-4 relative flex flex-col">
         <Modal 
           isOpen={showModal}
           onClose={() => setShowModal(false)}
@@ -169,19 +180,24 @@ const Home = () => {
           }}
         />
 
-        <div className="fixed top-3 left-0 right-0 flex flex-col items-center space-y-2 text-center z-10">
-          <h1 className="text-base leading-relaxed font-bold mb-4 font-medium whitespace-pre-line px-4">
-            {data.home1.title}
-          </h1>
+        <div className="fixed bottom-[23vh] left-2 right-0 flex flex-col items-center space-y-2 text-center z-10">
           <div className="items-center space-y-2 text-center font-bold text-black">
-            <p className="text-xl font-medium text-gray-800">{Math.round(alpha)}°</p>
+            <p className="text-xl font-lg text-black">{Math.round(alpha)}°</p>
           </div>
+        </div>
+
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center z-2">
+          <img 
+            src="/title.png" 
+            alt="우리의 몸에는 타인이 깃든다." 
+            className="w-[80vw] h-auto"
+          />
         </div>
 
         <div className="fixed inset-0 flex items-center justify-center z-0">
           <div
             style={{
-              backgroundColor: "#FF5218",
+              backgroundColor: "rgba(255, 255, 255, 0.6)",
               transition: "all 0.5s ease",
               transform: `rotate(${gamma}deg)`,
               width: '250px',
@@ -200,7 +216,7 @@ const Home = () => {
               e.preventDefault();
               handleStart();
             }}
-            className="start-button w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
+            className="start-button rounded-full w-48 bg-black px-6 py-4 text-xl font-bold text-white shadow-2xl"
             style={{ 
               WebkitTapHighlightColor: 'transparent',
               opacity: startButtonOpacity,
@@ -218,6 +234,8 @@ const Home = () => {
           </div>
         </div>
       </div>
+      </div>
+
     </Layout>
   );
 };

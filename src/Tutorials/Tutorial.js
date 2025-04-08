@@ -46,7 +46,7 @@ const Tutorial = () => {
 
   useEffect(() => {
     if (currentConfig) {
-      setTargetAngles(currentConfig.targetAlpha, true);
+      setTargetAngles(currentConfig.targetAlpha);
     }
   }, [tutorialStep]);
 
