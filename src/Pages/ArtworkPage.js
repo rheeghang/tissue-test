@@ -31,17 +31,14 @@ const ArtworkPage = () => {
   useEffect(() => {
     if (config) {
       setTargetAngles(config.targetAlpha);
-      if (blurAmount === 0) {
-        setIsUnlocked(true);
-      }
     }
-  }, [pageNumber, setTargetAngles, blurAmount, setIsUnlocked, config]);
+  }, [pageNumber, setTargetAngles, config]);
 
   // 페이지 변경 시 상태 초기화
   useEffect(() => {
     setIsUnlocked(false);
     setOutOfRangeStartTime(null);
-  }, [pageNumber]);
+  }, [pageNumber, setIsUnlocked]);
 
   // 가이드 메시지 관리
   useEffect(() => {
