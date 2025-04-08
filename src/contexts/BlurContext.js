@@ -7,26 +7,19 @@ export const BlurProvider = ({ children }) => {
   const [currentAlpha, setCurrentAlpha] = useState(0);
   const [targetAlpha, setTargetAlpha] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [baseAlpha, setBaseAlpha] = useState(null);
+  const [initialAlpha, setInitialAlpha] = useState(null);
 
   useEffect(() => {
     const handleOrientation = (event) => {
       if (event.alpha === null || event.alpha === undefined) return;
-
-      // 페이지 첫 로드 또는 페이지 전환 시
-      if (baseAlpha === null) {
-        setBaseAlpha(event.alpha);
+      
+      if (initialAlpha === null) {
+        setInitialAlpha(event.alpha);
         setCurrentAlpha(0);
         return;
       }
 
-      // baseAlpha 기준으로 상대적인 알파값 계산
-      let relativeAlpha = event.alpha - baseAlpha;
-      
-      // 360도 회전 시 각도 보정
-      if (relativeAlpha > 180) relativeAlpha -= 360;
-      if (relativeAlpha < -180) relativeAlpha += 360;
-      
+      const relativeAlpha = event.alpha - initialAlpha;
       setCurrentAlpha(relativeAlpha);
       
       if (isUnlocked) {
@@ -34,7 +27,7 @@ export const BlurProvider = ({ children }) => {
         return;
       }
       
-      const tolerance = 30;
+      const tolerance = 30; 
       const maxBlur = 20;
       
       const alphaDifference = Math.abs(relativeAlpha - targetAlpha);
@@ -50,7 +43,7 @@ export const BlurProvider = ({ children }) => {
 
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [targetAlpha, isUnlocked, baseAlpha]);
+  }, [targetAlpha, isUnlocked, initialAlpha]);
 
   return (
     <BlurContext.Provider value={{
@@ -59,7 +52,7 @@ export const BlurProvider = ({ children }) => {
       setTargetAngles: (alpha) => {
         setTargetAlpha(alpha);
         setIsUnlocked(false);
-        setBaseAlpha(null);  // 페이지 전환 시 기준점 리셋
+        setInitialAlpha(null);
       },
       setIsUnlocked
     }}>
