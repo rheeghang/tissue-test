@@ -14,7 +14,7 @@ const Tutorial = () => {
   const { step: stepParam } = useParams();
   const navigate = useNavigate();
   
-  // tutorialStep 초기값 설정을 더 안전하게
+  // tutorialStep 초기값 설정
   const [tutorialStep, setTutorialStep] = useState(() => {
     const step = Number(stepParam);
     return isNaN(step) || step < 1 || step > 3 ? 1 : step;
@@ -31,7 +31,10 @@ const Tutorial = () => {
   const { language } = useLanguage();
   const data = language === 'ko' ? koData : enData;
 
-  // stepParam이 변경될 때 tutorialStep 업데이트 및 뒤로가기 처리
+  // 현재 설정 가져오기
+  const currentConfig = pageConfig.tutorial[tutorialStep];
+
+  // 모든 useEffect를 조건문 밖으로 이동
   useEffect(() => {
     const step = Number(stepParam);
     if (isNaN(step) || step < 1 || step > 3) {
@@ -40,20 +43,6 @@ const Tutorial = () => {
     }
     setTutorialStep(step);
   }, [stepParam]);
-
-  // 현재 설정 가져오기
-  const currentConfig = pageConfig.tutorial[tutorialStep];
-
-  // currentConfig가 없는 경우 처리
-  if (!currentConfig) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-base-color flex items-center justify-center">
-          <p className="text-white">로딩중...</p>
-        </div>
-      </Layout>
-    );
-  }
 
   useEffect(() => {
     if (currentConfig) {
@@ -180,6 +169,17 @@ const Tutorial = () => {
       window.location.href = `/artwork/${newPage}`;
     }
   };
+
+  // 로딩 상태 처리
+  if (!currentConfig) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-base-color flex items-center justify-center">
+          <p className="text-white">로딩중...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
