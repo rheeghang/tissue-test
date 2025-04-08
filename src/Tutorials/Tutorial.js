@@ -182,6 +182,46 @@ const Tutorial = () => {
           )}
         </div>
 
+        {tutorialStep === 4 && (
+          <button
+            className="fixed top-3 right-3 cursor-pointer menu-icon rounded-full p-2 shadow-lg flex items-center justify-center w-12 h-12 transition-all z-50 bg-key-color"
+            onClick={(e) => {
+              if (!isUnlocked) return;
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            onTouchStart={(e) => {
+              if (!isUnlocked) return;
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            style={{ 
+              pointerEvents: isUnlocked ? 'auto' : 'none',
+              border: 'none',
+              padding: 0
+            }}
+            aria-label={showMenu ? "메뉴 닫기" : "메뉴 열기"}
+          >
+            {showMenu ? (
+              <svg 
+                width="30" 
+                height="30" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <MenuIcon />
+            )}
+          </button>
+        )}
+
         <div 
           className={currentConfig.containerClassName}
           style={{
@@ -198,30 +238,7 @@ const Tutorial = () => {
             </p>
             
             <div className="mt-14">
-              {tutorialStep === 4 ? (
-                <button
-                  className="absolute bottom-2 right-2 cursor-pointer menu-icon"
-                  onClick={(e) => {
-                    if (!isUnlocked) return;
-                    e.stopPropagation();
-                    setShowMenu(true);
-                  }}
-                  onTouchStart={(e) => {
-                    if (!isUnlocked) return;
-                    e.stopPropagation();
-                    setShowMenu(true);
-                  }}
-                  style={{ 
-                    pointerEvents: isUnlocked ? 'auto' : 'none',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0
-                  }}
-                  aria-label={language === 'ko' ? "메뉴 열기" : "Open menu"}
-                >
-                  <MenuIcon />
-                </button>
-              ) : (
+              {tutorialStep !== 4 && (
                 <div
                   className="absolute bottom-2 right-2 cursor-pointer tutorial-button"
                   onClick={() => isUnlocked && handleTutorialNext()}

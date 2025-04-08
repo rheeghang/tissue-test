@@ -169,7 +169,7 @@ const Home = () => {
       <div 
             className="container h-full overflow-y-auto overflow-x-hidden flex flex-col p-10 text-black leading-relaxed z-10"
             style={{
-              background: `linear-gradient(to left, #FFEA7B ${gradientRatio - 5}%, #FACFB9 ${gradientRatio + 5}%)`
+              background: `linear-gradient(to left, #FFEA7B ${gradientRatio - 15}%, #FACFB9 ${gradientRatio + 15}%)`
             }}>
       <div className="min-h-screen p-4 relative flex flex-col">
         <Modal 

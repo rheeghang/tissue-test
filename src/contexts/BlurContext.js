@@ -9,6 +9,7 @@ export const BlurProvider = ({ children }) => {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const isUnlockedRef = useRef(isUnlocked);
   const isTutorialModeRef = useRef(false);
+  const isMobileRef = useRef(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
   useEffect(() => {
     isUnlockedRef.current = isUnlocked;
@@ -16,6 +17,12 @@ export const BlurProvider = ({ children }) => {
 
   useEffect(() => {
     const handleOrientation = (event) => {
+      if (!isMobileRef.current) {
+        setBlurAmount(0);
+        setIsUnlocked(true);
+        return;
+      }
+
       if (event.alpha == null) return;
       const alpha = event.alpha;
       setCurrentAlpha(alpha);
@@ -42,6 +49,10 @@ export const BlurProvider = ({ children }) => {
   }, [targetAlpha]);
 
   const setTargetAngles = (alpha, isTutorial = false) => {
+    if (!isMobileRef.current) {
+      setIsUnlocked(true);
+      return;
+    }
     setTargetAlpha(alpha);
     setIsUnlocked(false);
     isUnlockedRef.current = false;
