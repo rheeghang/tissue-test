@@ -187,7 +187,7 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center z-2">
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center z-10">
           <img 
             src="/title.png" 
             alt="우리의 몸에는 타인이 깃든다." 
