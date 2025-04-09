@@ -94,6 +94,12 @@ module.exports = {
         '.text-stroke-medium': {
           textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
         },
+        '.text-stroke-thick': {
+          textShadow: '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000',
+        },
+        '.text-stroke-white-thin': {
+          textShadow: '-0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff, 0.5px 0.5px 0 #fff',
+        },
       };
       addUtilities(newUtilities);
     },
