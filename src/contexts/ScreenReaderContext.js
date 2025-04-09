@@ -31,6 +31,10 @@ export const ScreenReaderProvider = ({ children }) => {
     }
   }, [tutorialStep, currentPage]);
 
+  useEffect(() => {
+    setHasReadContent(false);
+  }, [currentPage]);
+
   const getInitialDescription = () => {
     return translations.initialDescription;
   };

@@ -10,6 +10,7 @@ const ScreenReaderText = () => {
   const {
     shouldReadContent,
     hasReadContent,
+    setHasReadContent,
     tutorialStep,
     getInitialDescription,
     getPageContent,
@@ -53,6 +54,17 @@ const ScreenReaderText = () => {
       return () => clearTimeout(timer);
     }
   }, [tutorialStep, isUnlocked, blurAmount, hasReadTutorial]);
+
+  // 콘텐츠 읽기 완료 처리
+  useEffect(() => {
+    if (shouldReadContent && !hasReadContent) {
+      const timer = setTimeout(() => {
+        setHasReadContent(true);
+      }, 3000); // 콘텐츠를 읽는 시간을 고려한 지연
+
+      return () => clearTimeout(timer);
+    }
+  }, [shouldReadContent, hasReadContent, setHasReadContent]);
 
   // 1. 튜토리얼 관련 텍스트
   const renderTutorialText = () => {
