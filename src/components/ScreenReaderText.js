@@ -1,59 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useScreenReader } from '../contexts/ScreenReaderContext';
-import { useBlur } from '../contexts/BlurContext';
-import { useLanguage } from '../contexts/LanguageContext';
 import ko from '../i18n/ko.json';
 import en from '../i18n/en.json';
 import pages from '../config/pages.json';
 
 const ScreenReaderText = () => {
-  const {
+  const { 
+    currentPage,
+    blurAmount,
+    isModalOpen,
+    tutorialStep,
     shouldReadContent,
     hasReadContent,
     setHasReadContent,
-    tutorialStep,
     getInitialDescription,
     getPageContent,
-    currentPage
+    isUnlocked,
+    language
   } = useScreenReader();
 
-  const { isUnlocked, blurAmount } = useBlur();
-  const { language } = useLanguage();
   const [prevPage, setPrevPage] = useState(currentPage);
-  const [hasReadTutorial, setHasReadTutorial] = useState(false);
-
   const translations = language === 'ko' ? ko : en;
 
-  // 페이지 변경 감지
+  // 이전 페이지 상태 업데이트
   useEffect(() => {
-    if (currentPage !== prevPage) {
-      setPrevPage(currentPage);
-      setHasReadContent(false);
-      setHasReadTutorial(false);
-    }
-  }, [currentPage, prevPage]);
-
-  // 콘텐츠를 한 번만 읽도록 처리
-  useEffect(() => {
-    if (shouldReadContent && !hasReadContent && isUnlocked && blurAmount === 0) {
-      const timer = setTimeout(() => {
-        setHasReadContent(true);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [shouldReadContent, hasReadContent, isUnlocked, blurAmount]);
-
-  // 튜토리얼 콘텐츠 읽기 완료 처리
-  useEffect(() => {
-    if (tutorialStep > 0 && isUnlocked && blurAmount === 0 && !hasReadTutorial) {
-      const timer = setTimeout(() => {
-        setHasReadTutorial(true);
-      }, 3000); // 콘텐츠 읽기 시간 고려
-
-      return () => clearTimeout(timer);
-    }
-  }, [tutorialStep, isUnlocked, blurAmount, hasReadTutorial]);
+    setPrevPage(currentPage);
+  }, [currentPage]);
 
   // 콘텐츠 읽기 완료 처리
   useEffect(() => {
@@ -131,7 +103,7 @@ const ScreenReaderText = () => {
           )}
           
           {/* 페이지 콘텐츠 */}
-          {shouldReadContent && isUnlocked && blurAmount === 0 && (
+          {shouldReadContent && (
             <div 
               className="sr-only" 
               aria-live="assertive" 
