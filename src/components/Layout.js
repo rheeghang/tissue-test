@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Menu from './Menu';
 import { useNavigate } from 'react-router-dom';
 import { useBlur } from '../contexts/BlurContext';
+import ScreenReaderText from './ScreenReaderText';
 
 export const Layout = ({ children }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -23,6 +24,7 @@ export const Layout = ({ children }) => {
 
   return (
     <>
+      <ScreenReaderText />
       {children}
       {showMenu && (
         <Menu

@@ -3,6 +3,7 @@ import { BlurProvider } from '../contexts/BlurContext';
 import { GuideProvider } from '../contexts/GuideContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { ModeProvider } from '../contexts/ModeContext';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 
 export const AppProvider = ({ children }) => {
   return (
@@ -10,7 +11,9 @@ export const AppProvider = ({ children }) => {
       <ModeProvider>
         <BlurProvider>
           <GuideProvider>
-            {children}
+            <ScreenReaderProvider>
+              {children}
+            </ScreenReaderProvider>
           </GuideProvider>
         </BlurProvider>
       </ModeProvider>
