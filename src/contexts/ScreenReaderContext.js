@@ -22,6 +22,7 @@ export const ScreenReaderProvider = ({ children }) => {
   const [tutorialStep, setTutorialStep] = useState(0);
   const [shouldReadContent, setShouldReadContent] = useState(false);
   const [hasReadContent, setHasReadContent] = useState(false);
+  const [hasReadInitialDescription, setHasReadInitialDescription] = useState(false);
   const { isUnlocked } = useBlur();
   const { language } = useLanguage();
 
@@ -40,13 +41,19 @@ export const ScreenReaderProvider = ({ children }) => {
   useEffect(() => {
     setHasReadContent(false);
     setShouldReadContent(false);
+    setHasReadInitialDescription(false);
   }, [currentPage]);
 
-  // 튜토리얼 단계 변경 시 상태 초기화
+  // 초기 설명 읽기 완료 처리
   useEffect(() => {
-    setHasReadContent(false);
-    setShouldReadContent(false);
-  }, [tutorialStep]);
+    if (!hasReadInitialDescription && !shouldReadContent && tutorialStep === 0) {
+      const timer = setTimeout(() => {
+        setHasReadInitialDescription(true);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasReadInitialDescription, shouldReadContent, tutorialStep]);
 
   const getInitialDescription = () => {
     if (currentPage > 0) {
@@ -76,6 +83,7 @@ export const ScreenReaderProvider = ({ children }) => {
       setShouldReadContent,
       hasReadContent,
       setHasReadContent,
+      hasReadInitialDescription,
       isUnlocked,
       language,
       getInitialDescription,

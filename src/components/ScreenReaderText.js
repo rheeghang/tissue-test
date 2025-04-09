@@ -13,6 +13,7 @@ const ScreenReaderText = () => {
     shouldReadContent,
     hasReadContent,
     setHasReadContent,
+    hasReadInitialDescription,
     getInitialDescription,
     getPageContent,
     isUnlocked,
@@ -123,7 +124,7 @@ const ScreenReaderText = () => {
 
   // 3. 일반 페이지 관련 텍스트
   const renderPageText = () => {
-    if (!shouldReadContent && !hasReadContent && tutorialStep === 0) {
+    if (!hasReadInitialDescription && !shouldReadContent && tutorialStep === 0) {
       console.log('스크린 리더: 초기 설명 읽기');
       return (
         <div 

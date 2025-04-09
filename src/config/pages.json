@@ -31,12 +31,12 @@
       "marginTop": "55vh"
     },
     "4": {
-      "targetBeta1": 2,
+      "targetBeta1": 0,
       "targetGamma1": -15,
       "targetBeta2": 0,
-      "targetGamma2": -50,
-      "targetAlpha": 90,
-      "rotationAngle": 90,
+      "targetGamma2": -25,
+      "targetAlpha": [0, 360],
+      "rotationAngle": 0,
       "className": "bg-page4-bg text-page4-text text-stroke-white-thin",
       "marginTop": "65vh"
     },
@@ -135,7 +135,7 @@
       "targetGamma1": -15,
       "targetBeta2": -44,
       "targetGamma2": -25,
-      "targetAlpha": 0,
+      "targetAlpha": [0, 360],
       "rotationAngle": 0,
       "bgColor": "bg-key-color",
       "textColor": "text-white",
@@ -146,6 +146,7 @@
         "textAlign": "center",
         "fontSize": "28px",
         "whiteSpace": "pre-wrap"
+
       },
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
     }
