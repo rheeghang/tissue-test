@@ -97,6 +97,7 @@ const ScreenReaderText = () => {
               className="sr-only" 
               aria-live="assertive" 
               role="alert"
+              aria-atomic="true"
             >
               {`${pageTitle}에 있습니다. 텍스트가 ${rotationAngle}도 회전되어 있습니다. 화면을 돌려 설명을 들어보세요.`}
             </div>
@@ -108,6 +109,7 @@ const ScreenReaderText = () => {
               className="sr-only" 
               aria-live="assertive" 
               role="article"
+              aria-atomic="true"
               aria-label={`${pageTitle}의 내용`}
             >
               {getPageContent()}
@@ -126,8 +128,9 @@ const ScreenReaderText = () => {
       return (
         <div 
           className="sr-only" 
-          aria-live="polite" 
+          aria-live="assertive" 
           role="status"
+          aria-atomic="true"
         >
           {getInitialDescription()}
         </div>
@@ -137,11 +140,17 @@ const ScreenReaderText = () => {
   };
 
   return (
-    <>
+    <div 
+      className="sr-only" 
+      aria-live="assertive"
+      role="region"
+      aria-label="스크린 리더 콘텐츠"
+      aria-atomic="true"
+    >
       {renderTutorialText()}
       {renderArtworkText()}
       {renderPageText()}
-    </>
+    </div>
   );
 };
 
