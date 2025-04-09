@@ -220,13 +220,15 @@ const Tutorial = () => {
         )}
 
         <div 
-          className={currentConfig.containerClassName}
+          className="fixed left-1/2 -translate-x-1/2 z-0"
           style={{
             ...currentConfig.style,
-            transform: `rotate(${currentConfig.rotationAngle}deg) translateX(-50%)`,
+            transform: `translate(-50%, -50%) rotate(${currentConfig.rotationAngle}deg)`,
             transformOrigin: 'center center',
             filter: `blur(${blurAmount}px)`,
             transition: 'filter 0.3s ease, transform 0.3s ease, top 0.3s ease',
+            width: currentConfig.style.width,
+            top: '50%'
           }}
         >
           <div className={`p-4 ${currentConfig.bgColor} shadow-lg relative`}>
