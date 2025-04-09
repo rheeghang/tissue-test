@@ -93,6 +93,7 @@
       "textColor": "text-gray-800",
       "style": {
         "top": "30vh",
+        "left": "50vw",
         "width": "320px"
       },
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
@@ -108,7 +109,7 @@
       "textColor": "text-gray-800",
       "style": {
         "top": "50vh",
-        "left": "20%",
+        "left": "50vw",
         "width": "320px"
       },
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
@@ -124,7 +125,7 @@
       "textColor": "text-gray-800",
       "style": {
         "top": "60vh",
-        "left": "-10%",
+        "left": "50vw",
         "width": "320px"
       },
       "containerClassName": "fixed left-1/2 -translate-x-1/2 z-0"
